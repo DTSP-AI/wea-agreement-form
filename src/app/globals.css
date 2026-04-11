@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #e8e6e3;
+  --accent: #22c55e;
+  --accent-dim: #16a34a;
+  --card-bg: #141414;
+  --card-border: #262626;
+  --muted: #737373;
+  --rick-bg: #1a2332;
+  --rick-border: #22c55e;
+  --rick-text: #d1fae5;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-muted: var(--muted);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Signature canvas */
+.signature-canvas {
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #141414;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Rick chat bubble animation */
+@keyframes rick-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+  50% { box-shadow: 0 0 20px 5px rgba(34, 197, 94, 0.2); }
+}
+
+.rick-pulse {
+  animation: rick-pulse 2s ease-in-out infinite;
+}
+
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.float-in {
+  animation: float-in 0.4s ease-out forwards;
+}
+
+/* Print/PDF styles */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; color: black; }
+}
