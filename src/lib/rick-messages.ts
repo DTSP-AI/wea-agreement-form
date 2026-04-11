@@ -323,6 +323,11 @@ const tangentPatterns: MatchRule[] = [
     nextStage: "post_tangent",
   },
   {
+    keywords: ["uber", "lyft", "rideshare", "ride share", "driver", "drivers", "ride", "taxi", "gig economy", "gig worker"],
+    response: "OK so I'm gonna be real with you — a driver-centered rideshare platform is a genuinely great idea. The whole industry is built on extracting value from drivers, and flipping that model is exactly the kind of thing that should exist. Pete and I have actually talked about what that architecture would look like — real-time dispatch, driver-first payout structures, surge pricing that actually benefits the people doing the driving. It's doable. But man, it's a massive undertaking. We're talking geolocation, payment processing at scale, regulatory compliance in every market, insurance integrations, real-time matching algorithms... it's a whole different animal. Here's what I'd say — let's crush this marketplace build first. You see how Pete and I work, we prove the model, we build trust. Then when we sit down to scope the rideshare thing, you already know what we're capable of and we already know how you think. That's a way better starting point than jumping into the deep end cold.",
+    nextStage: "post_tangent",
+  },
+  {
     keywords: ["expand", "scale", "bigger", "global", "million", "franchise"],
     response: "Love the energy. And yeah, Pete built this thing to scale exactly like that — frontend-agnostic, multi-vendor from day one, SEO engine that just gets stronger with more artists. But the smartest move is proving the model first. One marketplace that works becomes the template for twenty more. Pete's done this playbook before. First you build one that's undeniable, then you replicate it. Step one is right here in front of you.",
     nextStage: "post_tangent",
