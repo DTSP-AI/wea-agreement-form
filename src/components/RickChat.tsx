@@ -24,6 +24,7 @@ export default function RickChat() {
   const [showBubble, setShowBubble] = useState(false);
   const [currentStage, setCurrentStage] = useState("opening");
   const [hasInitialized, setHasInitialized] = useState(false);
+  const hasInitializedRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -40,6 +41,7 @@ export default function RickChat() {
     const openTimer = setTimeout(() => {
       setIsOpen(true);
       setHasInitialized(true);
+      hasInitializedRef.current = true;
       // Single opening message — tight, purposeful
       setIsTyping(true);
       setTimeout(() => {
@@ -54,6 +56,51 @@ export default function RickChat() {
       clearTimeout(bubbleTimer);
       clearTimeout(openTimer);
     };
+  }, []);
+
+  // Listen for "ask-rick" custom events from inline section CTAs
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (!detail?.responseKey) return;
+
+      // Open the chat if it's not open
+      setIsOpen(true);
+      if (!hasInitializedRef.current) {
+        setHasInitialized(true);
+        hasInitializedRef.current = true;
+        setMessages([
+          { id: rickOpening[0].id, role: "rick", text: rickOpening[0].text },
+        ]);
+      }
+
+      // Add user's question as a message
+      if (detail.label) {
+        setMessages((prev) => [
+          ...prev,
+          { id: `user-${Date.now()}`, role: "user", text: detail.label },
+        ]);
+      }
+
+      // Trigger Rick's response
+      const response = rickResponses[detail.responseKey];
+      if (!response) return;
+
+      setTimeout(() => {
+        setIsTyping(true);
+        setTimeout(() => {
+          setMessages((prev) => [
+            ...prev,
+            { id: `rick-${Date.now()}`, role: "rick", text: response.text },
+          ]);
+          setCurrentStage(response.nextStage);
+          setIsTyping(false);
+        }, 1400);
+      }, 300);
+    };
+
+    window.addEventListener("ask-rick", handler);
+    return () => window.removeEventListener("ask-rick", handler);
   }, []);
 
   // Handle CTA button click
@@ -128,8 +175,9 @@ export default function RickChat() {
             exit={{ scale: 0, opacity: 0 }}
             onClick={() => {
               setIsOpen(true);
-              if (!hasInitialized) {
+              if (!hasInitializedRef.current) {
                 setHasInitialized(true);
+                hasInitializedRef.current = true;
                 setIsTyping(true);
                 setTimeout(() => {
                   setMessages([

@@ -14,6 +14,7 @@ import {
   DollarSign,
   Globe,
   Database,
+  MessageCircle,
 } from "lucide-react";
 import {
   proposalMeta,
@@ -47,6 +48,34 @@ function Section({
     >
       {children}
     </motion.section>
+  );
+}
+
+function AskRickCTA({
+  label,
+  responseKey,
+}: {
+  label: string;
+  responseKey: string;
+}) {
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 8 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: 0.3, duration: 0.4 }}
+      onClick={() => {
+        window.dispatchEvent(
+          new CustomEvent("ask-rick", {
+            detail: { responseKey, label },
+          })
+        );
+      }}
+      className="no-print mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-900/15 border border-green-800/25 text-green-400 text-xs hover:bg-green-800/25 hover:border-green-700/40 transition-all cursor-pointer group"
+    >
+      <MessageCircle className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+      <span>{label}</span>
+    </motion.button>
   );
 }
 
@@ -161,6 +190,10 @@ export default function ProposalContent() {
               </div>
             ))}
           </div>
+          <AskRickCTA
+            label="Ask Rick why we don't wait for GoDaddy"
+            responseKey="section_parallel"
+          />
         </div>
       </Section>
 
@@ -250,6 +283,10 @@ export default function ProposalContent() {
               a plug. We build the engine.
             </p>
           </div>
+          <AskRickCTA
+            label="Ask Rick what this means for my business"
+            responseKey="section_comparison"
+          />
         </div>
       </Section>
 
@@ -301,6 +338,10 @@ export default function ProposalContent() {
               platform and hands you the keys.
             </p>
           </div>
+          <AskRickCTA
+            label="Ask Rick how the SEO engine actually works"
+            responseKey="section_seo"
+          />
         </div>
       </Section>
 
@@ -319,6 +360,10 @@ export default function ProposalContent() {
             independently from day one — it doesn&apos;t wait for the storefront.
           </p>
           <ArchitectureDiagram />
+          <AskRickCTA
+            label="Ask Rick to break down the architecture"
+            responseKey="section_architecture"
+          />
         </div>
       </Section>
 
@@ -398,6 +443,10 @@ export default function ProposalContent() {
               </div>
             ))}
           </div>
+          <AskRickCTA
+            label="Ask Rick about the investment"
+            responseKey="section_investment"
+          />
         </div>
       </Section>
     </div>

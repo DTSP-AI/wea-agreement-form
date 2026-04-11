@@ -202,6 +202,30 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     text: "Right, right. Back to the thing at hand. Look — this platform is step one. Pete designed it as a foundation on purpose. Once it's live and proving the model, the next conversation opens up in some really cool directions. But you gotta pour the foundation before you build the treehouse, even if the treehouse is the exciting part. So where were we?",
     nextStage: "post_differentiator",
   },
+
+  // ---- Section-specific "Ask Rick" responses ----
+  // These fire when user clicks the inline CTAs at the bottom of proposal sections
+
+  section_parallel: {
+    text: "Yeah so the parallel tracks thing is a big deal. Most people think they need to wait for one thing to finish before starting the next. But Pete set this up so our build doesn't touch GoDaddy's at all until week 4. That means your SEO engine is cranking out content while GoDaddy's still picking page templates. By the time the storefront's ready, your domain already has authority built up. Pretty smart honestly. Ready to see what GoDaddy can and can't do compared to what we bring?",
+    nextStage: "post_urgency",
+  },
+  section_comparison: {
+    text: "So the comparison table kinda speaks for itself, but the real takeaway is this — GoDaddy is a storefront. We're the intelligence layer that makes a storefront into a marketplace. Consent, payouts, AI listings, ingestion from other platforms... they literally don't offer any of that. And the ownership row at the bottom? That's the big one. With us, you own everything. With GoDaddy, you're renting. Want me to break down the SEO piece? That's where it gets really interesting.",
+    nextStage: "post_godaddy",
+  },
+  section_seo: {
+    text: "The SEO engine is honestly the most underpriced thing in this entire proposal. Pete built a system that generates thousands of targeted articles from one template. What your buyers are actually searching for — 'buy original art online,' 'handmade jewelry near me' — we own those queries before you launch. Agencies charge $3-8K a month for this. You get the engine. You own the engine. It just runs. So the question is — you wanna see how all this fits together architecturally, or you ready to talk numbers?",
+    nextStage: "post_seo",
+  },
+  section_architecture: {
+    text: "The architecture is pretty straightforward when you look at it — GoDaddy on top as the public face, API bridge in the middle, and then everything Pete built underneath. The key thing is that green container is ALL yours. Your servers, your data, your code. And notice the SEO engine at the bottom with the 'Runs Day 1' badge? That thing starts before anything else is even connected. Pete designed it that way on purpose. Ready to talk about the investment and what you get at each phase?",
+    nextStage: "post_phase1",
+  },
+  section_investment: {
+    text: "$14,400 for the whole thing, broken into milestones so you're never paying for something you haven't received. Phase 1 is $3,600 at signing — that's your SEO engine, consent pipeline, and database. Then $1,800 per phase after that. For context, one developer for 12 weeks at normal rates would run you $72K, and you'd get a fraction of what Pete's system delivers. The deposit gets things rolling tomorrow. Literally tomorrow. You wanna go ahead and scroll down to the signature?",
+    nextStage: "post_sign",
+  },
 };
 
 // ============================================================================
