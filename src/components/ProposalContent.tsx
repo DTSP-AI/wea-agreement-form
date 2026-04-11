@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import ArchitectureDiagram from "@/components/ArchitectureDiagram";
 import {
   Zap,
   Shield,
@@ -312,41 +313,12 @@ export default function ProposalContent() {
             </div>
             <h2 className="text-2xl font-bold">Architecture</h2>
           </div>
-          <div className="bg-[#141414] border border-[#262626] rounded-2xl p-8 font-mono text-sm">
-            <pre className="text-center text-zinc-300 whitespace-pre leading-relaxed overflow-x-auto">
-{`┌─────────────────────────────────────────┐
-│          GoDaddy Storefront             │
-│     (WooCommerce · Public Face)         │
-└──────────────────┬──────────────────────┘
-                   │  REST API
-┌──────────────────▼──────────────────────┐
-│           DTSP-AI Platform              │
-│  ┌─────────────────────────────────┐    │
-│  │   AI Agent Layer (Claude)       │    │
-│  │   • Listing Enhancement         │    │
-│  │   • Consent Pipeline            │    │
-│  │   • CRM Supervisor              │    │
-│  └─────────────┬───────────────────┘    │
-│  ┌─────────────▼───────────────────┐    │
-│  │   Data Layer                    │    │
-│  │   • PostgreSQL (Source of Truth) │    │
-│  │   • Stripe Connect (Payouts)    │    │
-│  │   • GoHighLevel (CRM)           │    │
-│  └─────────────┬───────────────────┘    │
-│  ┌─────────────▼───────────────────┐    │
-│  │   SEO Engine (Independent)      │    │
-│  │   • Article Generator           │    │
-│  │   • Domain Auth (DKIM/SPF)      │    │
-│  │   • Authority Builder           │    │
-│  └─────────────────────────────────┘    │
-└─────────────────────────────────────────┘`}
-            </pre>
-          </div>
-          <p className="text-zinc-400 text-sm text-center">
+          <p className="text-zinc-400 text-sm">
             GoDaddy sits at the top as the public face. Everything below the API
             bridge is DTSP-AI&apos;s owned infrastructure. The SEO Engine runs
-            independently from day one.
+            independently from day one — it doesn&apos;t wait for the storefront.
           </p>
+          <ArchitectureDiagram />
         </div>
       </Section>
 
