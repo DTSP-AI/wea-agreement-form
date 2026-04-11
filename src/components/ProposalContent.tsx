@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Zap,
@@ -12,10 +11,8 @@ import {
   ArrowRight,
   Clock,
   DollarSign,
-  Search,
   Globe,
   Database,
-  Users,
 } from "lucide-react";
 import {
   proposalMeta,
@@ -23,10 +20,6 @@ import {
   phases,
   seoSteps,
 } from "@/lib/proposal-data";
-
-interface ProposalContentProps {
-  onSectionChange: (section: string) => void;
-}
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 30 },
@@ -36,34 +29,14 @@ const sectionVariants = {
 function Section({
   id,
   children,
-  onSectionChange,
   className = "",
 }: {
   id: string;
   children: React.ReactNode;
-  onSectionChange: (s: string) => void;
   className?: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          onSectionChange(id);
-        }
-      },
-      { threshold: 0.3 }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [id, onSectionChange]);
-
   return (
     <motion.section
-      ref={ref}
       id={id}
       variants={sectionVariants}
       initial="hidden"
@@ -76,13 +49,11 @@ function Section({
   );
 }
 
-export default function ProposalContent({
-  onSectionChange,
-}: ProposalContentProps) {
+export default function ProposalContent() {
   return (
     <div className="max-w-4xl mx-auto px-6 pb-12 space-y-16" id="proposal-content">
       {/* Hero */}
-      <Section id="hero" onSectionChange={onSectionChange} className="pt-8">
+      <Section id="hero" className="pt-8">
         <div className="text-center space-y-6">
           <div className="inline-block px-4 py-1.5 rounded-full bg-green-900/30 border border-green-800/40 text-green-400 text-xs tracking-wider uppercase">
             Confidential — {proposalMeta.date}
@@ -119,7 +90,7 @@ export default function ProposalContent({
       </Section>
 
       {/* Start Now */}
-      <Section id="parallel" onSectionChange={onSectionChange}>
+      <Section id="parallel">
         <div className="bg-gradient-to-br from-[#141414] to-[#1a1a0a] border border-yellow-900/30 rounded-2xl p-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-yellow-900/30 flex items-center justify-center">
@@ -193,7 +164,7 @@ export default function ProposalContent({
       </Section>
 
       {/* Comparison Table */}
-      <Section id="comparison" onSectionChange={onSectionChange}>
+      <Section id="comparison">
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-green-900/30 flex items-center justify-center">
@@ -282,7 +253,7 @@ export default function ProposalContent({
       </Section>
 
       {/* SEO Engine */}
-      <Section id="seo" onSectionChange={onSectionChange}>
+      <Section id="seo">
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-purple-900/30 flex items-center justify-center">
@@ -333,7 +304,7 @@ export default function ProposalContent({
       </Section>
 
       {/* Architecture */}
-      <Section id="architecture" onSectionChange={onSectionChange}>
+      <Section id="architecture">
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-900/30 flex items-center justify-center">
@@ -380,7 +351,7 @@ export default function ProposalContent({
       </Section>
 
       {/* Phases */}
-      <Section id="investment" onSectionChange={onSectionChange}>
+      <Section id="investment">
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-green-900/30 flex items-center justify-center">

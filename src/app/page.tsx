@@ -12,14 +12,9 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
 });
 
 export default function Home() {
-  const [activeSection, setActiveSection] = useState("hero");
   const [signatureComplete, setSignatureComplete] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-
-  const handleSectionChange = useCallback((section: string) => {
-    setActiveSection(section);
-  }, []);
 
   const handleSignatureComplete = useCallback(() => {
     setSignatureComplete(true);
@@ -132,7 +127,7 @@ export default function Home() {
 
       {/* Main content */}
       <div ref={contentRef}>
-        <ProposalContent onSectionChange={handleSectionChange} />
+        <ProposalContent />
         <SignaturePanel onSignatureComplete={handleSignatureComplete} />
         {signatureComplete && (
           <div id="payment-section">
@@ -146,7 +141,7 @@ export default function Home() {
 
       {/* Rick */}
       <div data-rick-chat>
-        <RickChat activeSection={activeSection} />
+        <RickChat />
       </div>
 
       {/* Footer */}
