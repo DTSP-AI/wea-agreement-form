@@ -1,14 +1,14 @@
 export const proposalMeta = {
   preparedFor: "Whole Earth Advertising",
   preparedBy: "DTSP-AI Technologies",
-  contact: "pete@deal-whisper.com",
+  contact: "combatperformfit@gmail.com",
   projectTerm: "12 Weeks — 4 Phases",
   investmentAtSigning: "$3,600",
   perMilestone: "$1,800",
   totalValue: "$14,400",
   date: "April 2026",
   clientName: "Alanson",
-  zelleEmail: "dtspdigitalmedia@gmail.com",
+  zelleEmail: "combatperformfit@gmail.com",
 };
 
 export const comparisonTable = [

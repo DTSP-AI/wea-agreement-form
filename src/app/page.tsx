@@ -148,7 +148,7 @@ export default function Home() {
       <footer className="border-t border-[#1a1a1a] py-8 text-center">
         <p className="text-xs text-zinc-600">
           Confidential — DTSP-AI Technologies &middot; {proposalMeta.date}
-          &middot; pete@deal-whisper.com
+          &middot; {proposalMeta.contact}
         </p>
       </footer>
     </div>

@@ -131,7 +131,7 @@ export default function PaymentPanel({
                 step: 3,
                 icon: Check,
                 title: "We Start",
-                desc: "Pete confirms receipt and Phase 1 kicks off immediately",
+                desc: "Peter confirms receipt and Phase 1 kicks off immediately",
               },
             ].map((item) => (
               <div
