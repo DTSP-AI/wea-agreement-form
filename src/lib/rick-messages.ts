@@ -207,7 +207,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
   // These fire when user clicks the inline CTAs at the bottom of proposal sections
 
   section_parallel: {
-    text: "Yeah so the parallel tracks thing is a big deal. Most people think they need to wait for one thing to finish before starting the next. But Rick set this up so our build doesn't touch GoDaddy's at all until week 4. That means your SEO engine is cranking out content while GoDaddy's still picking page templates. By the time the storefront's ready, your domain already has authority built up. Pretty smart honestly. Ready to see what GoDaddy can and can't do compared to what we bring?",
+    text: "Yeah so the parallel tracks thing is a big deal. Most people think they need to wait for one thing to finish before starting the next. But Rick set this up so our build doesn't touch GoDaddy's at all until week 5, when the WooCommerce milestone wires everything together. That means your SEO engine is cranking out content while GoDaddy's still picking page templates. By the time the storefront's ready, your domain already has authority built up. Pretty smart honestly. Ready to see what GoDaddy can and can't do compared to what we bring?",
     nextStage: "post_urgency",
   },
   section_comparison: {
@@ -219,11 +219,11 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_seo",
   },
   section_architecture: {
-    text: "The architecture is pretty straightforward when you look at it — GoDaddy on top as the public face, API bridge in the middle, and then everything Rick built underneath. The key thing is that green container is ALL yours. Your servers, your data, your code. And notice the SEO engine at the bottom with the 'Runs Day 1' badge? That thing starts before anything else is even connected. Rick designed it that way on purpose. Ready to talk about the investment and what you get at each phase?",
+    text: "The architecture is pretty straightforward when you look at it — GoDaddy on top as the public face, API bridge in the middle, and then everything Rick built underneath. The key thing is that green container is ALL yours. Your servers, your data, your code. And notice the SEO engine at the bottom with the 'Runs Day 1' badge? That thing starts before anything else is even connected. Rick designed it that way on purpose. Ready to talk about the investment and what you get at each milestone?",
     nextStage: "post_phase1",
   },
   section_investment: {
-    text: "$14,400 for the whole thing, broken into milestones so you're never paying for something you haven't received. $3,600 at signing kicks off the foundation — database, consent pipeline, auth. Then $1,800 per milestone after that, six of them total. For context, one developer for 12 weeks at normal rates would run you $72K, and you'd get a fraction of what Rick's system delivers. The deposit gets things rolling tomorrow. Literally tomorrow. You wanna go ahead and scroll down to the signature?",
+    text: "$14,400 for the whole thing, broken up so you're never paying for something you haven't received. $3,600 deposit at signing gets the build rolling — that kicks off the foundation milestone: database, consent pipeline, auth. Then $1,800 on delivery of each milestone, six of them across twelve weeks. 3,600 plus 1,800 times six equals fourteen-four — the math is clean. For context, one developer for 12 weeks at normal rates would run you $72K, and you'd get a fraction of what Rick's system delivers. You wanna go ahead and scroll down to the signature?",
     nextStage: "post_sign",
   },
 };
