@@ -392,7 +392,7 @@ export default function ProposalContent() {
                 <div className="text-green-300 font-bold text-xl">
                   {proposalMeta.perMilestone}
                 </div>
-                <div className="text-green-500 text-sm">Per milestone (x4)</div>
+                <div className="text-green-500 text-sm">Per milestone (x6)</div>
               </div>
               <div className="text-zinc-600 text-2xl">=</div>
               <div>
