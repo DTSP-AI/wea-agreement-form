@@ -191,7 +191,7 @@ export default function SignaturePanel({
 
         <div className="p-8">
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Rick's side — pre-filled */}
+            {/* Pete's side — pre-filled */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-green-400 uppercase tracking-wider">
                 DTSP-AI Technologies
@@ -200,7 +200,7 @@ export default function SignaturePanel({
                 <div>
                   <label className="text-xs text-zinc-500">Name</label>
                   <div className="bg-[#0d0d0d] border border-[#262626] rounded-lg px-4 py-2.5 text-white text-sm">
-                    Rick Sanchez
+                    Peter W Davidsmeier
                   </div>
                 </div>
                 <div>
@@ -213,7 +213,7 @@ export default function SignaturePanel({
                   <label className="text-xs text-zinc-500">Signature</label>
                   <div className="bg-[#0d0d0d] border border-[#262626] rounded-lg px-4 py-4 flex items-center justify-center">
                     <span className="text-green-400 italic text-2xl font-serif">
-                      Rick Sanchez
+                      Peter W Davidsmeier
                     </span>
                   </div>
                 </div>
