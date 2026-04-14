@@ -135,7 +135,7 @@ export default function ProposalContent() {
             one piece to finish before starting another. GoDaddy building the
             storefront has zero overlap with what DTSP-AI builds. The database,
             the agent layer, the consent pipeline, the payout engine, the SEO
-            infrastructure — none of it touches the storefront until Phase 2.
+            infrastructure — none of it touches the storefront until the WooCommerce milestone.
           </p>
 
           <div className="bg-yellow-950/30 border border-yellow-800/30 rounded-xl p-5 mb-6">

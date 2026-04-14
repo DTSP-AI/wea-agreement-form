@@ -191,7 +191,7 @@ export default function SignaturePanel({
 
         <div className="p-8">
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Pete's side — pre-filled */}
+            {/* Rick's side — pre-filled */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-green-400 uppercase tracking-wider">
                 DTSP-AI Technologies
@@ -200,7 +200,7 @@ export default function SignaturePanel({
                 <div>
                   <label className="text-xs text-zinc-500">Name</label>
                   <div className="bg-[#0d0d0d] border border-[#262626] rounded-lg px-4 py-2.5 text-white text-sm">
-                    Peter W Davidsmeier
+                    Rick Sanchez
                   </div>
                 </div>
                 <div>
@@ -213,7 +213,7 @@ export default function SignaturePanel({
                   <label className="text-xs text-zinc-500">Signature</label>
                   <div className="bg-[#0d0d0d] border border-[#262626] rounded-lg px-4 py-4 flex items-center justify-center">
                     <span className="text-green-400 italic text-2xl font-serif">
-                      Peter W Davidsmeier
+                      Rick Sanchez
                     </span>
                   </div>
                 </div>
@@ -336,9 +336,9 @@ export default function SignaturePanel({
               </div>
               <span className="text-sm text-zinc-300 leading-relaxed">
                 I, the undersigned, agree to the terms of this proposal
-                including the project scope, timeline of 12 weeks across 4
-                phases, and the investment of $3,600 at signing plus $1,800 per
-                milestone ($14,400 total). I understand that DTSP-AI
+                including the project scope, timeline of 12 weeks across 6
+                milestones, and the investment of $3,600 at signing plus $1,800
+                per milestone ($14,400 total). I understand that DTSP-AI
                 Technologies will begin work upon receipt of the initial deposit
                 and that all deliverables remain the property of Whole Earth
                 Advertising upon payment.
