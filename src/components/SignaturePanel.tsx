@@ -227,7 +227,7 @@ export default function SignaturePanel({
               </div>
             </div>
 
-            {/* Client side — Alanson */}
+            {/* Client side — Alanson Charles */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-green-400 uppercase tracking-wider">
                 Whole Earth Advertising
@@ -244,7 +244,7 @@ export default function SignaturePanel({
                         clientName: e.target.value,
                       }))
                     }
-                    placeholder="Alanson"
+                    placeholder="Alanson Charles"
                     className="w-full bg-[#0d0d0d] border border-[#262626] focus:border-green-600 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors placeholder-zinc-600"
                   />
                 </div>

@@ -7,7 +7,7 @@ export const proposalMeta = {
   perMilestone: "$1,800",
   totalValue: "$14,400",
   date: "April 2026",
-  clientName: "Alanson",
+  clientName: "Alanson Charles",
   zelleEmail: "combatperformfit@gmail.com",
 };
 
