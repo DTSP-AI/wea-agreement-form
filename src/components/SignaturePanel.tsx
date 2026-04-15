@@ -32,13 +32,24 @@ export default function SignaturePanel({
     clientName: "",
     clientTitle: "",
     clientSignature: null,
-    clientDate: new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }),
+    clientDate: "",
     agreedToTerms: false,
   });
+
+  // Initialize date on client only (prevents SSR hydration mismatch)
+  useEffect(() => {
+    setFormData((prev) => {
+      if (prev.clientDate) return prev;
+      return {
+        ...prev,
+        clientDate: new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+      };
+    });
+  }, []);
 
   // Load from localStorage
   useEffect(() => {
