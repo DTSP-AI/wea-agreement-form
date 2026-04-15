@@ -390,7 +390,9 @@ export default function ProposalContent({ plan = planB }: { plan?: Plan }) {
                 <div className="text-green-300 font-bold text-xl">
                   {proposalMeta.perMilestone}
                 </div>
-                <div className="text-green-500 text-sm">Per milestone (x{proposalMeta.milestoneCount})</div>
+                <div className="text-green-500 text-sm">
+                  Per milestone (x{proposalMeta.milestoneCount}, every 2 weeks)
+                </div>
               </div>
               <div className="text-zinc-600 text-2xl">=</div>
               <div>
@@ -400,6 +402,31 @@ export default function ProposalContent({ plan = planB }: { plan?: Plan }) {
                 <div className="text-green-500 text-sm">Total project value</div>
               </div>
             </div>
+            <div className="mt-3 pt-3 border-t border-green-900/30 text-center">
+              <div className="text-green-400/80 text-xs font-mono">
+                {proposalMeta.investmentAtSigning} +{" "}
+                ({proposalMeta.milestoneCount} × {proposalMeta.perMilestone}) ={" "}
+                {proposalMeta.totalValue}
+              </div>
+              <div className="text-green-500/70 text-[11px] mt-1">
+                6 milestone meetings across the 12-week term — one every two weeks.
+              </div>
+            </div>
+          </div>
+
+          {/* Infra / usage disclaimer */}
+          <div className="bg-yellow-950/20 border border-yellow-800/30 rounded-xl p-4 mb-2">
+            <div className="text-yellow-300 text-xs font-semibold uppercase tracking-wider mb-1">
+              Not included in this price
+            </div>
+            <p className="text-yellow-200/90 text-xs leading-relaxed">
+              Infrastructure overhead is billed at cost and passed through
+              separately — AWS (or equivalent) hosting, database, object
+              storage, bandwidth, and third-party API / LLM token usage
+              (Claude, OpenAI, Stripe, GoHighLevel, etc.). DTSP-AI does not
+              mark these up. Expect a modest, usage-based monthly bill once
+              production traffic is flowing.
+            </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">

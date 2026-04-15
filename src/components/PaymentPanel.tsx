@@ -48,7 +48,8 @@ export default function PaymentPanel({
           </h2>
           <p className="text-zinc-400 text-sm mt-2">
             Send your initial deposit via Zelle to lock in your project start
-            date. Work begins the day payment is received.
+            date. Work begins the day payment is received. Six milestone
+            payments of {proposalMeta.perMilestone} follow every two weeks.
           </p>
         </div>
 
@@ -109,7 +110,7 @@ export default function PaymentPanel({
                   Memo / Note
                 </div>
                 <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 text-sm">
-                  WEA Platform — Phase 1 Deposit
+                  WEA Platform — Milestone 1 Deposit
                 </div>
               </div>
             </div>
@@ -134,7 +135,7 @@ export default function PaymentPanel({
                 step: 3,
                 icon: Check,
                 title: "We Start",
-                desc: "Peter confirms receipt and Phase 1 kicks off immediately",
+                desc: "Peter confirms receipt and Milestone 1 kicks off immediately",
               },
             ].map((item) => (
               <div
