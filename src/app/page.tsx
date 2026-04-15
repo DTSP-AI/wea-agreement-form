@@ -189,7 +189,10 @@ export default function Home() {
             </motion.div>
           </AnimatePresence>
         </div>
-        <SignaturePanel onSignatureComplete={handleSignatureComplete} />
+        <SignaturePanel
+          onSignatureComplete={handleSignatureComplete}
+          plan={activePlan}
+        />
         {signatureComplete && (
           <div id="payment-section">
             <PaymentPanel

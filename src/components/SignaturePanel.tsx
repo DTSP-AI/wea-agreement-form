@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Pen, RotateCcw, Check, Calendar } from "lucide-react";
+import { planB, type Plan } from "@/lib/proposal-data";
 
 interface SignatureData {
   clientName: string;
@@ -14,13 +15,16 @@ interface SignatureData {
 
 interface SignaturePanelProps {
   onSignatureComplete: (data: SignatureData) => void;
+  plan?: Plan;
 }
 
 const STORAGE_KEY = "wea-signature-data";
 
 export default function SignaturePanel({
   onSignatureComplete,
+  plan = planB,
 }: SignaturePanelProps) {
+  const { meta: proposalMeta } = plan;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
@@ -335,13 +339,21 @@ export default function SignaturePanel({
                 </div>
               </div>
               <span className="text-sm text-zinc-300 leading-relaxed">
-                I, the undersigned, agree to the terms of this proposal
-                including the project scope, timeline of 12 weeks across 6
-                milestones, and the investment of $3,600 at signing plus $1,800
-                per milestone ($14,400 total). I understand that DTSP-AI
-                Technologies will begin work upon receipt of the initial deposit
-                and that all deliverables remain the property of Whole Earth
-                Advertising upon payment.
+                I, the undersigned, agree to the terms of{" "}
+                <span className="text-green-400 font-semibold">
+                  {plan.name} — {plan.tagline}
+                </span>
+                , including the project scope, a timeline of 12 weeks across 6
+                milestones (one milestone meeting every 2 weeks), and the
+                investment of {proposalMeta.investmentAtSigning} at signing
+                plus {proposalMeta.perMilestone} per milestone for 6 milestones
+                ({proposalMeta.totalValue} total). Infrastructure costs (AWS
+                hosting, database, bandwidth) and third-party API / LLM token
+                usage (Claude, OpenAI, Stripe, GoHighLevel, etc.) are pass-through
+                at cost and billed separately from this total. I understand that
+                DTSP-AI Technologies will begin work upon receipt of the initial
+                deposit and that all deliverables remain the property of Whole
+                Earth Advertising upon payment.
               </span>
             </label>
           </div>
