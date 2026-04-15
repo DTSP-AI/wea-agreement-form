@@ -3,7 +3,7 @@
 //
 // Both plans run 12 weeks with 6 milestones, one milestone every 2 weeks.
 // Math:
-//   Plan A: $4,800 at signing + (6 × $2,400) = $4,800 + $14,400 = $19,200
+//   Plan A: $4,400 at signing + (6 × $2,000) = $4,400 + $12,000 = $16,400
 //   Plan B: $3,600 at signing + (6 × $1,800) = $3,600 + $10,800 = $14,400
 
 export type PlanId = "A" | "B";
@@ -70,10 +70,10 @@ export const planA: Plan = {
   meta: {
     ...sharedMeta,
     projectTerm: "12 Weeks — 6 Milestones",
-    investmentAtSigning: "$4,800",
-    perMilestone: "$2,400",
+    investmentAtSigning: "$4,400",
+    perMilestone: "$2,000",
     milestoneCount: 6,
-    totalValue: "$19,200",
+    totalValue: "$16,400",
   },
   comparisonHeading: "What A Platform Host Gives You. What We Build Instead.",
   comparisonColumnLabel: "Platform Host",
@@ -151,7 +151,7 @@ export const planA: Plan = {
         "Next.js app scaffolding + design system",
         "Artist consent pipeline with e-sign",
       ],
-      milestone: "$2,400",
+      milestone: "$2,000",
     },
     {
       number: 2,
@@ -163,7 +163,7 @@ export const planA: Plan = {
         "SEO article generator engine",
         "Domain auth (DKIM, SPF, DMARC)",
       ],
-      milestone: "$2,400",
+      milestone: "$2,000",
     },
     {
       number: 3,
@@ -175,7 +175,7 @@ export const planA: Plan = {
         "Order webhook testing & reconciliation",
         "Payment confirmation flows",
       ],
-      milestone: "$2,400",
+      milestone: "$2,000",
     },
     {
       number: 4,
@@ -187,7 +187,7 @@ export const planA: Plan = {
         "CRM integration (GoHighLevel)",
         "Normalization pipelines",
       ],
-      milestone: "$2,400",
+      milestone: "$2,000",
     },
     {
       number: 5,
@@ -199,7 +199,7 @@ export const planA: Plan = {
         "Onboarding flow (consent → listing)",
         "Automated payout testing (80/20 split)",
       ],
-      milestone: "$2,400",
+      milestone: "$2,000",
     },
     {
       number: 6,
@@ -211,7 +211,7 @@ export const planA: Plan = {
         "Analytics dashboard & documentation",
         "Handoff & training session",
       ],
-      milestone: "$2,400",
+      milestone: "$2,000",
     },
   ],
 };
