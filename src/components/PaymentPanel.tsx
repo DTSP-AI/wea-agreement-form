@@ -11,24 +11,27 @@ import {
   Mail,
   Smartphone,
 } from "lucide-react";
-import { proposalMeta } from "@/lib/proposal-data";
+import { planB, type Plan } from "@/lib/proposal-data";
 
 interface PaymentPanelProps {
   onExportPDF: () => void;
   isExporting: boolean;
+  plan?: Plan;
 }
 
 export default function PaymentPanel({
   onExportPDF,
   isExporting,
+  plan = planB,
 }: PaymentPanelProps) {
+  const proposalMeta = plan.meta;
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
     await navigator.clipboard.writeText(proposalMeta.zelleEmail);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, []);
+  }, [proposalMeta.zelleEmail]);
 
   return (
     <motion.div
@@ -124,7 +127,7 @@ export default function PaymentPanel({
               {
                 step: 2,
                 icon: DollarSign,
-                title: "Send $3,600",
+                title: `Send ${proposalMeta.investmentAtSigning}`,
                 desc: `Send to ${proposalMeta.zelleEmail} with memo "WEA Platform"`,
               },
               {

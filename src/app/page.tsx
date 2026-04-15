@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
+import { motion, AnimatePresence } from "framer-motion";
 import ProposalContent from "@/components/ProposalContent";
 import SignaturePanel from "@/components/SignaturePanel";
 import PaymentPanel from "@/components/PaymentPanel";
-import { proposalMeta } from "@/lib/proposal-data";
+import { plans, type PlanId } from "@/lib/proposal-data";
 
 const RickChat = dynamic(() => import("@/components/RickChat"), {
   ssr: false,
@@ -14,7 +15,19 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
 export default function Home() {
   const [signatureComplete, setSignatureComplete] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [activePlanId, setActivePlanId] = useState<PlanId>("B");
+  const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
   const contentRef = useRef<HTMLDivElement>(null);
+  const activePlan = plans[activePlanId];
+
+  const handlePlanSwitch = useCallback(
+    (id: PlanId) => {
+      if (id === activePlanId) return;
+      setSlideDirection(id === "A" ? -1 : 1);
+      setActivePlanId(id);
+    },
+    [activePlanId]
+  );
 
   const handleSignatureComplete = useCallback(() => {
     setSignatureComplete(true);
@@ -123,17 +136,66 @@ export default function Home() {
             ))}
           </nav>
         </div>
+
+        {/* Plan tabs */}
+        <div className="max-w-4xl mx-auto px-6 pb-3">
+          <div className="relative inline-flex bg-[#141414] border border-[#262626] rounded-full p-1 gap-1">
+            {(["A", "B"] as PlanId[]).map((id) => {
+              const isActive = id === activePlanId;
+              return (
+                <button
+                  key={id}
+                  onClick={() => handlePlanSwitch(id)}
+                  className={`relative z-10 px-5 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                    isActive ? "text-black" : "text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="plan-tab-pill"
+                      className="absolute inset-0 bg-green-400 rounded-full"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <span className="relative">
+                    Plan {id} —{" "}
+                    <span className={isActive ? "font-bold" : "font-normal"}>
+                      {plans[id].meta.totalValue}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="text-xs text-zinc-500 mt-2 px-2">
+            {activePlan.tagline}
+          </div>
+        </div>
       </header>
 
       {/* Main content */}
       <div ref={contentRef}>
-        <ProposalContent />
+        <div className="relative overflow-hidden">
+          <AnimatePresence mode="wait" custom={slideDirection}>
+            <motion.div
+              key={activePlanId}
+              custom={slideDirection}
+              initial={{ x: slideDirection * 60, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: slideDirection * -60, opacity: 0 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
+            >
+              <ProposalContent plan={activePlan} />
+            </motion.div>
+          </AnimatePresence>
+        </div>
         <SignaturePanel onSignatureComplete={handleSignatureComplete} />
         {signatureComplete && (
           <div id="payment-section">
             <PaymentPanel
               onExportPDF={handleExportPDF}
               isExporting={isExporting}
+              plan={activePlan}
             />
           </div>
         )}
@@ -147,8 +209,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-[#1a1a1a] py-8 text-center">
         <p className="text-xs text-zinc-600">
-          Confidential — DTSP-AI Technologies &middot; {proposalMeta.date}
-          &middot; {proposalMeta.contact}
+          Confidential — DTSP-AI Technologies &middot; {activePlan.meta.date}
+          &middot; {activePlan.meta.contact}
         </p>
       </footer>
     </div>

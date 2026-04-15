@@ -1,144 +1,379 @@
-export const proposalMeta = {
+// Plan A = Full-stack build (DTSP-AI builds custom frontend + intelligence layer)
+// Plan B = Intelligence layer only (GoDaddy handles the storefront)
+//
+// Both plans run 12 weeks with 6 milestones, one milestone every 2 weeks.
+// Math:
+//   Plan A: $4,800 at signing + (6 × $2,400) = $4,800 + $14,400 = $19,200
+//   Plan B: $3,600 at signing + (6 × $1,800) = $3,600 + $10,800 = $14,400
+
+export type PlanId = "A" | "B";
+
+export interface ProposalMeta {
+  preparedFor: string;
+  preparedBy: string;
+  contact: string;
+  projectTerm: string;
+  investmentAtSigning: string;
+  perMilestone: string;
+  milestoneCount: number;
+  totalValue: string;
+  date: string;
+  clientName: string;
+  zelleEmail: string;
+}
+
+export interface ComparisonRow {
+  capability: string;
+  godaddy: string;
+  dtsp: string;
+}
+
+export interface Phase {
+  number: number;
+  title: string;
+  weeks: string;
+  deliverables: string[];
+  milestone: string;
+}
+
+export interface Plan {
+  id: PlanId;
+  name: string;
+  tagline: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  meta: ProposalMeta;
+  comparisonTable: ComparisonRow[];
+  phases: Phase[];
+  comparisonHeading: string;
+  comparisonColumnLabel: string;
+  showParallelSection: boolean;
+}
+
+const sharedMeta = {
   preparedFor: "Whole Earth Advertising",
   preparedBy: "DTSP-AI Technologies",
   contact: "combatperformfit@gmail.com",
-  projectTerm: "12 Weeks — 6 Milestones",
-  investmentAtSigning: "$3,600",
-  perMilestone: "$1,800",
-  totalValue: "$14,400",
   date: "April 2026",
   clientName: "Alanson Charles",
   zelleEmail: "combatperformfit@gmail.com",
 };
 
-export const comparisonTable = [
-  {
-    capability: "Public storefront",
-    godaddy: "Yes — fast, well-designed",
-    dtsp: "Yes — or connect to yours",
+// ---------- PLAN A: Full-Stack Build (frontend included) ----------
+export const planA: Plan = {
+  id: "A",
+  name: "Plan A",
+  tagline: "Full-Stack Build — We Build The Whole Thing",
+  heroTitle: "Artist Marketplace Platform — Full-Stack",
+  heroSubtitle:
+    "End-to-end build. Custom Next.js storefront, checkout, and admin dashboard — on top of the full AI-powered marketplace infrastructure. You own every pixel and every service. No GoDaddy middleman.",
+  meta: {
+    ...sharedMeta,
+    projectTerm: "12 Weeks — 6 Milestones",
+    investmentAtSigning: "$4,800",
+    perMilestone: "$2,400",
+    milestoneCount: 6,
+    totalValue: "$19,200",
   },
-  {
-    capability: "Multi-vendor marketplace",
-    godaddy: "No — single account only",
-    dtsp: "Yes — core purpose",
-  },
-  {
-    capability: "Artist consent + e-sign",
-    godaddy: "No mechanism exists",
-    dtsp: "Yes — full pipeline",
-  },
-  {
-    capability: "Etsy / Shopify ingestion",
-    godaddy: "Syncs TO those, not FROM them",
-    dtsp: "Yes — OAuth pull, normalized",
-  },
-  {
-    capability: "AI listing enhancement",
-    godaddy: "Template descriptions only",
-    dtsp: "Yes — Claude Sonnet agent",
-  },
-  {
-    capability: "80/20 split payouts",
-    godaddy: "No — one bank account only",
-    dtsp: "Yes — Stripe Connect, automatic",
-  },
-  {
-    capability: "SEO content engine",
-    godaddy: "Basic meta tools",
-    dtsp: "Yes — thousands of articles",
-  },
-  {
-    capability: "Domain authority building",
-    godaddy: "Manual — slow",
-    dtsp: "Yes — automated at scale",
-  },
-  {
-    capability: "CRM sync",
-    godaddy: "No",
-    dtsp: "Yes — GoHighLevel via Supervisor",
-  },
-  {
-    capability: "You own everything",
-    godaddy: "No — GoDaddy is the platform",
-    dtsp: "Yes — your servers, your data",
-  },
-  {
-    capability: "Frontend flexibility",
-    godaddy: "Locked to GoDaddy ecosystem",
-    dtsp: "Any frontend. Always.",
-  },
-];
+  comparisonHeading: "What A Platform Host Gives You. What We Build Instead.",
+  comparisonColumnLabel: "Platform Host",
+  showParallelSection: false,
+  comparisonTable: [
+    {
+      capability: "Public storefront",
+      godaddy: "Template-locked, rented",
+      dtsp: "Custom Next.js build — you own the code",
+    },
+    {
+      capability: "Checkout & cart UX",
+      godaddy: "Generic, no artist context",
+      dtsp: "Custom — artist-aware, branded end-to-end",
+    },
+    {
+      capability: "Multi-vendor marketplace",
+      godaddy: "No — single account only",
+      dtsp: "Yes — core architecture",
+    },
+    {
+      capability: "Artist consent + e-sign",
+      godaddy: "No mechanism exists",
+      dtsp: "Yes — full pipeline",
+    },
+    {
+      capability: "Admin + artist dashboards",
+      godaddy: "Basic store admin only",
+      dtsp: "Custom role-based dashboards",
+    },
+    {
+      capability: "Etsy / Shopify ingestion",
+      godaddy: "Syncs TO those, not FROM them",
+      dtsp: "Yes — OAuth pull, normalized",
+    },
+    {
+      capability: "AI listing enhancement",
+      godaddy: "Template descriptions only",
+      dtsp: "Yes — Claude Sonnet agent",
+    },
+    {
+      capability: "80/20 split payouts",
+      godaddy: "No — one bank account only",
+      dtsp: "Yes — Stripe Connect, automatic",
+    },
+    {
+      capability: "SEO content engine",
+      godaddy: "Basic meta tools",
+      dtsp: "Yes — thousands of articles",
+    },
+    {
+      capability: "Domain authority building",
+      godaddy: "Manual — slow",
+      dtsp: "Yes — automated at scale",
+    },
+    {
+      capability: "CRM sync",
+      godaddy: "No",
+      dtsp: "Yes — GoHighLevel via Supervisor",
+    },
+    {
+      capability: "You own everything",
+      godaddy: "No — you rent the platform",
+      dtsp: "Yes — source code, servers, data",
+    },
+  ],
+  phases: [
+    {
+      number: 1,
+      title: "Foundation & Frontend Scaffolding",
+      weeks: "Weeks 1–2",
+      deliverables: [
+        "Database schema design & deployment",
+        "Auth, roles & tenant scaffolding",
+        "Next.js app scaffolding + design system",
+        "Artist consent pipeline with e-sign",
+      ],
+      milestone: "$2,400",
+    },
+    {
+      number: 2,
+      title: "Storefront & SEO Infrastructure",
+      weeks: "Weeks 3–4",
+      deliverables: [
+        "Custom product listing pages",
+        "Artist profile pages",
+        "SEO article generator engine",
+        "Domain auth (DKIM, SPF, DMARC)",
+      ],
+      milestone: "$2,400",
+    },
+    {
+      number: 3,
+      title: "Cart, Checkout & Stripe Connect",
+      weeks: "Weeks 5–6",
+      deliverables: [
+        "Custom cart + checkout UX",
+        "Stripe Connect payout engine",
+        "Order webhook testing & reconciliation",
+        "Payment confirmation flows",
+      ],
+      milestone: "$2,400",
+    },
+    {
+      number: 4,
+      title: "Marketplace Ingestion & AI",
+      weeks: "Weeks 7–8",
+      deliverables: [
+        "Etsy/Shopify OAuth ingestion agents",
+        "AI listing enhancement (Claude Sonnet)",
+        "CRM integration (GoHighLevel)",
+        "Normalization pipelines",
+      ],
+      milestone: "$2,400",
+    },
+    {
+      number: 5,
+      title: "Dashboards & Artist Onboarding",
+      weeks: "Weeks 9–10",
+      deliverables: [
+        "Admin console for marketplace management",
+        "Artist dashboard (listings, payouts, analytics)",
+        "Onboarding flow (consent → listing)",
+        "Automated payout testing (80/20 split)",
+      ],
+      milestone: "$2,400",
+    },
+    {
+      number: 6,
+      title: "Launch & Scale",
+      weeks: "Weeks 11–12",
+      deliverables: [
+        "Production deployment & monitoring",
+        "Load testing & optimization",
+        "Analytics dashboard & documentation",
+        "Handoff & training session",
+      ],
+      milestone: "$2,400",
+    },
+  ],
+};
 
-export const phases = [
-  {
-    number: 1,
-    title: "Foundation",
-    weeks: "Weeks 1–2",
-    deliverables: [
-      "Database schema design & deployment",
-      "Artist consent pipeline with e-sign",
-      "Auth, roles & tenant scaffolding",
-    ],
-    milestone: "$1,800",
+// ---------- PLAN B: Intelligence Layer only (GoDaddy for frontend) ----------
+export const planB: Plan = {
+  id: "B",
+  name: "Plan B",
+  tagline: "Intelligence Layer — GoDaddy Builds The Storefront",
+  heroTitle: "Artist Marketplace Platform",
+  heroSubtitle:
+    "AI-powered marketplace infrastructure built behind your GoDaddy site — consent management, automated ingestion, split payouts, and an SEO engine that builds domain authority while the platform scales.",
+  meta: {
+    ...sharedMeta,
+    projectTerm: "12 Weeks — 6 Milestones",
+    investmentAtSigning: "$3,600",
+    perMilestone: "$1,800",
+    milestoneCount: 6,
+    totalValue: "$14,400",
   },
-  {
-    number: 2,
-    title: "SEO & Payout Infrastructure",
-    weeks: "Weeks 3–4",
-    deliverables: [
-      "SEO article generator engine",
-      "Domain auth (DKIM, SPF, DMARC)",
-      "Stripe Connect payout engine setup",
-    ],
-    milestone: "$1,800",
-  },
-  {
-    number: 3,
-    title: "WooCommerce Integration",
-    weeks: "Weeks 5–6",
-    deliverables: [
-      "WooCommerce REST API connection",
-      "Product push pipeline",
-      "Order webhook testing & reconciliation",
-    ],
-    milestone: "$1,800",
-  },
-  {
-    number: 4,
-    title: "Marketplace Ingestion & AI",
-    weeks: "Weeks 7–8",
-    deliverables: [
-      "Etsy/Shopify OAuth ingestion agents",
-      "AI listing enhancement (Claude Sonnet)",
-      "CRM integration (GoHighLevel)",
-    ],
-    milestone: "$1,800",
-  },
-  {
-    number: 5,
-    title: "Artist Onboarding",
-    weeks: "Weeks 9–10",
-    deliverables: [
-      "Artist onboarding flow (consent → listing)",
-      "Automated payout testing (80/20 split)",
-      "SEO article publishing pipeline",
-      "Admin console for marketplace management",
-    ],
-    milestone: "$1,800",
-  },
-  {
-    number: 6,
-    title: "Launch & Scale",
-    weeks: "Weeks 11–12",
-    deliverables: [
-      "Production deployment & monitoring",
-      "Load testing & optimization",
-      "Artist support documentation",
-      "Analytics dashboard & handoff",
-    ],
-    milestone: "$1,800",
-  },
-];
+  comparisonHeading: "What GoDaddy Can Do. What We Do.",
+  comparisonColumnLabel: "GoDaddy",
+  showParallelSection: true,
+  comparisonTable: [
+    {
+      capability: "Public storefront",
+      godaddy: "Yes — fast, well-designed",
+      dtsp: "Yes — or connect to yours",
+    },
+    {
+      capability: "Multi-vendor marketplace",
+      godaddy: "No — single account only",
+      dtsp: "Yes — core purpose",
+    },
+    {
+      capability: "Artist consent + e-sign",
+      godaddy: "No mechanism exists",
+      dtsp: "Yes — full pipeline",
+    },
+    {
+      capability: "Etsy / Shopify ingestion",
+      godaddy: "Syncs TO those, not FROM them",
+      dtsp: "Yes — OAuth pull, normalized",
+    },
+    {
+      capability: "AI listing enhancement",
+      godaddy: "Template descriptions only",
+      dtsp: "Yes — Claude Sonnet agent",
+    },
+    {
+      capability: "80/20 split payouts",
+      godaddy: "No — one bank account only",
+      dtsp: "Yes — Stripe Connect, automatic",
+    },
+    {
+      capability: "SEO content engine",
+      godaddy: "Basic meta tools",
+      dtsp: "Yes — thousands of articles",
+    },
+    {
+      capability: "Domain authority building",
+      godaddy: "Manual — slow",
+      dtsp: "Yes — automated at scale",
+    },
+    {
+      capability: "CRM sync",
+      godaddy: "No",
+      dtsp: "Yes — GoHighLevel via Supervisor",
+    },
+    {
+      capability: "You own everything",
+      godaddy: "No — GoDaddy is the platform",
+      dtsp: "Yes — your servers, your data",
+    },
+    {
+      capability: "Frontend flexibility",
+      godaddy: "Locked to GoDaddy ecosystem",
+      dtsp: "Any frontend. Always.",
+    },
+  ],
+  phases: [
+    {
+      number: 1,
+      title: "Foundation",
+      weeks: "Weeks 1–2",
+      deliverables: [
+        "Database schema design & deployment",
+        "Artist consent pipeline with e-sign",
+        "Auth, roles & tenant scaffolding",
+      ],
+      milestone: "$1,800",
+    },
+    {
+      number: 2,
+      title: "SEO & Payout Infrastructure",
+      weeks: "Weeks 3–4",
+      deliverables: [
+        "SEO article generator engine",
+        "Domain auth (DKIM, SPF, DMARC)",
+        "Stripe Connect payout engine setup",
+      ],
+      milestone: "$1,800",
+    },
+    {
+      number: 3,
+      title: "WooCommerce Integration",
+      weeks: "Weeks 5–6",
+      deliverables: [
+        "WooCommerce REST API connection",
+        "Product push pipeline",
+        "Order webhook testing & reconciliation",
+      ],
+      milestone: "$1,800",
+    },
+    {
+      number: 4,
+      title: "Marketplace Ingestion & AI",
+      weeks: "Weeks 7–8",
+      deliverables: [
+        "Etsy/Shopify OAuth ingestion agents",
+        "AI listing enhancement (Claude Sonnet)",
+        "CRM integration (GoHighLevel)",
+      ],
+      milestone: "$1,800",
+    },
+    {
+      number: 5,
+      title: "Artist Onboarding",
+      weeks: "Weeks 9–10",
+      deliverables: [
+        "Artist onboarding flow (consent → listing)",
+        "Automated payout testing (80/20 split)",
+        "SEO article publishing pipeline",
+        "Admin console for marketplace management",
+      ],
+      milestone: "$1,800",
+    },
+    {
+      number: 6,
+      title: "Launch & Scale",
+      weeks: "Weeks 11–12",
+      deliverables: [
+        "Production deployment & monitoring",
+        "Load testing & optimization",
+        "Artist support documentation",
+        "Analytics dashboard & handoff",
+      ],
+      milestone: "$1,800",
+    },
+  ],
+};
+
+export const plans: Record<PlanId, Plan> = {
+  A: planA,
+  B: planB,
+};
+
+// Back-compat: default exports point at Plan B (the currently-active proposal)
+// so existing imports keep rendering without regression.
+export const proposalMeta = planB.meta;
+export const comparisonTable = planB.comparisonTable;
+export const phases = planB.phases;
 
 export const seoSteps = [
   {

@@ -17,10 +17,9 @@ import {
   MessageCircle,
 } from "lucide-react";
 import {
-  proposalMeta,
-  comparisonTable,
-  phases,
+  planB,
   seoSteps,
+  type Plan,
 } from "@/lib/proposal-data";
 
 const sectionVariants = {
@@ -79,22 +78,21 @@ function AskRickCTA({
   );
 }
 
-export default function ProposalContent() {
+export default function ProposalContent({ plan = planB }: { plan?: Plan }) {
+  const { meta: proposalMeta, comparisonTable, phases } = plan;
   return (
     <div className="max-w-4xl mx-auto px-6 pb-12 space-y-16" id="proposal-content">
       {/* Hero */}
       <Section id="hero" className="pt-8">
         <div className="text-center space-y-6">
           <div className="inline-block px-4 py-1.5 rounded-full bg-green-900/30 border border-green-800/40 text-green-400 text-xs tracking-wider uppercase">
-            Confidential — {proposalMeta.date}
+            {plan.name} · {plan.tagline} · {proposalMeta.date}
           </div>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-green-200 to-green-500 bg-clip-text text-transparent">
-            Artist Marketplace Platform
+            {plan.heroTitle}
           </h1>
           <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-            AI-powered marketplace infrastructure built behind your GoDaddy site
-            — consent management, automated ingestion, split payouts, and an SEO
-            engine that builds domain authority while the platform scales.
+            {plan.heroSubtitle}
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto pt-4">
             {[
@@ -119,7 +117,8 @@ export default function ProposalContent() {
         </div>
       </Section>
 
-      {/* Start Now */}
+      {/* Start Now — only shown for Plan B (GoDaddy parallel-build narrative) */}
+      {plan.showParallelSection && (
       <Section id="parallel">
         <div className="bg-gradient-to-br from-[#141414] to-[#1a1a0a] border border-yellow-900/30 rounded-2xl p-8">
           <div className="flex items-center gap-3 mb-6">
@@ -196,6 +195,7 @@ export default function ProposalContent() {
           />
         </div>
       </Section>
+      )}
 
       {/* Comparison Table */}
       <Section id="comparison">
@@ -204,9 +204,7 @@ export default function ProposalContent() {
             <div className="w-10 h-10 rounded-xl bg-green-900/30 flex items-center justify-center">
               <Shield className="w-5 h-5 text-green-400" />
             </div>
-            <h2 className="text-2xl font-bold">
-              What GoDaddy Can Do. What We Do.
-            </h2>
+            <h2 className="text-2xl font-bold">{plan.comparisonHeading}</h2>
           </div>
           <p className="text-zinc-400 leading-relaxed">
             GoDaddy is genuinely good at building websites. For a business that
@@ -226,7 +224,7 @@ export default function ProposalContent() {
                     Capability
                   </th>
                   <th className="text-left py-3 px-4 text-xs uppercase tracking-wider text-zinc-500 font-medium">
-                    GoDaddy
+                    {plan.comparisonColumnLabel}
                   </th>
                   <th className="text-left py-3 px-4 text-xs uppercase tracking-wider text-green-600 font-medium">
                     DTSP-AI Layer
@@ -392,7 +390,7 @@ export default function ProposalContent() {
                 <div className="text-green-300 font-bold text-xl">
                   {proposalMeta.perMilestone}
                 </div>
-                <div className="text-green-500 text-sm">Per milestone (x6)</div>
+                <div className="text-green-500 text-sm">Per milestone (x{proposalMeta.milestoneCount})</div>
               </div>
               <div className="text-zinc-600 text-2xl">=</div>
               <div>
