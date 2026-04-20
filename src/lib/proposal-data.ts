@@ -20,6 +20,7 @@ export interface ProposalMeta {
   date: string;
   clientName: string;
   zelleEmail: string;
+  paypalHandle: string;
 }
 
 export interface ComparisonRow {
@@ -57,6 +58,7 @@ const sharedMeta = {
   date: "April 2026",
   clientName: "Alanson Charles",
   zelleEmail: "combatperformfit@gmail.com",
+  paypalHandle: "combatperformfit@gmail.com",
 };
 
 // ---------- PLAN A: Full-Stack Build (frontend included) ----------

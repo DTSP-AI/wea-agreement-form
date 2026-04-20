@@ -8,7 +8,7 @@ import {
   Check,
   Download,
   FileText,
-  Mail,
+  CreditCard,
   Smartphone,
 } from "lucide-react";
 import { planB, type Plan } from "@/lib/proposal-data";
@@ -19,19 +19,24 @@ interface PaymentPanelProps {
   plan?: Plan;
 }
 
+type CopyTarget = "paypal" | "zelle";
+
 export default function PaymentPanel({
   onExportPDF,
   isExporting,
   plan = planB,
 }: PaymentPanelProps) {
   const proposalMeta = plan.meta;
-  const [copied, setCopied] = useState(false);
+  const [copiedTarget, setCopiedTarget] = useState<CopyTarget | null>(null);
 
-  const handleCopy = useCallback(async () => {
-    await navigator.clipboard.writeText(proposalMeta.zelleEmail);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [proposalMeta.zelleEmail]);
+  const handleCopy = useCallback(
+    async (value: string, target: CopyTarget) => {
+      await navigator.clipboard.writeText(value);
+      setCopiedTarget(target);
+      setTimeout(() => setCopiedTarget(null), 2000);
+    },
+    []
+  );
 
   return (
     <motion.div
@@ -47,14 +52,79 @@ export default function PaymentPanel({
             Initial Deposit — {proposalMeta.investmentAtSigning}
           </h2>
           <p className="text-zinc-400 text-sm mt-2">
-            Send your initial deposit via Zelle to lock in your project start
-            date. Work begins the day payment is received. Six milestone
-            payments of {proposalMeta.perMilestone} follow every two weeks.
+            Send your initial deposit via PayPal or Zelle to lock in your
+            project start date. Work begins the day payment is received. Six
+            milestone payments of {proposalMeta.perMilestone} follow every two
+            weeks.
           </p>
         </div>
 
         <div className="p-8 space-y-6">
-          {/* Zelle Info */}
+          {/* PayPal Info (primary) */}
+          <div className="bg-[#0d1117] border border-green-900/30 rounded-xl p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <CreditCard className="w-5 h-5 text-green-400" />
+              <h3 className="font-semibold text-green-300">
+                Pay via PayPal
+              </h3>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
+                  Send to
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-green-400 font-mono text-lg break-all">
+                    {proposalMeta.paypalHandle}
+                  </div>
+                  <button
+                    onClick={() =>
+                      handleCopy(proposalMeta.paypalHandle, "paypal")
+                    }
+                    className="p-3 rounded-lg bg-green-900/30 border border-green-800/40 hover:bg-green-800/40 transition-colors text-green-400 cursor-pointer"
+                  >
+                    {copiedTarget === "paypal" ? (
+                      <Check className="w-5 h-5" />
+                    ) : (
+                      <Copy className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+                {copiedTarget === "paypal" && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-green-400 text-xs mt-2"
+                  >
+                    Copied to clipboard
+                  </motion.p>
+                )}
+              </div>
+
+              <div>
+                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
+                  Amount
+                </div>
+                <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-white font-bold text-2xl">
+                  {proposalMeta.investmentAtSigning}
+                  <span className="text-zinc-500 text-sm font-normal ml-2">
+                    USD
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
+                  Memo / Note
+                </div>
+                <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 text-sm">
+                  WEA Platform — Milestone 1 Deposit
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Zelle Info (secondary) */}
           <div className="bg-[#0d1117] border border-green-900/30 rounded-xl p-6">
             <div className="flex items-center gap-2 mb-4">
               <Smartphone className="w-5 h-5 text-green-400" />
@@ -68,21 +138,23 @@ export default function PaymentPanel({
                   Send to
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-green-400 font-mono text-lg">
+                  <div className="flex-1 bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-green-400 font-mono text-lg break-all">
                     {proposalMeta.zelleEmail}
                   </div>
                   <button
-                    onClick={handleCopy}
+                    onClick={() =>
+                      handleCopy(proposalMeta.zelleEmail, "zelle")
+                    }
                     className="p-3 rounded-lg bg-green-900/30 border border-green-800/40 hover:bg-green-800/40 transition-colors text-green-400 cursor-pointer"
                   >
-                    {copied ? (
+                    {copiedTarget === "zelle" ? (
                       <Check className="w-5 h-5" />
                     ) : (
                       <Copy className="w-5 h-5" />
                     )}
                   </button>
                 </div>
-                {copied && (
+                {copiedTarget === "zelle" && (
                   <motion.p
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -121,15 +193,15 @@ export default function PaymentPanel({
             {[
               {
                 step: 1,
-                icon: Mail,
-                title: "Open Zelle",
-                desc: "Open your bank's Zelle feature or the Zelle app",
+                icon: CreditCard,
+                title: "Pick a Method",
+                desc: "Open PayPal (preferred) or your bank's Zelle app",
               },
               {
                 step: 2,
                 icon: DollarSign,
                 title: `Send ${proposalMeta.investmentAtSigning}`,
-                desc: `Send to ${proposalMeta.zelleEmail} with memo "WEA Platform"`,
+                desc: `Send to ${proposalMeta.paypalHandle} with memo "WEA Platform"`,
               },
               {
                 step: 3,
