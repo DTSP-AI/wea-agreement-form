@@ -11,7 +11,7 @@ import {
   CreditCard,
   Smartphone,
 } from "lucide-react";
-import { planB, type Plan } from "@/lib/proposal-data";
+import { planC, type Plan } from "@/lib/proposal-data";
 
 interface PaymentPanelProps {
   onExportPDF: () => void;
@@ -24,7 +24,7 @@ type CopyTarget = "paypal" | "zelle";
 export default function PaymentPanel({
   onExportPDF,
   isExporting,
-  plan = planB,
+  plan = planC,
 }: PaymentPanelProps) {
   const proposalMeta = plan.meta;
   const [copiedTarget, setCopiedTarget] = useState<CopyTarget | null>(null);

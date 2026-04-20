@@ -15,15 +15,19 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
 export default function Home() {
   const [signatureComplete, setSignatureComplete] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [activePlanId, setActivePlanId] = useState<PlanId>("B");
+  const [activePlanId, setActivePlanId] = useState<PlanId>("C");
   const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
   const contentRef = useRef<HTMLDivElement>(null);
   const activePlan = plans[activePlanId];
 
+  const PLAN_ORDER: PlanId[] = ["A", "B", "C"];
+
   const handlePlanSwitch = useCallback(
     (id: PlanId) => {
       if (id === activePlanId) return;
-      setSlideDirection(id === "A" ? -1 : 1);
+      const curIdx = PLAN_ORDER.indexOf(activePlanId);
+      const newIdx = PLAN_ORDER.indexOf(id);
+      setSlideDirection(newIdx > curIdx ? 1 : -1);
       setActivePlanId(id);
     },
     [activePlanId]
@@ -140,7 +144,7 @@ export default function Home() {
         {/* Plan tabs */}
         <div className="max-w-4xl mx-auto px-6 pb-3">
           <div className="relative inline-flex bg-[#141414] border border-[#262626] rounded-full p-1 gap-1">
-            {(["A", "B"] as PlanId[]).map((id) => {
+            {PLAN_ORDER.map((id) => {
               const isActive = id === activePlanId;
               return (
                 <button

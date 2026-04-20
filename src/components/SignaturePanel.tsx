@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Pen, RotateCcw, Check, Calendar } from "lucide-react";
-import { planB, type Plan } from "@/lib/proposal-data";
+import { planC, type Plan } from "@/lib/proposal-data";
 
 interface SignatureData {
   clientName: string;
@@ -22,7 +22,7 @@ const STORAGE_KEY = "wea-signature-data";
 
 export default function SignaturePanel({
   onSignatureComplete,
-  plan = planB,
+  plan = planC,
 }: SignaturePanelProps) {
   const { meta: proposalMeta } = plan;
   const canvasRef = useRef<HTMLCanvasElement>(null);

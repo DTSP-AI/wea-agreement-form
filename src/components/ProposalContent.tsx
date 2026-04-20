@@ -17,7 +17,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import {
-  planB,
+  planC,
   seoSteps,
   type Plan,
 } from "@/lib/proposal-data";
@@ -78,7 +78,7 @@ function AskRickCTA({
   );
 }
 
-export default function ProposalContent({ plan = planB }: { plan?: Plan }) {
+export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
   const { meta: proposalMeta, comparisonTable, phases } = plan;
   return (
     <div className="max-w-4xl mx-auto px-6 pb-12 space-y-16" id="proposal-content">
