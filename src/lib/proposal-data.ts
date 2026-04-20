@@ -1,9 +1,9 @@
-// Plan A = Full-stack build (DTSP-AI builds custom frontend + intelligence layer)
+// Plan A = Full-stack build with 3D Interactive Site (DTSP-AI builds custom 3D frontend + intelligence layer)
 // Plan B = Intelligence layer only (GoDaddy handles the storefront)
 //
 // Both plans run 12 weeks with 6 milestones, one milestone every 2 weeks.
 // Math:
-//   Plan A: $4,400 at signing + (6 × $2,000) = $4,400 + $12,000 = $16,400
+//   Plan A: $5,400 at signing + (6 × $2,000) = $5,400 + $12,000 = $17,400
 //   Plan B: $3,600 at signing + (6 × $1,800) = $3,600 + $10,800 = $14,400
 
 export type PlanId = "A" | "B";
@@ -63,17 +63,17 @@ const sharedMeta = {
 export const planA: Plan = {
   id: "A",
   name: "Plan A",
-  tagline: "Full-Stack Build — We Build The Whole Thing",
-  heroTitle: "Artist Marketplace Platform — Full-Stack",
+  tagline: "3D Interactive Site — We Build The Whole Thing",
+  heroTitle: "Artist Marketplace Platform — 3D Interactive",
   heroSubtitle:
-    "End-to-end build. Custom Next.js storefront, checkout, and admin dashboard — on top of the full AI-powered marketplace infrastructure. You own every pixel and every service. No GoDaddy middleman.",
+    "End-to-end build. Custom 3D interactive storefront with immersive product experiences, checkout, and admin dashboard — on top of the full AI-powered marketplace infrastructure. You own every pixel, every interaction, and every service. No GoDaddy middleman.",
   meta: {
     ...sharedMeta,
     projectTerm: "12 Weeks — 6 Milestones",
-    investmentAtSigning: "$4,400",
+    investmentAtSigning: "$5,400",
     perMilestone: "$2,000",
     milestoneCount: 6,
-    totalValue: "$16,400",
+    totalValue: "$17,400",
   },
   comparisonHeading: "What A Platform Host Gives You. What We Build Instead.",
   comparisonColumnLabel: "Platform Host",
@@ -82,12 +82,12 @@ export const planA: Plan = {
     {
       capability: "Public storefront",
       godaddy: "Template-locked, rented",
-      dtsp: "Custom Next.js build — you own the code",
+      dtsp: "3D interactive site — you own the code",
     },
     {
       capability: "Checkout & cart UX",
       godaddy: "Generic, no artist context",
-      dtsp: "Custom — artist-aware, branded end-to-end",
+      dtsp: "3D interactive — artist-aware, immersive end-to-end",
     },
     {
       capability: "Multi-vendor marketplace",
@@ -102,7 +102,7 @@ export const planA: Plan = {
     {
       capability: "Admin + artist dashboards",
       godaddy: "Basic store admin only",
-      dtsp: "Custom role-based dashboards",
+      dtsp: "3D interactive role-based dashboards",
     },
     {
       capability: "Etsy / Shopify ingestion",
@@ -143,23 +143,23 @@ export const planA: Plan = {
   phases: [
     {
       number: 1,
-      title: "Foundation & Frontend Scaffolding",
+      title: "Foundation & 3D Interactive Scaffolding",
       weeks: "Weeks 1–2",
       deliverables: [
         "Database schema design & deployment",
         "Auth, roles & tenant scaffolding",
-        "Next.js app scaffolding + design system",
+        "3D interactive site scaffolding + design system",
         "Artist consent pipeline with e-sign",
       ],
       milestone: "$2,000",
     },
     {
       number: 2,
-      title: "Storefront & SEO Infrastructure",
+      title: "3D Storefront & SEO Infrastructure",
       weeks: "Weeks 3–4",
       deliverables: [
-        "Custom product listing pages",
-        "Artist profile pages",
+        "3D interactive product listing pages",
+        "Immersive artist profile pages",
         "SEO article generator engine",
         "Domain auth (DKIM, SPF, DMARC)",
       ],
@@ -170,7 +170,7 @@ export const planA: Plan = {
       title: "Cart, Checkout & Stripe Connect",
       weeks: "Weeks 5–6",
       deliverables: [
-        "Custom cart + checkout UX",
+        "3D interactive cart + checkout UX",
         "Stripe Connect payout engine",
         "Order webhook testing & reconciliation",
         "Payment confirmation flows",
