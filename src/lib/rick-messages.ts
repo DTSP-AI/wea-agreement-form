@@ -44,7 +44,7 @@ export interface RickMessage {
 export const rickOpening: RickMessage[] = [
   {
     id: "open-1",
-    text: "Hey Alanson. I'm Rick — Rick built me to help walk you through this thing. Not a sales bot, just... a very opinionated guide who happens to know every detail of what we're proposing. Scroll through whenever, or poke around with the buttons below. I'm not going anywhere.",
+    text: "Hey Alanson — or Lance, whichever you go by today. I'm Rick — Rick built me to help walk you through this thing. Not a sales bot, just... a very opinionated guide who happens to know every detail of what we're proposing. Scroll through whenever, or poke around with the buttons below. Oh — and Rick shot over an invoice for $3,800 to kick off the foundation. Should be sitting in your inbox. Whenever you're ready, man.",
     delay: 800,
   },
 ];
@@ -187,11 +187,11 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_investment",
   },
   payment_flow: {
-    text: "Zelle to Rick, $3,600 for the deposit. Simple as that. No invoicing system, no net-30, no procurement department required. He starts building the day it lands. Each milestone after that is $1,800, paid when the work's done. Rick keeps the money stuff straightforward because, and I'm paraphrasing, 'life's too short for complicated invoices.'",
+    text: "Easy. Rick already dropped the invoice in your inbox — $3,800 to kick off the foundation. PayPal's dtspdigitalmedia@gmail.com, Zelle's combatperformfit@gmail.com, whichever's smoother for you, Lance. Once it clears, milestone 1 starts the same day. Each milestone after that is $1,800 on delivery. No net-30, no procurement hoops. Rick keeps the money stuff straightforward because, and I'm paraphrasing, 'life's too short for complicated invoices.'",
     nextStage: "post_sign",
   },
   go_sign: {
-    text: "Right on. Scroll down — Rick already signed on our end. Fill in your name, draw your John Hancock, and milestone 1 starts tomorrow morning. Not metaphorically. Rick will literally have database schemas drafted before you finish breakfast.",
+    text: "Right on. Scroll down — Rick already signed on our end. Fill in your name, draw your John Hancock, and while you're at it, go knock out that $3,800 invoice Rick emailed you. Once that's handled, milestone 1 starts the same day — and I mean that literally. Rick will have database schemas drafted before you finish breakfast.",
     nextStage: "post_sign",
   },
   last_question: {
@@ -271,12 +271,12 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["sign", "ready", "start", "begin", "let's go", "do it", "deposit"],
-    response: "Scroll down — Rick already signed. Your signature plus the deposit and we start building tomorrow. And I mean literally tomorrow. Rick doesn't really do 'we'll circle back next week.'",
+    response: "Scroll down — Rick already signed, Lance. Sign your side, then knock out that $3,800 invoice Rick dropped in your inbox and we start building the same day. And I mean literally same day. Rick doesn't really do 'we'll circle back next week.'",
     nextStage: "post_sign",
   },
   {
-    keywords: ["stripe", "payment", "zelle", "pay you"],
-    response: "Zelle, $3,600 to Rick for the deposit. Each milestone after that is $1,800 on delivery. Nice and simple. Rick doesn't believe in making the payment process harder than the actual engineering.",
+    keywords: ["stripe", "payment", "zelle", "pay you", "paypal", "invoice", "bill", "inbox", "email"],
+    response: "Yeah so — Rick already emailed you the invoice, Lance. $3,800 to kick off the foundation milestone. PayPal's dtspdigitalmedia@gmail.com, Zelle's combatperformfit@gmail.com — whichever's easier. Once it clears, milestone 1 starts the same day. Each milestone after that is $1,800 on delivery. Rick doesn't believe in making the payment process harder than the actual engineering.",
     nextStage: "post_sign",
   },
   {
