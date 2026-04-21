@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mic, MicOff } from "lucide-react";
-import { getFreetextResponse } from "@/lib/rick-messages";
+import { getFreetextResponse, rickOpening } from "@/lib/rick-messages";
 
 type VoiceState = "idle" | "listening" | "thinking" | "speaking";
 
@@ -344,9 +344,8 @@ export default function RickVoiceMode({
     setErrorMsg(null);
     setMuted(false);
 
-    // Greeting — Rick announces voice mode, then starts listening
-    const greeting =
-      "Voice mode. Ask me anything about the platform and I'll answer.";
+    // Greeting — same contract as chat Rick (rickOpening[0])
+    const greeting = rickOpening[0]?.text ?? "";
     setRickTranscript(greeting);
     speakRick(greeting, () => {
       if (closedRef.current) return;
