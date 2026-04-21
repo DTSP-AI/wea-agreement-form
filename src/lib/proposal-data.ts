@@ -6,7 +6,7 @@
 // Math:
 //   Plan A: $5,400 at signing + (6 × $2,000) = $5,400 + $12,000 = $17,400
 //   Plan B: $4,400 at signing + (6 × $2,000) = $4,400 + $12,000 = $16,400
-//   Plan C: $3,600 at signing + (6 × $1,800) = $3,600 + $10,800 = $14,400
+//   Plan C: $3,800 at signing + (6 × $1,800) = $3,800 + $10,800 = $14,600
 
 export type PlanId = "A" | "B" | "C";
 
@@ -388,10 +388,10 @@ export const planC: Plan = {
   meta: {
     ...sharedMeta,
     projectTerm: "12 Weeks — 6 Milestones",
-    investmentAtSigning: "$3,600",
+    investmentAtSigning: "$3,800",
     perMilestone: "$1,800",
     milestoneCount: 6,
-    totalValue: "$14,400",
+    totalValue: "$14,600",
   },
   comparisonHeading: "What GoDaddy Can Do. What We Do.",
   comparisonColumnLabel: "GoDaddy",

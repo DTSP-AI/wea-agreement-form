@@ -147,7 +147,7 @@ export const ctaStages: Record<string, CTAStage> = {
 
 export const rickResponses: Record<string, { text: string; nextStage: string }> = {
   differentiator: {
-    text: "Yeah so — you know how DeepSeek came out of nowhere and basically matched what OpenAI spent billions on? Rick did something similar. He looked at what agencies charge for marketplace platforms and just... figured out a better way. Leaner, smarter, no bloat. I'm basically walking proof that his approach works. He engineered me, I help engineer the platform. $14,400 for something that'd cost $70K elsewhere — not because it's cheap, but because it's designed right.",
+    text: "Yeah so — you know how DeepSeek came out of nowhere and basically matched what OpenAI spent billions on? Rick did something similar. He looked at what agencies charge for marketplace platforms and just... figured out a better way. Leaner, smarter, no bloat. I'm basically walking proof that his approach works. He engineered me, I help engineer the platform. $14,600 for something that'd cost $70K elsewhere — not because it's cheap, but because it's designed right.",
     nextStage: "post_differentiator",
   },
   urgency: {
@@ -167,7 +167,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_godaddy",
   },
   investment: {
-    text: "$3,600 gets things rolling. Then $1,800 at each milestone — six of them. $14,400 total. To put that in perspective, one developer at $150 an hour for 12 weeks is $72K. And that's one person. Rick's system delivers more than a whole team would, for a fraction. He'd probably say I'm overselling it, but honestly I think he underpriced it. Don't tell him I said that.",
+    text: "$3,800 gets things rolling — that's the invoice Rick sent to your inbox, Lance. Then $1,800 at each milestone — six of them. $14,600 total. To put that in perspective, one developer at $150 an hour for 12 weeks is $72K. And that's one person. Rick's system delivers more than a whole team would, for a fraction. He'd probably say I'm overselling it, but honestly I think he underpriced it. Don't tell him I said that.",
     nextStage: "post_investment",
   },
   artists: {
@@ -179,7 +179,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_ownership",
   },
   phase1: {
-    text: "Weeks 1 and 2 — the foundation milestone. Database schema, artist consent pipeline with e-sign, auth and tenant scaffolding. That's what the $3,600 deposit kicks off. By week 4 the SEO engine is already cranking out content and building authority while GoDaddy's still debating font choices. The deposit basically buys you an 18-month head start on every other marketplace launching this year. Which, when you think about it, is kind of bananas for less than a month's rent.",
+    text: "Weeks 1 and 2 — the foundation milestone. Database schema, artist consent pipeline with e-sign, auth and tenant scaffolding. That's what the $3,800 invoice in your inbox kicks off. By week 4 the SEO engine is already cranking out content and building authority while GoDaddy's still debating font choices. The deposit basically buys you an 18-month head start on every other marketplace launching this year. Which, when you think about it, is kind of bananas for less than a month's rent.",
     nextStage: "post_phase1",
   },
   phases_overview: {
@@ -223,7 +223,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_phase1",
   },
   section_investment: {
-    text: "$14,400 for the whole thing, broken up so you're never paying for something you haven't received. $3,600 deposit at signing gets the build rolling — that kicks off the foundation milestone: database, consent pipeline, auth. Then $1,800 on delivery of each milestone, six of them across twelve weeks. 3,600 plus 1,800 times six equals fourteen-four — the math is clean. For context, one developer for 12 weeks at normal rates would run you $72K, and you'd get a fraction of what Rick's system delivers. You wanna go ahead and scroll down to the signature?",
+    text: "$14,600 for the whole thing, broken up so you're never paying for something you haven't received. $3,800 at signing — Rick already emailed you that invoice — kicks off the foundation milestone: database, consent pipeline, auth. Then $1,800 on delivery of each milestone, six of them across twelve weeks. 3,800 plus 1,800 times six equals fourteen-six — the math is clean. For context, one developer for 12 weeks at normal rates would run you $72K, and you'd get a fraction of what Rick's system delivers. You wanna go ahead and scroll down to the signature?",
     nextStage: "post_sign",
   },
 };
@@ -246,7 +246,7 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["cost", "price", "money", "expensive", "afford", "budget", "worth"],
-    response: "$14,400 total. $3,600 upfront, $1,800 per milestone. For context — one developer at $150/hour for 12 weeks runs you $72K. Rick figured out how to deliver more than a whole team for a fraction of that. Honestly, between you and me, I think he could charge more. But he prices for relationships, not transactions.",
+    response: "$14,600 total. $3,800 upfront — that's the invoice in your inbox — then $1,800 per milestone. For context, one developer at $150/hour for 12 weeks runs you $72K. Rick figured out how to deliver more than a whole team for a fraction of that. Honestly, between you and me, I think he could charge more. But he prices for relationships, not transactions.",
     nextStage: "post_investment",
   },
   {
