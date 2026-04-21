@@ -245,7 +245,7 @@ export default function SignaturePanel({
             {/* Client side — Alanson Charles */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-green-400 uppercase tracking-wider">
-                Whole Earth Advertising
+                Whole Earth Industries
               </h3>
               <div className="space-y-3">
                 <div>

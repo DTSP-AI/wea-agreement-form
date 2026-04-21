@@ -1,5 +1,5 @@
 import ProposalPage from "@/components/ProposalPage";
 
-export default function Home() {
+export default function PlanCPage() {
   return <ProposalPage initialPlanId="C" />;
 }

@@ -54,7 +54,7 @@ export interface Plan {
 }
 
 const sharedMeta = {
-  preparedFor: "Whole Earth Advertising",
+  preparedFor: "Whole Earth Industries",
   preparedBy: "DTSP-AI Technologies",
   contact: "combatperformfit@gmail.com",
   date: "April 2026",
@@ -542,7 +542,7 @@ export const seoSteps = [
     step: 1,
     title: "Template",
     description:
-      "A CSV template defines categories, objects, and question patterns. For WEA this means artist names, art styles, product types, and buyer intent queries like 'original watercolor paintings for sale' or 'how to buy handmade jewelry online'.",
+      "A CSV template defines categories, objects, and question patterns. For WEI this means artist names, art styles, product types, and buyer intent queries like 'original watercolor paintings for sale' or 'how to buy handmade jewelry online'.",
   },
   {
     step: 2,
@@ -560,7 +560,7 @@ export const seoSteps = [
     step: 4,
     title: "Domain Auth",
     description:
-      "DKIM, SPF, and DMARC are configured on WEA's sending domain from day one. Every transactional email — artist onboarding, order confirmations, payout summaries — lands in inboxes and builds sender reputation.",
+      "DKIM, SPF, and DMARC are configured on WEI's sending domain from day one. Every transactional email — artist onboarding, order confirmations, payout summaries — lands in inboxes and builds sender reputation.",
   },
   {
     step: 5,

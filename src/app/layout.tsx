@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "WEA Platform Proposal | DTSP-AI Technologies",
+  title: "WEI Platform Proposal | DTSP-AI Technologies",
   description:
-    "Artist Marketplace Platform Proposal for Whole Earth Advertising — AI-powered marketplace infrastructure",
+    "Artist Marketplace Platform Proposal for Whole Earth Industries — AI-powered marketplace infrastructure",
 };
 
 export default function RootLayout({

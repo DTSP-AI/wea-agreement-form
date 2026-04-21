@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send } from "lucide-react";
+import { MessageCircle, X, Send, Mic } from "lucide-react";
 import {
   rickOpening,
   ctaStages,
   rickResponses,
   getFreetextResponse,
 } from "@/lib/rick-messages";
+import RickVoiceMode from "@/components/RickVoiceMode";
 
 interface ChatMessage {
   id: string;
@@ -24,6 +25,7 @@ export default function RickChat() {
   const [showBubble, setShowBubble] = useState(false);
   const [launcherHint, setLauncherHint] = useState("");
   const [currentStage, setCurrentStage] = useState("opening");
+  const [voiceModeOpen, setVoiceModeOpen] = useState(false);
   const hasInitializedRef = useRef(false);
   const hasUserInteractedRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -260,17 +262,30 @@ export default function RickChat() {
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  hasUserInteractedRef.current = true;
-                  clearIntroCloseTimer();
-                  setIsOpen(false);
-                  setLauncherHint("I'm here when you need me.");
-                }}
-                className="text-zinc-500 hover:text-white transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    hasUserInteractedRef.current = true;
+                    clearIntroCloseTimer();
+                    setVoiceModeOpen(true);
+                  }}
+                  className="p-2 rounded-lg text-green-400 hover:text-green-200 hover:bg-green-900/30 transition-colors cursor-pointer"
+                  title="Voice mode"
+                >
+                  <Mic className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => {
+                    hasUserInteractedRef.current = true;
+                    clearIntroCloseTimer();
+                    setIsOpen(false);
+                    setLauncherHint("I'm here when you need me.");
+                  }}
+                  className="p-2 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
@@ -355,6 +370,19 @@ export default function RickChat() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <RickVoiceMode
+        isOpen={voiceModeOpen}
+        onClose={() => setVoiceModeOpen(false)}
+        onExchange={(userText, rickText, nextStage) => {
+          setMessages((prev) => [
+            ...prev,
+            { id: `user-${Date.now()}`, role: "user", text: userText },
+            { id: `rick-${Date.now() + 1}`, role: "rick", text: rickText },
+          ]);
+          setCurrentStage(nextStage);
+        }}
+      />
     </>
   );
 }

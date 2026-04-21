@@ -368,7 +368,7 @@ export default function ArchitectureDiagram() {
             delay={1.1}
             items={[
               { icon: Users, label: "80% → Artist" },
-              { icon: ShoppingCart, label: "20% → WEA" },
+              { icon: ShoppingCart, label: "20% → WEI" },
               { icon: Shield, label: "Instant at sale" },
             ]}
           />

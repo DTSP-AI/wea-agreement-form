@@ -256,7 +256,7 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["artist", "payout", "80%", "consent", "etsy", "shopify"],
-    response: "80% to the artist, 20% to WEA, automatic at point of sale. No spreadsheets, no waiting around. Rick set it up this way because he thinks the people making the art should get most of the money. Which seems obvious when you say it out loud, but apparently it's a revolutionary concept in this industry.",
+    response: "80% to the artist, 20% to WEI, automatic at point of sale. No spreadsheets, no waiting around. Rick set it up this way because he thinks the people making the art should get most of the money. Which seems obvious when you say it out loud, but apparently it's a revolutionary concept in this industry.",
     nextStage: "post_artists",
   },
   {

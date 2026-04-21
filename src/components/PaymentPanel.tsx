@@ -118,7 +118,7 @@ export default function PaymentPanel({
                   Memo / Note
                 </div>
                 <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 text-sm">
-                  WEA Platform — Milestone 1 Deposit
+                  WEI Platform — Milestone 1 Deposit
                 </div>
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function PaymentPanel({
                   Memo / Note
                 </div>
                 <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 text-sm">
-                  WEA Platform — Milestone 1 Deposit
+                  WEI Platform — Milestone 1 Deposit
                 </div>
               </div>
             </div>
@@ -201,7 +201,7 @@ export default function PaymentPanel({
                 step: 2,
                 icon: DollarSign,
                 title: `Send ${proposalMeta.investmentAtSigning}`,
-                desc: `Send to ${proposalMeta.paypalHandle} with memo "WEA Platform"`,
+                desc: `Send to ${proposalMeta.paypalHandle} with memo "WEI Platform"`,
               },
               {
                 step: 3,

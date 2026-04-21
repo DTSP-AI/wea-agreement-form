@@ -209,7 +209,7 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
           <p className="text-zinc-400 leading-relaxed">
             GoDaddy is genuinely good at building websites. For a business that
             needs a clean storefront — it is hard to beat at $27 a month. That
-            is not what Whole Earth Advertising is building. WEA is building a
+            is not what Whole Earth Industries is building. WEI is building a
             <span className="text-green-400 font-medium"> marketplace</span> —
             a system where artists consent, listings flow in automatically, AI
             enriches every product, buyers purchase, and 80% of every sale
@@ -275,7 +275,7 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
               </span>{" "}
               is the row that matters most. DTSP-AI&apos;s intelligence layer is
               frontend agnostic. It connects to GoDaddy WooCommerce today via
-              REST API. If WEA outgrows GoDaddy, migrates to Shopify, or wants a
+              REST API. If WEI outgrows GoDaddy, migrates to Shopify, or wants a
               fully custom storefront — the agents, the payout engine, the
               consent pipeline, the CRM sync — nothing changes. The frontend is
               a plug. We build the engine.
@@ -301,7 +301,7 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
           </div>
           <p className="text-zinc-400 leading-relaxed">
             Most new marketplaces spend 18 months waiting for organic traffic.
-            WEA does not have to play that game. DTSP-AI deploys an automated
+            WEI does not have to play that game. DTSP-AI deploys an automated
             SEO article generator as part of the platform build. Domain
             authority is built before a single artist goes live.
           </p>
