@@ -290,7 +290,12 @@ export default function ClientPortal() {
       /* noop */
     }
 
-    // Auth hydrate. Admin bypasses the gate entirely (that's Pete's builder URL).
+    // Auth hydrate. Priority order:
+    //   1. Admin URL (?admin=1) bypasses everything.
+    //   2. Existing portal session in localStorage.
+    //   3. Signed-agreement fallback — if Lance signed on this device, treat
+    //      that as proof of identity and skip the password prompt. (Same app,
+    //      same device, same person — no need to ask him twice.)
     try {
       if (adminNow) {
         setAuthed(true);
@@ -301,6 +306,31 @@ export default function ClientPortal() {
           if (parsed?.email) {
             setAuthed(true);
             setAuthedEmail(parsed.email);
+          }
+        } else {
+          // Signed-agreement auto-auth. SignaturePanel writes to this key on sign.
+          const sigRaw = localStorage.getItem("wea-signature-data");
+          if (sigRaw) {
+            const sig = JSON.parse(sigRaw) as {
+              clientName?: string;
+              clientSignature?: string | null;
+              agreedToTerms?: boolean;
+            };
+            if (sig?.clientSignature && sig?.clientName && sig?.agreedToTerms) {
+              const fallbackEmail =
+                process.env.NEXT_PUBLIC_PORTAL_LANCE_EMAIL ||
+                "wholearthbuilder2013@gmail.com";
+              localStorage.setItem(
+                AUTH_STORAGE_KEY,
+                JSON.stringify({
+                  email: fallbackEmail,
+                  issuedAt: new Date().toISOString(),
+                  via: "signed-agreement",
+                })
+              );
+              setAuthed(true);
+              setAuthedEmail(fallbackEmail);
+            }
           }
         }
       }

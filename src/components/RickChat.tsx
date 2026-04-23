@@ -21,6 +21,45 @@ interface ChatMessage {
 // for a 3-minute page session and keeps cost/latency tight.
 const LLM_HISTORY_WINDOW = 10;
 
+// Persist chat across page navigations (proposal -> portal -> wherever).
+// Rick should feel like one ongoing conversation, not a reset on each page.
+const CHAT_STORAGE_KEY = "wea-rick-chat-v1";
+const CHAT_STORAGE_MAX = 40; // cap stored messages to avoid bloat
+
+interface PersistedChat {
+  messages: ChatMessage[];
+  stage: string;
+  updatedAt: string;
+}
+
+function loadPersistedChat(): PersistedChat | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedChat;
+    if (!Array.isArray(parsed.messages)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function savePersistedChat(messages: ChatMessage[], stage: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const trimmed = messages.slice(-CHAT_STORAGE_MAX);
+    const payload: PersistedChat = {
+      messages: trimmed,
+      stage,
+      updatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    /* noop */
+  }
+}
+
 async function askRickLLM(
   history: ChatMessage[],
   userText: string
@@ -115,7 +154,22 @@ export default function RickChat() {
     [queueIntroCollapse]
   );
 
+  // Hydrate persisted chat on first mount. If a prior conversation exists
+  // (e.g. Lance chatted on /plan_c_addendum and navigated to /portal), resume
+  // where he left off instead of re-running the intro.
   useEffect(() => {
+    const persisted = loadPersistedChat();
+    if (persisted && persisted.messages.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMessages(persisted.messages);
+      setCurrentStage(persisted.stage || "opening");
+      hasInitializedRef.current = true;
+      hasUserInteractedRef.current = true; // don't auto-collapse resumed chat
+      setShowBubble(true);
+      return;
+    }
+
+    // Fresh session — run the original intro animation.
     const bubbleTimer = setTimeout(() => setShowBubble(true), 1500);
     const openTimer = setTimeout(() => {
       setIsOpen(true);
@@ -128,6 +182,12 @@ export default function RickChat() {
       clearIntroCloseTimer();
     };
   }, [clearIntroCloseTimer, initializeChat]);
+
+  // Persist chat on every message or stage change.
+  useEffect(() => {
+    if (messages.length === 0) return;
+    savePersistedChat(messages, currentStage);
+  }, [messages, currentStage]);
 
   useEffect(() => {
     const handler = (e: Event) => {
