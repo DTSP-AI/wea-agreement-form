@@ -212,7 +212,7 @@ export default function RickVoiceMode({
       }
       const data = await tokenResp.json();
       ephemeralKey = data?.client_secret?.value;
-      model = data?.model ?? "gpt-4o-realtime-preview-2024-12-17";
+      model = data?.model ?? "gpt-realtime";
       if (!ephemeralKey) {
         throw new Error("Ephemeral token missing from session response.");
       }

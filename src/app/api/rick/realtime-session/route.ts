@@ -5,8 +5,10 @@ import { RICK_SYSTEM_PROMPT } from "@/lib/rick-messages";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const REALTIME_MODEL = "gpt-4o-realtime-preview-2024-12-17";
-const REALTIME_VOICE = "ash"; // warm, laid-back, fits Rick's deadhead cadence
+// gpt-realtime is the GA speech-to-speech model (Aug 2025+). Naturally
+// conversational, supports cedar/marin — the warmest voices OpenAI ships.
+const REALTIME_MODEL = "gpt-realtime";
+const REALTIME_VOICE = "cedar"; // warm, slightly gritty, fits Rick's deadhead cadence
 
 export async function GET() {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -30,11 +32,13 @@ export async function GET() {
         instructions: RICK_SYSTEM_PROMPT,
         modalities: ["audio", "text"],
         input_audio_transcription: { model: "whisper-1" },
+        // Semantic VAD uses the model to detect end-of-turn instead of raw
+        // silence — dramatically more natural than server_vad for real chat.
         turn_detection: {
-          type: "server_vad",
-          threshold: 0.5,
-          prefix_padding_ms: 300,
-          silence_duration_ms: 500,
+          type: "semantic_vad",
+          eagerness: "medium",
+          create_response: true,
+          interrupt_response: true,
         },
       }),
     });
