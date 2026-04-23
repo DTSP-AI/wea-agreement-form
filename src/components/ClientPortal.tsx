@@ -869,15 +869,18 @@ export default function ClientPortal() {
           </section>
         )}
 
-        {/* Client: pending acceptance queue */}
-        {!isAdmin && pendingAcceptance.length > 0 && (
+        {/* Pending acceptance queue — shown to both roles. Client reviews
+            his own deliverables; admin can sign off on Lance's behalf. */}
+        {pendingAcceptance.length > 0 && (
           <section className="bg-green-950/30 border border-green-600/50 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-3">
               <Truck className="w-5 h-5 text-green-300" />
               <h2 className="text-lg font-bold text-green-100">
                 {pendingAcceptance.length} deliverable
-                {pendingAcceptance.length === 1 ? "" : "s"} shipped — review
-                and accept
+                {pendingAcceptance.length === 1 ? "" : "s"} shipped —{" "}
+                {isAdmin
+                  ? "accept on Lance's behalf"
+                  : "review and accept"}
               </h2>
             </div>
             <div className="space-y-2">
@@ -1673,7 +1676,9 @@ function RequirementRow({
         <div className="flex-shrink-0 flex flex-col gap-1 items-end">
           <StatusPill status={status} />
           <div className="flex items-center gap-1 mt-1">
-            {!isAdmin && (status === "pending" || status === "rejected") && (
+            {/* Submit — client action, also exposed to admin so Pete can
+                log a submission on Lance's behalf from the same view. */}
+            {(status === "pending" || status === "rejected") && (
               <button
                 onClick={() => {
                   const url = prompt(
@@ -1687,6 +1692,11 @@ function RequirementRow({
                   });
                 }}
                 className="px-2 py-1 rounded-md bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1"
+                title={
+                  isAdmin
+                    ? "Submit on Lance's behalf (captures the Drive URL)"
+                    : undefined
+                }
               >
                 <Send className="w-3 h-3" />
                 {status === "rejected" ? "Resubmit" : "Submit"}
@@ -1825,10 +1835,15 @@ function DeliverableRow({
                 Ship
               </button>
             )}
-            {!isAdmin && status === "shipped" && (
+            {/* Accept — client action, also exposed to admin so Pete can
+                sign off on Lance's behalf from the same view. */}
+            {status === "shipped" && (
               <button
                 onClick={() => onMutate(id, { status: "accepted" })}
                 className="px-2 py-1 rounded-md bg-green-500 hover:bg-green-400 text-black text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                title={
+                  isAdmin ? "Accept on Lance's behalf" : undefined
+                }
               >
                 Accept
               </button>
