@@ -108,6 +108,25 @@ interface SavedTranscript {
   createdAt: string;
 }
 
+// ---------- Portal section shape ------------------------------------------
+// A section is a user-facing grouping derived from the 6 phases. It holds
+// resolved { label, id, fromPhase } tuples so rendering + state lookup are
+// trivial. Item IDs remain phase-based so localStorage carries through.
+interface SectionItem {
+  label: string;
+  id: string;
+  fromPhase: number;
+}
+
+interface PortalSection {
+  number: number;
+  title: string;
+  weeks: string;
+  milestone: string;
+  requirements: SectionItem[];
+  deliverables: SectionItem[];
+}
+
 // ---------- Static content ------------------------------------------------
 
 // Drive folder URLs. All five cards currently point at the shared WEI root.
@@ -381,27 +400,87 @@ export default function ClientPortal() {
     setAuthed(false);
   }, []);
 
-  // ---------- Per-phase completion + unlock rules ------------------------
-  const phaseStats = useMemo(() => {
-    return plan.phases.map((phase) => {
-      const reqIds = (phase.requirements ?? []).map(
-        (_, i) => `p${phase.number}-req-${i}`
-      );
-      const delIds = phase.deliverables.map(
-        (_, i) => `p${phase.number}-del-${i}`
-      );
-      const reqsDone = reqIds.filter((id) => isReqDone(state.requirements[id]))
-        .length;
-      const delsDone = delIds.filter((id) => isDelDone(state.deliverables[id]))
-        .length;
-      const total = reqIds.length + delIds.length;
+  // ---------- Sections derived from phases ------------------------------
+  // Portal layout (per Pete, 2026-04-23):
+  //   Section 1: ALL requirements (every phase) + first half of Phase 1 dels
+  //   Section 2: remaining half of Phase 1 dels
+  //   Section 3..7: each remaining phase (2–6), deliverables only
+  // Item IDs stay phase-based (p{N}-req-{i}, p{N}-del-{i}) so any existing
+  // localStorage state carries through the restructure untouched.
+  const sections = useMemo<PortalSection[]>(() => {
+    const out: PortalSection[] = [];
+    if (plan.phases.length === 0) return out;
+
+    const phase1 = plan.phases[0];
+
+    // Consolidate all requirements from every phase into Section 1, tagged
+    // with the originating phase so the label reads clearly.
+    const allRequirements = plan.phases.flatMap((ph) =>
+      (ph.requirements ?? []).map((label, i) => ({
+        label,
+        id: `p${ph.number}-req-${i}`,
+        fromPhase: ph.number,
+      }))
+    );
+
+    const p1Dels = phase1.deliverables.map((label, i) => ({
+      label,
+      id: `p${phase1.number}-del-${i}`,
+      fromPhase: phase1.number,
+    }));
+    const splitAt = Math.ceil(p1Dels.length / 2);
+
+    out.push({
+      number: 1,
+      title: "Intake & Foundation — Part 1",
+      weeks: phase1.weeks,
+      milestone: phase1.milestone,
+      requirements: allRequirements,
+      deliverables: p1Dels.slice(0, splitAt),
+    });
+
+    out.push({
+      number: 2,
+      title: "Foundation — Part 2",
+      weeks: phase1.weeks,
+      milestone: phase1.milestone,
+      requirements: [],
+      deliverables: p1Dels.slice(splitAt),
+    });
+
+    plan.phases.slice(1).forEach((ph, idx) => {
+      out.push({
+        number: 3 + idx,
+        title: ph.title,
+        weeks: ph.weeks,
+        milestone: ph.milestone,
+        requirements: [],
+        deliverables: ph.deliverables.map((label, i) => ({
+          label,
+          id: `p${ph.number}-del-${i}`,
+          fromPhase: ph.number,
+        })),
+      });
+    });
+
+    return out;
+  }, [plan.phases]);
+
+  const sectionStats = useMemo(() => {
+    return sections.map((s) => {
+      const reqsDone = s.requirements.filter((r) =>
+        isReqDone(state.requirements[r.id])
+      ).length;
+      const delsDone = s.deliverables.filter((d) =>
+        isDelDone(state.deliverables[d.id])
+      ).length;
+      const total = s.requirements.length + s.deliverables.length;
       const done = reqsDone + delsDone;
-      const reqsAllDone = reqsDone === reqIds.length;
-      const complete = reqsAllDone && delsDone === delIds.length && total > 0;
+      const reqsAllDone = reqsDone === s.requirements.length;
+      const complete =
+        reqsAllDone && delsDone === s.deliverables.length && total > 0;
       return {
-        phaseNumber: phase.number,
-        reqIds,
-        delIds,
+        sectionNumber: s.number,
         reqsDone,
         delsDone,
         total,
@@ -410,17 +489,17 @@ export default function ClientPortal() {
         complete,
       };
     });
-  }, [plan.phases, state.requirements, state.deliverables]);
+  }, [sections, state.requirements, state.deliverables]);
 
-  const phasesComplete = phaseStats.filter((p) => p.complete).length;
+  const phasesComplete = sectionStats.filter((p) => p.complete).length;
+  const totalSections = sections.length;
 
-  // Level-up fanfare when a phase flips from incomplete → complete
+  // Level-up fanfare when a section flips from incomplete → complete
   useEffect(() => {
     if (phasesComplete > lastCompletedRef.current) {
-      // Find which phase just completed (highest complete one)
-      const just = phaseStats
+      const just = sectionStats
         .filter((p) => p.complete)
-        .map((p) => p.phaseNumber)
+        .map((p) => p.sectionNumber)
         .pop();
       if (just !== undefined) {
         setLevelUp(just);
@@ -430,21 +509,23 @@ export default function ClientPortal() {
       }
     }
     lastCompletedRef.current = phasesComplete;
-  }, [phasesComplete, phaseStats]);
+  }, [phasesComplete, sectionStats]);
 
-  // A phase is unlocked if it is phase 1, or the PREVIOUS phase is complete.
+  // A section is unlocked if it's Section 1, or the PREVIOUS section is complete.
   const isPhaseUnlocked = useCallback(
-    (phaseNumber: number) => {
-      if (phaseNumber === 1) return true;
-      const prev = phaseStats.find((p) => p.phaseNumber === phaseNumber - 1);
+    (sectionNumber: number) => {
+      if (sectionNumber === 1) return true;
+      const prev = sectionStats.find(
+        (p) => p.sectionNumber === sectionNumber - 1
+      );
       return Boolean(prev?.complete);
     },
-    [phaseStats]
+    [sectionStats]
   );
 
   // ---------- XP / totals ------------------------------------------------
-  const totalItems = phaseStats.reduce((n, p) => n + p.total, 0);
-  const doneItems = phaseStats.reduce((n, p) => n + p.done, 0);
+  const totalItems = sectionStats.reduce((n, p) => n + p.total, 0);
+  const doneItems = sectionStats.reduce((n, p) => n + p.done, 0);
   const xpPct =
     totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
 
@@ -555,16 +636,18 @@ export default function ClientPortal() {
           >
             <Trophy className="w-14 h-14 text-yellow-300 mx-auto mb-3 drop-shadow-lg" />
             <div className="text-xs uppercase tracking-[0.3em] text-green-200 mb-1">
-              Level {levelUp} complete
+              Section {levelUp} complete
             </div>
             <div className="text-3xl font-black text-white mb-2">
-              Phase {levelUp + 1} Unlocked
+              {levelUp >= totalSections
+                ? "Project Delivered"
+                : `Section ${levelUp + 1} Unlocked`}
             </div>
             <div className="text-green-100 text-sm">
-              {levelUp === 6
-                ? "Project delivered. Launch party next."
+              {levelUp >= totalSections
+                ? "All sections cleared. Launch party next."
                 : `Next up: ${
-                    plan.phases.find((p) => p.number === levelUp + 1)?.title ?? ""
+                    sections.find((s) => s.number === levelUp + 1)?.title ?? ""
                   }`}
             </div>
           </motion.div>
@@ -582,8 +665,8 @@ export default function ClientPortal() {
                 Whole Earth Industries — Client Portal
               </div>
               <div className="text-xs text-zinc-500 truncate">
-                Artist Marketplace · Plan C Addendum · Level {phasesComplete}
-                /6
+                Artist Marketplace · Plan C Addendum · Section{" "}
+                {phasesComplete}/{totalSections}
               </div>
             </div>
           </div>
@@ -649,15 +732,20 @@ export default function ClientPortal() {
               <div className="flex items-center gap-2">
                 <Trophy className="w-4 h-4 text-yellow-300" />
                 <span className="text-sm font-bold text-white">
-                  Level {Math.max(1, phasesComplete + (phasesComplete < 6 ? 1 : 0))}{" "}
-                  of 6
+                  Section{" "}
+                  {Math.max(
+                    1,
+                    phasesComplete +
+                      (phasesComplete < totalSections ? 1 : 0)
+                  )}{" "}
+                  of {totalSections}
                 </span>
                 <span className="text-xs text-zinc-500">
                   ·{" "}
-                  {phasesComplete === 6
-                    ? "All milestones delivered"
-                    : plan.phases.find(
-                        (p) => p.number === phasesComplete + 1
+                  {phasesComplete === totalSections
+                    ? "All sections delivered"
+                    : sections.find(
+                        (s) => s.number === phasesComplete + 1
                       )?.title}
                 </span>
               </div>
@@ -671,10 +759,15 @@ export default function ClientPortal() {
                 style={{ width: `${xpPct}%` }}
               />
             </div>
-            <div className="mt-3 grid grid-cols-6 gap-1">
-              {phaseStats.map((p) => (
+            <div
+              className="mt-3 grid gap-1"
+              style={{
+                gridTemplateColumns: `repeat(${totalSections}, minmax(0, 1fr))`,
+              }}
+            >
+              {sectionStats.map((p) => (
                 <div
-                  key={p.phaseNumber}
+                  key={p.sectionNumber}
                   className={`h-1 rounded-full ${
                     p.complete
                       ? "bg-green-400"
@@ -682,7 +775,7 @@ export default function ClientPortal() {
                         ? "bg-yellow-500"
                         : "bg-[#262626]"
                   }`}
-                  title={`Phase ${p.phaseNumber}: ${p.done}/${p.total}`}
+                  title={`Section ${p.sectionNumber}: ${p.done}/${p.total}`}
                 />
               ))}
             </div>
@@ -911,27 +1004,28 @@ export default function ClientPortal() {
           </div>
         </section>
 
-        {/* Phase gates */}
+        {/* Section gates (7 sections derived from the 6 phases) */}
         <section>
           <SectionHeader
             icon={<Trophy className="w-5 h-5 text-yellow-300" />}
-            title="Milestones — Requirements & Deliverables"
+            title="Sections — Requirements & Deliverables"
             subtitle={
               isAdmin
                 ? "Approve Lance's requirement submissions. Ship deliverables and override client sign-off when needed."
-                : "Submit each Requirement with a Drive link. Accept Deliverables once Pete ships them. Clear every item to unlock the next level."
+                : "Section 1 collects every Requirement up-front plus the first half of Milestone 1's deliverables. Each following section unlocks when the previous one is 100% cleared."
             }
           />
           <div className="space-y-5">
-            {plan.phases.map((phase) => {
-              const stats = phaseStats.find(
-                (s) => s.phaseNumber === phase.number
+            {sections.map((section) => {
+              const stats = sectionStats.find(
+                (s) => s.sectionNumber === section.number
               )!;
-              const unlocked = isPhaseUnlocked(phase.number);
+              const unlocked = isPhaseUnlocked(section.number);
               return (
-                <PhaseCard
-                  key={phase.number}
-                  phase={phase}
+                <SectionCard
+                  key={section.number}
+                  section={section}
+                  totalSections={totalSections}
                   unlocked={unlocked}
                   complete={stats.complete}
                   isAdmin={isAdmin}
@@ -1294,10 +1388,13 @@ function SimpleCheck({
 }
 
 // ----------------------------------------------------------------------------
-// PhaseCard — one per milestone. Locks when previous phase incomplete.
+// SectionCard — one per portal section. Section 1 bundles all requirements
+// + first half of Phase 1 deliverables. Sections 2..N are deliverables-only.
+// Locks when previous section incomplete.
 // ----------------------------------------------------------------------------
-function PhaseCard({
-  phase,
+function SectionCard({
+  section,
+  totalSections,
   unlocked,
   complete,
   isAdmin,
@@ -1308,7 +1405,8 @@ function PhaseCard({
   doneCount,
   totalCount,
 }: {
-  phase: (typeof planCAddendum.phases)[number];
+  section: PortalSection;
+  totalSections: number;
   unlocked: boolean;
   complete: boolean;
   isAdmin: boolean;
@@ -1321,6 +1419,7 @@ function PhaseCard({
 }) {
   const pct =
     totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+  const hasRequirements = section.requirements.length > 0;
 
   return (
     <div
@@ -1347,12 +1446,12 @@ function PhaseCard({
                   : "bg-zinc-900 text-zinc-600"
             }`}
           >
-            {complete ? <CheckCircle className="w-4 h-4" /> : phase.number}
+            {complete ? <CheckCircle className="w-4 h-4" /> : section.number}
           </div>
           <div className="min-w-0">
             <div className="font-semibold text-white flex items-center gap-2 flex-wrap">
               <span>
-                Level {phase.number}: {phase.title}
+                Section {section.number} of {totalSections}: {section.title}
               </span>
               {complete && (
                 <span className="px-2 py-0.5 rounded bg-green-500 text-black text-[10px] font-bold uppercase tracking-wider">
@@ -1367,9 +1466,9 @@ function PhaseCard({
             </div>
             <div className="flex items-center gap-2 text-xs text-zinc-500 mt-0.5">
               <Clock className="w-3 h-3" />
-              {phase.weeks}
+              {section.weeks}
               <span className="text-zinc-700">·</span>
-              <span className="text-green-400">{phase.milestone}</span>
+              <span className="text-green-400">{section.milestone}</span>
               <span className="text-zinc-700">·</span>
               <span>
                 {doneCount}/{totalCount} cleared
@@ -1396,40 +1495,37 @@ function PhaseCard({
         <div className="px-6 py-8 text-center">
           <Lock className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
           <div className="text-sm text-zinc-400 font-semibold">
-            Complete Level {phase.number - 1} to unlock
+            Complete Section {section.number - 1} to unlock
           </div>
           <div className="text-xs text-zinc-600 mt-1">
             Every requirement must be approved and every deliverable must be
             accepted or overridden.
           </div>
         </div>
-      ) : (
+      ) : hasRequirements ? (
         <div className="grid md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-[#262626]">
           {/* Requirements column */}
           <div className="p-6">
             <div className="text-[10px] uppercase tracking-[0.2em] text-yellow-400/80 font-semibold mb-3">
-              Requirements from you
+              Requirements from you (all milestones)
             </div>
             <div className="space-y-2">
-              {(phase.requirements ?? []).map((label, i) => {
-                const id = `p${phase.number}-req-${i}`;
-                const item = requirementsState[id] ?? { status: "pending" as ReqStatus };
+              {section.requirements.map((r) => {
+                const item =
+                  requirementsState[r.id] ??
+                  ({ status: "pending" as ReqStatus });
                 return (
                   <RequirementRow
-                    key={id}
-                    id={id}
-                    label={label}
+                    key={r.id}
+                    id={r.id}
+                    label={r.label}
+                    fromPhase={r.fromPhase}
                     item={item}
                     isAdmin={isAdmin}
                     onMutate={onReqMutate}
                   />
                 );
               })}
-              {(!phase.requirements || phase.requirements.length === 0) && (
-                <div className="text-xs text-zinc-600 italic">
-                  No inputs required this milestone.
-                </div>
-              )}
             </div>
           </div>
           {/* Deliverables column */}
@@ -1438,21 +1534,56 @@ function PhaseCard({
               Deliverables from Pete
             </div>
             <div className="space-y-2">
-              {phase.deliverables.map((label, i) => {
-                const id = `p${phase.number}-del-${i}`;
-                const item = deliverablesState[id] ?? { status: "in_progress" as DelStatus };
+              {section.deliverables.map((d) => {
+                const item =
+                  deliverablesState[d.id] ??
+                  ({ status: "in_progress" as DelStatus });
                 return (
                   <DeliverableRow
-                    key={id}
-                    id={id}
-                    label={label}
+                    key={d.id}
+                    id={d.id}
+                    label={d.label}
                     item={item}
                     isAdmin={isAdmin}
                     onMutate={onDelMutate}
                   />
                 );
               })}
+              {section.deliverables.length === 0 && (
+                <div className="text-xs text-zinc-600 italic">
+                  No deliverables in this section.
+                </div>
+              )}
             </div>
+          </div>
+        </div>
+      ) : (
+        // Deliverables-only sections (2..N) — single column, full width
+        <div className="p-6">
+          <div className="text-[10px] uppercase tracking-[0.2em] text-green-400/80 font-semibold mb-3">
+            Deliverables from Pete
+          </div>
+          <div className="space-y-2">
+            {section.deliverables.map((d) => {
+              const item =
+                deliverablesState[d.id] ??
+                ({ status: "in_progress" as DelStatus });
+              return (
+                <DeliverableRow
+                  key={d.id}
+                  id={d.id}
+                  label={d.label}
+                  item={item}
+                  isAdmin={isAdmin}
+                  onMutate={onDelMutate}
+                />
+              );
+            })}
+            {section.deliverables.length === 0 && (
+              <div className="text-xs text-zinc-600 italic">
+                No deliverables in this section.
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1466,12 +1597,14 @@ function PhaseCard({
 function RequirementRow({
   id,
   label,
+  fromPhase,
   item,
   isAdmin,
   onMutate,
 }: {
   id: string;
   label: string;
+  fromPhase?: number;
   item: ReqItem;
   isAdmin: boolean;
   onMutate: (id: string, patch: Partial<ReqItem>) => void;
@@ -1511,6 +1644,11 @@ function RequirementRow({
                   : "text-zinc-200"
               }`}
             >
+              {typeof fromPhase === "number" && (
+                <span className="inline-block mr-1.5 px-1.5 py-0.5 rounded bg-yellow-500/10 border border-yellow-600/30 text-yellow-300 text-[9px] font-bold uppercase tracking-wider align-middle">
+                  M{fromPhase}
+                </span>
+              )}
               {label}
             </div>
             {item.driveUrl && (
