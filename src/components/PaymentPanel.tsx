@@ -9,7 +9,7 @@ import {
   Download,
   FileText,
   CreditCard,
-  Smartphone,
+  ExternalLink,
 } from "lucide-react";
 import { planC, type Plan } from "@/lib/proposal-data";
 
@@ -19,32 +19,27 @@ interface PaymentPanelProps {
   plan?: Plan;
 }
 
-type CopyTarget = "paypal" | "zelle";
-
 export default function PaymentPanel({
   onExportPDF,
   isExporting,
   plan = planC,
 }: PaymentPanelProps) {
   const proposalMeta = plan.meta;
-  const [copiedTarget, setCopiedTarget] = useState<CopyTarget | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const handleCopy = useCallback(
-    async (value: string, target: CopyTarget) => {
-      await navigator.clipboard.writeText(value);
-      setCopiedTarget(target);
-      setTimeout(() => setCopiedTarget(null), 2000);
-    },
-    []
-  );
+  const handleCopy = useCallback(async (value: string) => {
+    await navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, []);
 
   const isAddendum = Boolean(proposalMeta.paymentSchedule);
   const depositLabel = isAddendum
     ? `First Payment — ${proposalMeta.investmentAtSigning}`
     : `Initial Deposit — ${proposalMeta.investmentAtSigning}`;
   const depositBlurb = isAddendum
-    ? `Send today's first ${proposalMeta.investmentAtSigning} payment via PayPal or Zelle. Seven more biweekly payments of ${proposalMeta.perMilestone} follow every two weeks. Addendum terms are only valid if this first payment is received today.`
-    : `Send your initial deposit via PayPal or Zelle to lock in your project start date. Work begins the day payment is received. Six milestone payments of ${proposalMeta.perMilestone} follow every two weeks.`;
+    ? `Pay today's first ${proposalMeta.investmentAtSigning} payment directly via PayPal. Seven more biweekly payments of ${proposalMeta.perMilestone} follow every two weeks. Addendum terms are only valid if this first payment is received today.`
+    : `Pay your initial deposit directly via PayPal to lock in your project start date. Work begins the day payment is received. Six milestone payments of ${proposalMeta.perMilestone} follow every two weeks.`;
   const memoText = isAddendum
     ? "WEI Platform — Plan C Addendum, Payment 1 of 8"
     : "WEI Platform — Milestone 1 Deposit";
@@ -94,130 +89,98 @@ export default function PaymentPanel({
         </div>
 
         <div className="p-8 space-y-6">
-          {/* PayPal Info (primary) */}
-          <div className="bg-[#0d1117] border border-green-900/30 rounded-xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <CreditCard className="w-5 h-5 text-green-400" />
-              <h3 className="font-semibold text-green-300">
-                Pay via PayPal
+          {/* PayPal invoice CTA */}
+          <div
+            className={`bg-[#0d1117] border rounded-xl p-6 ${
+              isAddendum ? "border-yellow-600/40" : "border-green-900/30"
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-5">
+              <CreditCard
+                className={`w-5 h-5 ${
+                  isAddendum ? "text-yellow-400" : "text-green-400"
+                }`}
+              />
+              <h3
+                className={`font-semibold ${
+                  isAddendum ? "text-yellow-300" : "text-green-300"
+                }`}
+              >
+                Pay via PayPal Invoice
               </h3>
             </div>
+
             <div className="space-y-4">
               <div>
                 <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
-                  Send to
+                  Amount Due
+                </div>
+                <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-white font-bold text-2xl">
+                  {proposalMeta.investmentAtSigning}
+                  <span className="text-zinc-500 text-sm font-normal ml-2">
+                    USD
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
+                  Memo / Note
+                </div>
+                <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 text-sm">
+                  {memoText}
+                </div>
+              </div>
+
+              <a
+                href={proposalMeta.paypalInvoiceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`group w-full flex items-center justify-center gap-3 px-6 py-4 rounded-xl font-bold text-base transition-all cursor-pointer ${
+                  isAddendum
+                    ? "bg-yellow-500 hover:bg-yellow-400 text-black shadow-[0_0_40px_rgba(234,179,8,0.35)]"
+                    : "bg-green-500 hover:bg-green-400 text-black shadow-[0_0_40px_rgba(34,197,94,0.35)]"
+                }`}
+              >
+                Pay {proposalMeta.investmentAtSigning} Invoice on PayPal
+                <ExternalLink className="w-5 h-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </a>
+
+              <div className="pt-2 border-t border-[#262626]">
+                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
+                  Or send manually to
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-green-400 font-mono text-lg break-all">
+                  <div className="flex-1 bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 font-mono text-sm break-all">
                     {proposalMeta.paypalHandle}
                   </div>
                   <button
-                    onClick={() =>
-                      handleCopy(proposalMeta.paypalHandle, "paypal")
-                    }
-                    className="p-3 rounded-lg bg-green-900/30 border border-green-800/40 hover:bg-green-800/40 transition-colors text-green-400 cursor-pointer"
+                    onClick={() => handleCopy(proposalMeta.paypalHandle)}
+                    className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                      isAddendum
+                        ? "bg-yellow-900/30 border-yellow-800/40 hover:bg-yellow-800/40 text-yellow-300"
+                        : "bg-green-900/30 border-green-800/40 hover:bg-green-800/40 text-green-400"
+                    }`}
+                    title="Copy PayPal address"
                   >
-                    {copiedTarget === "paypal" ? (
+                    {copied ? (
                       <Check className="w-5 h-5" />
                     ) : (
                       <Copy className="w-5 h-5" />
                     )}
                   </button>
                 </div>
-                {copiedTarget === "paypal" && (
+                {copied && (
                   <motion.p
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-green-400 text-xs mt-2"
+                    className={`text-xs mt-2 ${
+                      isAddendum ? "text-yellow-300" : "text-green-400"
+                    }`}
                   >
                     Copied to clipboard
                   </motion.p>
                 )}
-              </div>
-
-              <div>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
-                  Amount
-                </div>
-                <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-white font-bold text-2xl">
-                  {proposalMeta.investmentAtSigning}
-                  <span className="text-zinc-500 text-sm font-normal ml-2">
-                    USD
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
-                  Memo / Note
-                </div>
-                <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 text-sm">
-                  {memoText}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Zelle Info (secondary) */}
-          <div className="bg-[#0d1117] border border-green-900/30 rounded-xl p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Smartphone className="w-5 h-5 text-green-400" />
-              <h3 className="font-semibold text-green-300">
-                Pay via Zelle
-              </h3>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
-                  Send to
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-green-400 font-mono text-lg break-all">
-                    {proposalMeta.zelleEmail}
-                  </div>
-                  <button
-                    onClick={() =>
-                      handleCopy(proposalMeta.zelleEmail, "zelle")
-                    }
-                    className="p-3 rounded-lg bg-green-900/30 border border-green-800/40 hover:bg-green-800/40 transition-colors text-green-400 cursor-pointer"
-                  >
-                    {copiedTarget === "zelle" ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      <Copy className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                {copiedTarget === "zelle" && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-green-400 text-xs mt-2"
-                  >
-                    Copied to clipboard
-                  </motion.p>
-                )}
-              </div>
-
-              <div>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
-                  Amount
-                </div>
-                <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-white font-bold text-2xl">
-                  {proposalMeta.investmentAtSigning}
-                  <span className="text-zinc-500 text-sm font-normal ml-2">
-                    USD
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
-                  Memo / Note
-                </div>
-                <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 text-sm">
-                  {memoText}
-                </div>
               </div>
             </div>
           </div>
@@ -227,30 +190,36 @@ export default function PaymentPanel({
             {[
               {
                 step: 1,
-                icon: CreditCard,
-                title: "Pick a Method",
-                desc: "Open PayPal (preferred) or your bank's Zelle app",
+                icon: ExternalLink,
+                title: "Open Invoice",
+                desc: "Click the Pay button above — opens the PayPal invoice in a new tab.",
               },
               {
                 step: 2,
                 icon: DollarSign,
-                title: `Send ${proposalMeta.investmentAtSigning}`,
-                desc: `Send to ${proposalMeta.paypalHandle} with memo "WEI Platform"`,
+                title: `Pay ${proposalMeta.investmentAtSigning}`,
+                desc: "Sign in to PayPal and complete the payment. Takes under a minute.",
               },
               {
                 step: 3,
                 icon: Check,
                 title: "We Start",
                 desc: isAddendum
-                  ? "Pete confirms receipt today and Milestone 1 kicks off same day"
-                  : "Pete confirms receipt and Milestone 1 kicks off immediately",
+                  ? "Pete confirms receipt today and Milestone 1 kicks off same day."
+                  : "Pete confirms receipt and Milestone 1 kicks off immediately.",
               },
             ].map((item) => (
               <div
                 key={item.step}
                 className="bg-[#0d0d0d] border border-[#262626] rounded-xl p-5 text-center"
               >
-                <div className="w-10 h-10 mx-auto rounded-full bg-green-900/40 flex items-center justify-center text-green-400 font-bold text-sm mb-3">
+                <div
+                  className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center font-bold text-sm mb-3 ${
+                    isAddendum
+                      ? "bg-yellow-900/40 text-yellow-300"
+                      : "bg-green-900/40 text-green-400"
+                  }`}
+                >
                   {item.step}
                 </div>
                 <h4 className="font-semibold text-white text-sm mb-1">

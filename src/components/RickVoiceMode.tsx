@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mic, MicOff } from "lucide-react";
-import { rickOpening } from "@/lib/rick-messages";
+import { RealtimeAgent, RealtimeSession } from "@openai/agents/realtime";
+import type { RealtimeItem } from "@openai/agents/realtime";
+import { RICK_SYSTEM_PROMPT, rickOpening } from "@/lib/rick-messages";
 
 type VoiceState = "connecting" | "idle" | "listening" | "thinking" | "speaking";
 
@@ -16,31 +18,54 @@ interface RickVoiceModeProps {
 // Stage we emit for voice exchanges. Keeps the chat CTAs in "still-talking" mode
 // so Lance can either dig deeper or jump to signing when he closes voice.
 const VOICE_EXCHANGE_STAGE = "post_tangent";
+const DEFAULT_MODEL = "gpt-realtime";
 
-type RealtimeEvent =
-  | { type: "session.created" }
-  | { type: "session.updated" }
-  | { type: "input_audio_buffer.speech_started" }
-  | { type: "input_audio_buffer.speech_stopped" }
-  | {
-      type: "conversation.item.input_audio_transcription.completed";
-      transcript: string;
+// Pull the latest user + assistant transcripts out of the SDK's history snapshot.
+// Returns the last completed user utterance and the last assistant utterance
+// (which may still be in progress / streaming in).
+function extractTranscripts(history: RealtimeItem[]): {
+  lastUser: string;
+  lastUserCompleted: string;
+  lastAssistant: string;
+  lastAssistantCompleted: string;
+} {
+  let lastUser = "";
+  let lastUserCompleted = "";
+  let lastAssistant = "";
+  let lastAssistantCompleted = "";
+
+  for (const item of history) {
+    if (item.type !== "message") continue;
+    if (item.role === "user") {
+      const text = item.content
+        .map((c) => {
+          if (c.type === "input_text") return c.text;
+          if (c.type === "input_audio") return c.transcript ?? "";
+          return "";
+        })
+        .join(" ")
+        .trim();
+      if (text) {
+        lastUser = text;
+        if (item.status === "completed") lastUserCompleted = text;
+      }
+    } else if (item.role === "assistant") {
+      const text = item.content
+        .map((c) => {
+          if (c.type === "output_text") return c.text;
+          if (c.type === "output_audio") return c.transcript ?? "";
+          return "";
+        })
+        .join(" ")
+        .trim();
+      if (text) {
+        lastAssistant = text;
+        if (item.status === "completed") lastAssistantCompleted = text;
+      }
     }
-  | { type: "response.created" }
-  | { type: "response.audio_transcript.delta"; delta: string }
-  | { type: "response.audio_transcript.done"; transcript: string }
-  | { type: "response.done" }
-  | { type: "error"; error?: { message?: string } | string }
-  | { type: string; [key: string]: unknown };
-
-function extractErrorMessage(raw: unknown): string | undefined {
-  if (!raw) return undefined;
-  if (typeof raw === "string") return raw;
-  if (typeof raw === "object" && raw !== null && "message" in raw) {
-    const msg = (raw as { message?: unknown }).message;
-    if (typeof msg === "string") return msg;
   }
-  return undefined;
+
+  return { lastUser, lastUserCompleted, lastAssistant, lastAssistantCompleted };
 }
 
 export default function RickVoiceMode({
@@ -54,139 +79,24 @@ export default function RickVoiceMode({
   const [muted, setMuted] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const dcRef = useRef<RTCDataChannel | null>(null);
-  const micStreamRef = useRef<MediaStream | null>(null);
-  const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const sessionRef = useRef<RealtimeSession | null>(null);
   const closedRef = useRef(false);
 
-  // Buffer the in-progress exchange so we can emit ONE onExchange per turn
-  // with a clean (userText, rickText) pair.
-  const pendingUserRef = useRef<string>("");
-  const pendingRickRef = useRef<string>("");
+  // Exchange dedup — fire onExchange only once per (user, rick) turn pair.
+  const lastEmittedUserRef = useRef<string>("");
+  const lastEmittedRickRef = useRef<string>("");
 
   const cleanup = useCallback(() => {
-    try {
-      dcRef.current?.close();
-    } catch {
-      /* noop */
-    }
-    dcRef.current = null;
-
-    try {
-      pcRef.current?.getSenders().forEach((s) => {
-        try {
-          s.track?.stop();
-        } catch {
-          /* noop */
-        }
-      });
-      pcRef.current?.close();
-    } catch {
-      /* noop */
-    }
-    pcRef.current = null;
-
-    try {
-      micStreamRef.current?.getTracks().forEach((t) => t.stop());
-    } catch {
-      /* noop */
-    }
-    micStreamRef.current = null;
-
-    if (audioElRef.current) {
+    const s = sessionRef.current;
+    if (s) {
       try {
-        audioElRef.current.pause();
-        audioElRef.current.srcObject = null;
-        audioElRef.current.remove();
+        s.close();
       } catch {
         /* noop */
       }
-      audioElRef.current = null;
     }
+    sessionRef.current = null;
   }, []);
-
-  const flushExchange = useCallback(() => {
-    const u = pendingUserRef.current.trim();
-    const r = pendingRickRef.current.trim();
-    if (u || r) {
-      onExchange(u, r, VOICE_EXCHANGE_STAGE);
-    }
-    pendingUserRef.current = "";
-    pendingRickRef.current = "";
-  }, [onExchange]);
-
-  const handleRealtimeEvent = useCallback(
-    (event: RealtimeEvent) => {
-      if (closedRef.current) return;
-
-      switch (event.type) {
-        case "session.created":
-        case "session.updated":
-          // Connection live — drop out of "connecting" into idle. First audio
-          // from Rick (the greeting) will flip us to "speaking".
-          setState((prev) => (prev === "connecting" ? "idle" : prev));
-          break;
-
-        case "input_audio_buffer.speech_started":
-          setState("listening");
-          setUserTranscript("");
-          pendingUserRef.current = "";
-          break;
-
-        case "input_audio_buffer.speech_stopped":
-          setState("thinking");
-          break;
-
-        case "conversation.item.input_audio_transcription.completed": {
-          const t =
-            typeof event.transcript === "string" ? event.transcript : "";
-          pendingUserRef.current = t;
-          setUserTranscript(t);
-          break;
-        }
-
-        case "response.created":
-          setState("speaking");
-          setRickTranscript("");
-          pendingRickRef.current = "";
-          break;
-
-        case "response.audio_transcript.delta": {
-          const delta = typeof event.delta === "string" ? event.delta : "";
-          pendingRickRef.current += delta;
-          setRickTranscript((prev) => prev + delta);
-          break;
-        }
-
-        case "response.audio_transcript.done": {
-          const t =
-            typeof event.transcript === "string"
-              ? event.transcript
-              : pendingRickRef.current;
-          pendingRickRef.current = t;
-          setRickTranscript(t);
-          break;
-        }
-
-        case "response.done":
-          flushExchange();
-          setState("idle");
-          break;
-
-        case "error": {
-          setErrorMsg(
-            extractErrorMessage(event.error) ?? "Realtime session error."
-          );
-          break;
-        }
-
-        default:
-          break;
-      }
-    },
-    [flushExchange]
-  );
 
   const connect = useCallback(async () => {
     if (typeof window === "undefined") return;
@@ -195,12 +105,13 @@ export default function RickVoiceMode({
     setErrorMsg(null);
     setUserTranscript("");
     setRickTranscript("");
-    pendingUserRef.current = "";
-    pendingRickRef.current = "";
+    lastEmittedUserRef.current = "";
+    lastEmittedRickRef.current = "";
 
     // 1. Mint an ephemeral OpenAI Realtime token via our server route.
     let ephemeralKey: string;
-    let model: string;
+    let model = DEFAULT_MODEL;
+    let voice = "cedar";
     try {
       const tokenResp = await fetch("/api/rick/realtime-session", {
         method: "GET",
@@ -212,7 +123,8 @@ export default function RickVoiceMode({
       }
       const data = await tokenResp.json();
       ephemeralKey = data?.client_secret?.value;
-      model = data?.model ?? "gpt-realtime";
+      model = data?.model ?? DEFAULT_MODEL;
+      voice = data?.voice ?? "cedar";
       if (!ephemeralKey) {
         throw new Error("Ephemeral token missing from session response.");
       }
@@ -229,97 +141,120 @@ export default function RickVoiceMode({
 
     if (closedRef.current) return;
 
-    // 2. Build the RTCPeerConnection and attach a remote-audio sink.
-    const pc = new RTCPeerConnection();
-    pcRef.current = pc;
-
-    const audioEl = document.createElement("audio");
-    audioEl.autoplay = true;
-    audioEl.setAttribute("playsinline", "true");
-    audioElRef.current = audioEl;
-    pc.ontrack = (e) => {
-      if (closedRef.current) return;
-      audioEl.srcObject = e.streams[0];
-    };
-
-    // 3. Capture the mic and add it as a track.
-    let micStream: MediaStream;
+    // 2. Spin up the Agents SDK — RealtimeAgent carries the contract, the
+    // RealtimeSession handles WebRTC, mic, playback, VAD, and turn management.
     try {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      if (closedRef.current) return;
-      setErrorMsg(
-        "Microphone permission denied. Enable it and reopen voice mode."
-      );
-      setState("idle");
-      cleanup();
-      return;
-    }
-    if (closedRef.current) {
-      micStream.getTracks().forEach((t) => t.stop());
-      return;
-    }
-    micStreamRef.current = micStream;
-    micStream.getTracks().forEach((track) => pc.addTrack(track, micStream));
+      const agent = new RealtimeAgent({
+        name: "Rick",
+        instructions: RICK_SYSTEM_PROMPT,
+        voice,
+      });
 
-    // 4. Open the events data channel BEFORE negotiating SDP.
-    const dc = pc.createDataChannel("oai-events");
-    dcRef.current = dc;
-    dc.addEventListener("message", (e) => {
-      try {
-        const parsed = JSON.parse(e.data) as RealtimeEvent;
-        handleRealtimeEvent(parsed);
-      } catch {
-        /* ignore malformed */
+      const session = new RealtimeSession(agent, {
+        transport: "webrtc",
+        model,
+        config: {
+          audio: {
+            output: { voice },
+          },
+          turnDetection: {
+            type: "semantic_vad",
+            eagerness: "medium",
+            createResponse: true,
+            interruptResponse: true,
+          },
+        },
+      });
+      sessionRef.current = session;
+
+      // ---------- Event wiring ----------
+
+      session.on("history_updated", (history) => {
+        if (closedRef.current) return;
+        const {
+          lastUser,
+          lastUserCompleted,
+          lastAssistant,
+          lastAssistantCompleted,
+        } = extractTranscripts(history);
+
+        setUserTranscript(lastUser);
+        setRickTranscript(lastAssistant);
+
+        // When both sides of the turn are complete, emit the exchange back
+        // to the chat thread so it's preserved after voice closes.
+        if (
+          lastUserCompleted &&
+          lastAssistantCompleted &&
+          (lastUserCompleted !== lastEmittedUserRef.current ||
+            lastAssistantCompleted !== lastEmittedRickRef.current)
+        ) {
+          lastEmittedUserRef.current = lastUserCompleted;
+          lastEmittedRickRef.current = lastAssistantCompleted;
+          onExchange(
+            lastUserCompleted,
+            lastAssistantCompleted,
+            VOICE_EXCHANGE_STAGE
+          );
+        }
+      });
+
+      session.on("audio_start", () => {
+        if (closedRef.current) return;
+        setState("speaking");
+      });
+
+      session.on("audio_stopped", () => {
+        if (closedRef.current) return;
+        setState("idle");
+      });
+
+      session.on("audio_interrupted", () => {
+        if (closedRef.current) return;
+        setState("listening");
+      });
+
+      session.on("transport_event", (evt) => {
+        if (closedRef.current) return;
+        const type = (evt as { type?: string })?.type;
+        if (type === "input_audio_buffer.speech_started") {
+          setState("listening");
+        } else if (type === "input_audio_buffer.speech_stopped") {
+          setState("thinking");
+        } else if (type === "session.created" || type === "session.updated") {
+          setState((prev) => (prev === "connecting" ? "idle" : prev));
+        }
+      });
+
+      session.on("error", (err) => {
+        if (closedRef.current) return;
+        const msg =
+          (err && typeof err === "object" && "error" in err
+            ? extractErrorMessage((err as { error: unknown }).error)
+            : undefined) ?? "Realtime session error.";
+        setErrorMsg(msg);
+      });
+
+      // 3. Connect using the ephemeral token.
+      await session.connect({ apiKey: ephemeralKey, model });
+
+      if (closedRef.current) {
+        cleanup();
+        return;
       }
-    });
-    dc.addEventListener("open", () => {
-      if (closedRef.current) return;
-      // Kick Rick off with a greeting tied to the chat contract. This fires
-      // the opening line via the model so it sounds natural, not canned TTS.
+
+      // 4. Ask Rick to open with the canonical greeting. Same contract as
+      // the chat widget — he says the opening line, in his voice.
       const greeting = rickOpening[0]?.text ?? "";
       if (greeting) {
         try {
-          dc.send(
-            JSON.stringify({
-              type: "response.create",
-              response: {
-                modalities: ["audio", "text"],
-                instructions: `Open the conversation by saying exactly this, verbatim, in your natural voice: "${greeting.replace(/"/g, '\\"')}"`,
-              },
-            })
+          session.sendMessage(
+            `Open the conversation by saying exactly this, verbatim, in your natural voice: "${greeting.replace(/"/g, '\\"')}"`
           );
         } catch {
-          /* noop */
+          /* noop — session will still accept user speech */
         }
       }
-    });
-
-    // 5. SDP offer → OpenAI Realtime → answer.
-    try {
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-
-      const sdpResp = await fetch(
-        `https://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`,
-        {
-          method: "POST",
-          body: offer.sdp ?? "",
-          headers: {
-            Authorization: `Bearer ${ephemeralKey}`,
-            "Content-Type": "application/sdp",
-          },
-        }
-      );
-      if (!sdpResp.ok) {
-        const body = await sdpResp.text();
-        throw new Error(`SDP handshake failed (${sdpResp.status}): ${body}`);
-      }
-      const answer: RTCSessionDescriptionInit = {
-        type: "answer",
-        sdp: await sdpResp.text(),
-      };
-      await pc.setRemoteDescription(answer);
     } catch (err) {
       if (closedRef.current) return;
       setErrorMsg(
@@ -328,7 +263,7 @@ export default function RickVoiceMode({
       setState("idle");
       cleanup();
     }
-  }, [cleanup, handleRealtimeEvent]);
+  }, [cleanup, onExchange]);
 
   // Open / close lifecycle
   useEffect(() => {
@@ -353,16 +288,13 @@ export default function RickVoiceMode({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  // Mute = disable the mic track. Rick stops hearing Lance but the session
-  // stays alive, so unmuting is instant (no reconnect).
   const toggleMute = useCallback(() => {
     setMuted((prev) => {
       const next = !prev;
-      const stream = micStreamRef.current;
-      if (stream) {
-        stream.getAudioTracks().forEach((t) => {
-          t.enabled = !next;
-        });
+      try {
+        sessionRef.current?.mute(next);
+      } catch {
+        /* noop */
       }
       return next;
     });
@@ -370,10 +302,9 @@ export default function RickVoiceMode({
 
   const handleClose = useCallback(() => {
     closedRef.current = true;
-    flushExchange();
     cleanup();
     onClose();
-  }, [cleanup, flushExchange, onClose]);
+  }, [cleanup, onClose]);
 
   // ESC to close
   useEffect(() => {
@@ -508,6 +439,16 @@ export default function RickVoiceMode({
       )}
     </AnimatePresence>
   );
+}
+
+function extractErrorMessage(raw: unknown): string | undefined {
+  if (!raw) return undefined;
+  if (typeof raw === "string") return raw;
+  if (typeof raw === "object" && raw !== null && "message" in raw) {
+    const msg = (raw as { message?: unknown }).message;
+    if (typeof msg === "string") return msg;
+  }
+  return undefined;
 }
 
 function VoiceOrb({ state }: { state: VoiceState }) {
