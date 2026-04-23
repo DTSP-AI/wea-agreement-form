@@ -17,6 +17,38 @@ interface ChatMessage {
   text: string;
 }
 
+// Keep history we forward to the LLM lean. 10 turns is plenty of continuity
+// for a 3-minute page session and keeps cost/latency tight.
+const LLM_HISTORY_WINDOW = 10;
+
+async function askRickLLM(
+  history: ChatMessage[],
+  userText: string
+): Promise<string | null> {
+  try {
+    const payload = {
+      messages: [
+        ...history.slice(-LLM_HISTORY_WINDOW).map((m) => ({
+          role: m.role === "user" ? "user" : "assistant",
+          content: m.text,
+        })),
+        { role: "user" as const, content: userText },
+      ],
+    };
+    const res = await fetch("/api/rick/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const text = typeof data?.text === "string" ? data.text.trim() : "";
+    return text || null;
+  } catch {
+    return null;
+  }
+}
+
 export default function RickChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -170,7 +202,7 @@ export default function RickChat() {
     [clearIntroCloseTimer]
   );
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     if (!input.trim()) return;
 
     hasUserInteractedRef.current = true;
@@ -178,26 +210,29 @@ export default function RickChat() {
     setLauncherHint("");
 
     const userText = input.trim();
+    const historyAtSend = messages;
     setMessages((prev) => [
       ...prev,
       { id: `user-${Date.now()}`, role: "user", text: userText },
     ]);
     setInput("");
 
-    const { text, nextStage } = getFreetextResponse(userText);
+    // Keyword matcher still decides the next CTA stage so the button row
+    // reacts sensibly (deterministic UX). The actual reply comes from GPT
+    // via the same system prompt Voice Rick uses, so both personas match.
+    const { text: fallbackText, nextStage } = getFreetextResponse(userText);
 
-    setTimeout(() => {
-      setIsTyping(true);
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          { id: `rick-${Date.now()}`, role: "rick", text },
-        ]);
-        setCurrentStage(nextStage);
-        setIsTyping(false);
-      }, 1400);
-    }, 300);
-  }, [clearIntroCloseTimer, input]);
+    setIsTyping(true);
+    const llmText = await askRickLLM(historyAtSend, userText);
+    const text = llmText ?? fallbackText;
+
+    setMessages((prev) => [
+      ...prev,
+      { id: `rick-${Date.now()}`, role: "rick", text },
+    ]);
+    setCurrentStage(nextStage);
+    setIsTyping(false);
+  }, [clearIntroCloseTimer, input, messages]);
 
   const currentCTAs =
     ctaStages[currentStage]?.options ?? ctaStages.opening.options;

@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mic, MicOff } from "lucide-react";
-import { getFreetextResponse, rickOpening } from "@/lib/rick-messages";
+import { rickOpening } from "@/lib/rick-messages";
 
-type VoiceState = "idle" | "listening" | "thinking" | "speaking";
+type VoiceState = "connecting" | "idle" | "listening" | "thinking" | "speaking";
 
 interface RickVoiceModeProps {
   isOpen: boolean;
@@ -13,48 +13,34 @@ interface RickVoiceModeProps {
   onExchange: (userText: string, rickText: string, nextStage: string) => void;
 }
 
-// Minimal SpeechRecognition type surface. Browser vendor-prefixed impl.
-interface SRResult {
-  readonly transcript: string;
-}
-interface SRResultAlt {
-  readonly length: number;
-  item(index: number): SRResult;
-  [index: number]: SRResult;
-}
-interface SRResults {
-  readonly length: number;
-  item(index: number): SRResultAlt;
-  [index: number]: SRResultAlt;
-}
-interface SREvent extends Event {
-  readonly resultIndex: number;
-  readonly results: SRResults;
-}
-interface SRErrorEvent extends Event {
-  readonly error: string;
-}
-interface SRInstance extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onresult: ((e: SREvent) => void) | null;
-  onerror: ((e: SRErrorEvent) => void) | null;
-  onend: (() => void) | null;
-  onstart: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-  abort: () => void;
-}
-interface SRConstructor {
-  new (): SRInstance;
-}
+// Stage we emit for voice exchanges. Keeps the chat CTAs in "still-talking" mode
+// so Lance can either dig deeper or jump to signing when he closes voice.
+const VOICE_EXCHANGE_STAGE = "post_tangent";
 
-declare global {
-  interface Window {
-    SpeechRecognition?: SRConstructor;
-    webkitSpeechRecognition?: SRConstructor;
+type RealtimeEvent =
+  | { type: "session.created" }
+  | { type: "session.updated" }
+  | { type: "input_audio_buffer.speech_started" }
+  | { type: "input_audio_buffer.speech_stopped" }
+  | {
+      type: "conversation.item.input_audio_transcription.completed";
+      transcript: string;
+    }
+  | { type: "response.created" }
+  | { type: "response.audio_transcript.delta"; delta: string }
+  | { type: "response.audio_transcript.done"; transcript: string }
+  | { type: "response.done" }
+  | { type: "error"; error?: { message?: string } | string }
+  | { type: string; [key: string]: unknown };
+
+function extractErrorMessage(raw: unknown): string | undefined {
+  if (!raw) return undefined;
+  if (typeof raw === "string") return raw;
+  if (typeof raw === "object" && raw !== null && "message" in raw) {
+    const msg = (raw as { message?: unknown }).message;
+    if (typeof msg === "string") return msg;
   }
+  return undefined;
 }
 
 export default function RickVoiceMode({
@@ -62,325 +48,332 @@ export default function RickVoiceMode({
   onClose,
   onExchange,
 }: RickVoiceModeProps) {
-  const [state, setState] = useState<VoiceState>("idle");
+  const [state, setState] = useState<VoiceState>("connecting");
   const [userTranscript, setUserTranscript] = useState("");
   const [rickTranscript, setRickTranscript] = useState("");
   const [muted, setMuted] = useState(false);
-  const [supported, setSupported] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const recognitionRef = useRef<SRInstance | null>(null);
-  const voiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const dcRef = useRef<RTCDataChannel | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
   const closedRef = useRef(false);
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const finalTranscriptRef = useRef("");
-  const mutedRef = useRef(false);
 
-  useEffect(() => {
-    mutedRef.current = muted;
-  }, [muted]);
+  // Buffer the in-progress exchange so we can emit ONE onExchange per turn
+  // with a clean (userText, rickText) pair.
+  const pendingUserRef = useRef<string>("");
+  const pendingRickRef = useRef<string>("");
 
-  // Pick a British voice for Rick (Ember-style)
-  const pickVoice = useCallback(() => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    const voices = window.speechSynthesis.getVoices();
-    if (!voices.length) return;
-
-    // Ordered preference: British male voices first, best engines first.
-    const prefer = [
-      "Microsoft Ryan Online (Natural) - English (United Kingdom)",
-      "Microsoft Ryan Online",
-      "Microsoft Ryan",
-      "Google UK English Male",
-      "Daniel (Enhanced)",
-      "Daniel",
-      "Oliver",
-      "Arthur",
-      "Microsoft George",
-    ];
-
-    // 1. Exact-name match against preferred list
-    const exact = prefer
-      .map((name) => voices.find((v) => v.name === name))
-      .find(Boolean);
-    if (exact) {
-      voiceRef.current = exact;
-      return;
-    }
-
-    // 2. Partial-name match against preferred list
-    const partial = voices.find((v) =>
-      prefer.some((p) => v.name.includes(p))
-    );
-    if (partial) {
-      voiceRef.current = partial;
-      return;
-    }
-
-    // 3. Any en-GB voice
-    const gb = voices.find((v) => /en[-_]GB/i.test(v.lang));
-    if (gb) {
-      voiceRef.current = gb;
-      return;
-    }
-
-    // 4. Any English male voice
-    const enMale = voices.find(
-      (v) => v.lang.startsWith("en") && /male/i.test(v.name)
-    );
-    if (enMale) {
-      voiceRef.current = enMale;
-      return;
-    }
-
-    // 5. Last resort — any English voice
-    voiceRef.current = voices.find((v) => v.lang.startsWith("en")) ?? voices[0];
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!window.speechSynthesis) return;
-    pickVoice();
-    window.speechSynthesis.onvoiceschanged = pickVoice;
-    return () => {
-      if (window.speechSynthesis) {
-        window.speechSynthesis.onvoiceschanged = null;
-      }
-    };
-  }, [pickVoice]);
-
-  const stopRecognition = useCallback(() => {
-    const r = recognitionRef.current;
-    if (!r) return;
+  const cleanup = useCallback(() => {
     try {
-      r.onresult = null;
-      r.onerror = null;
-      r.onend = null;
-      r.onstart = null;
-      r.abort();
+      dcRef.current?.close();
     } catch {
       /* noop */
     }
-    recognitionRef.current = null;
-    if (silenceTimerRef.current) {
-      clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-  }, []);
+    dcRef.current = null;
 
-  const cancelSpeaking = useCallback(() => {
-    if (typeof window !== "undefined" && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-    }
-  }, []);
-
-  const startListening = useCallback(() => {
-    if (closedRef.current || mutedRef.current) return;
-    if (typeof window === "undefined") return;
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-      setSupported(false);
-      setErrorMsg(
-        "Your browser does not support voice input. Try Chrome or Edge."
-      );
-      return;
-    }
-
-    stopRecognition();
-    finalTranscriptRef.current = "";
-    setUserTranscript("");
-
-    const recognition = new SR();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
-
-    recognition.onstart = () => {
-      if (closedRef.current) return;
-      setState("listening");
-    };
-
-    recognition.onresult = (event: SREvent) => {
-      let interim = "";
-      let finalTxt = finalTranscriptRef.current;
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const alt = event.results[i][0];
-        const text = alt?.transcript ?? "";
-        // @ts-expect-error isFinal exists on SpeechRecognitionResult
-        if (event.results[i].isFinal) {
-          finalTxt += text + " ";
-        } else {
-          interim += text;
-        }
-      }
-      finalTranscriptRef.current = finalTxt;
-      setUserTranscript((finalTxt + interim).trim());
-
-      // Reset silence timer on any speech
-      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = setTimeout(() => {
-        // User paused — treat as end-of-utterance
+    try {
+      pcRef.current?.getSenders().forEach((s) => {
         try {
-          recognition.stop();
+          s.track?.stop();
         } catch {
           /* noop */
         }
-      }, 1400);
-    };
-
-    recognition.onerror = (e: SRErrorEvent) => {
-      if (closedRef.current) return;
-      if (e.error === "no-speech" || e.error === "aborted") {
-        // benign — just restart
-        return;
-      }
-      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-        setErrorMsg("Microphone permission denied. Enable it to use voice mode.");
-        setState("idle");
-      } else {
-        setErrorMsg(`Mic error: ${e.error}`);
-      }
-    };
-
-    recognition.onend = () => {
-      if (closedRef.current) return;
-      const finalText = finalTranscriptRef.current.trim();
-      if (!finalText) {
-        // nothing captured — loop back to listening if still open
-        if (!mutedRef.current && !closedRef.current) {
-          setTimeout(() => startListening(), 200);
-        } else {
-          setState("idle");
-        }
-        return;
-      }
-      handleUserUtterance(finalText);
-    };
-
-    recognitionRef.current = recognition;
-    try {
-      recognition.start();
+      });
+      pcRef.current?.close();
     } catch {
-      // Sometimes throws if called too fast — retry shortly
-      setTimeout(() => {
-        if (!closedRef.current && !mutedRef.current) startListening();
-      }, 300);
+      /* noop */
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stopRecognition]);
+    pcRef.current = null;
 
-  const speakRick = useCallback(
-    (text: string, onDone: () => void) => {
-      if (typeof window === "undefined" || !window.speechSynthesis) {
-        onDone();
-        return;
+    try {
+      micStreamRef.current?.getTracks().forEach((t) => t.stop());
+    } catch {
+      /* noop */
+    }
+    micStreamRef.current = null;
+
+    if (audioElRef.current) {
+      try {
+        audioElRef.current.pause();
+        audioElRef.current.srcObject = null;
+        audioElRef.current.remove();
+      } catch {
+        /* noop */
       }
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      if (voiceRef.current) utterance.voice = voiceRef.current;
-      utterance.rate = 1.05;
-      utterance.pitch = 0.85;
-      utterance.volume = 1;
-      utterance.onend = () => {
-        if (closedRef.current) return;
-        onDone();
-      };
-      utterance.onerror = () => {
-        if (closedRef.current) return;
-        onDone();
-      };
-      setState("speaking");
-      window.speechSynthesis.speak(utterance);
-    },
-    []
-  );
+      audioElRef.current = null;
+    }
+  }, []);
 
-  const handleUserUtterance = useCallback(
-    (text: string) => {
+  const flushExchange = useCallback(() => {
+    const u = pendingUserRef.current.trim();
+    const r = pendingRickRef.current.trim();
+    if (u || r) {
+      onExchange(u, r, VOICE_EXCHANGE_STAGE);
+    }
+    pendingUserRef.current = "";
+    pendingRickRef.current = "";
+  }, [onExchange]);
+
+  const handleRealtimeEvent = useCallback(
+    (event: RealtimeEvent) => {
       if (closedRef.current) return;
-      setState("thinking");
-      setRickTranscript("");
 
-      const { text: responseText, nextStage } = getFreetextResponse(text);
+      switch (event.type) {
+        case "session.created":
+        case "session.updated":
+          // Connection live — drop out of "connecting" into idle. First audio
+          // from Rick (the greeting) will flip us to "speaking".
+          setState((prev) => (prev === "connecting" ? "idle" : prev));
+          break;
 
-      // Sync back into chat history
-      onExchange(text, responseText, nextStage);
-
-      // Tiny thinking delay for realism
-      setTimeout(() => {
-        if (closedRef.current) return;
-        setRickTranscript(responseText);
-        speakRick(responseText, () => {
-          if (closedRef.current) return;
-          // After Rick finishes, clear and listen again
+        case "input_audio_buffer.speech_started":
+          setState("listening");
           setUserTranscript("");
-          finalTranscriptRef.current = "";
-          if (!mutedRef.current) {
-            startListening();
-          } else {
-            setState("idle");
-          }
-        });
-      }, 450);
+          pendingUserRef.current = "";
+          break;
+
+        case "input_audio_buffer.speech_stopped":
+          setState("thinking");
+          break;
+
+        case "conversation.item.input_audio_transcription.completed": {
+          const t =
+            typeof event.transcript === "string" ? event.transcript : "";
+          pendingUserRef.current = t;
+          setUserTranscript(t);
+          break;
+        }
+
+        case "response.created":
+          setState("speaking");
+          setRickTranscript("");
+          pendingRickRef.current = "";
+          break;
+
+        case "response.audio_transcript.delta": {
+          const delta = typeof event.delta === "string" ? event.delta : "";
+          pendingRickRef.current += delta;
+          setRickTranscript((prev) => prev + delta);
+          break;
+        }
+
+        case "response.audio_transcript.done": {
+          const t =
+            typeof event.transcript === "string"
+              ? event.transcript
+              : pendingRickRef.current;
+          pendingRickRef.current = t;
+          setRickTranscript(t);
+          break;
+        }
+
+        case "response.done":
+          flushExchange();
+          setState("idle");
+          break;
+
+        case "error": {
+          setErrorMsg(
+            extractErrorMessage(event.error) ?? "Realtime session error."
+          );
+          break;
+        }
+
+        default:
+          break;
+      }
     },
-    [onExchange, speakRick, startListening]
+    [flushExchange]
   );
+
+  const connect = useCallback(async () => {
+    if (typeof window === "undefined") return;
+
+    setState("connecting");
+    setErrorMsg(null);
+    setUserTranscript("");
+    setRickTranscript("");
+    pendingUserRef.current = "";
+    pendingRickRef.current = "";
+
+    // 1. Mint an ephemeral OpenAI Realtime token via our server route.
+    let ephemeralKey: string;
+    let model: string;
+    try {
+      const tokenResp = await fetch("/api/rick/realtime-session", {
+        method: "GET",
+        cache: "no-store",
+      });
+      if (!tokenResp.ok) {
+        const body = await tokenResp.text();
+        throw new Error(`Session mint failed (${tokenResp.status}): ${body}`);
+      }
+      const data = await tokenResp.json();
+      ephemeralKey = data?.client_secret?.value;
+      model = data?.model ?? "gpt-4o-realtime-preview-2024-12-17";
+      if (!ephemeralKey) {
+        throw new Error("Ephemeral token missing from session response.");
+      }
+    } catch (err) {
+      if (closedRef.current) return;
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Could not start Rick's voice session."
+      );
+      setState("idle");
+      return;
+    }
+
+    if (closedRef.current) return;
+
+    // 2. Build the RTCPeerConnection and attach a remote-audio sink.
+    const pc = new RTCPeerConnection();
+    pcRef.current = pc;
+
+    const audioEl = document.createElement("audio");
+    audioEl.autoplay = true;
+    audioEl.setAttribute("playsinline", "true");
+    audioElRef.current = audioEl;
+    pc.ontrack = (e) => {
+      if (closedRef.current) return;
+      audioEl.srcObject = e.streams[0];
+    };
+
+    // 3. Capture the mic and add it as a track.
+    let micStream: MediaStream;
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      if (closedRef.current) return;
+      setErrorMsg(
+        "Microphone permission denied. Enable it and reopen voice mode."
+      );
+      setState("idle");
+      cleanup();
+      return;
+    }
+    if (closedRef.current) {
+      micStream.getTracks().forEach((t) => t.stop());
+      return;
+    }
+    micStreamRef.current = micStream;
+    micStream.getTracks().forEach((track) => pc.addTrack(track, micStream));
+
+    // 4. Open the events data channel BEFORE negotiating SDP.
+    const dc = pc.createDataChannel("oai-events");
+    dcRef.current = dc;
+    dc.addEventListener("message", (e) => {
+      try {
+        const parsed = JSON.parse(e.data) as RealtimeEvent;
+        handleRealtimeEvent(parsed);
+      } catch {
+        /* ignore malformed */
+      }
+    });
+    dc.addEventListener("open", () => {
+      if (closedRef.current) return;
+      // Kick Rick off with a greeting tied to the chat contract. This fires
+      // the opening line via the model so it sounds natural, not canned TTS.
+      const greeting = rickOpening[0]?.text ?? "";
+      if (greeting) {
+        try {
+          dc.send(
+            JSON.stringify({
+              type: "response.create",
+              response: {
+                modalities: ["audio", "text"],
+                instructions: `Open the conversation by saying exactly this, verbatim, in your natural voice: "${greeting.replace(/"/g, '\\"')}"`,
+              },
+            })
+          );
+        } catch {
+          /* noop */
+        }
+      }
+    });
+
+    // 5. SDP offer → OpenAI Realtime → answer.
+    try {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const sdpResp = await fetch(
+        `https://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`,
+        {
+          method: "POST",
+          body: offer.sdp ?? "",
+          headers: {
+            Authorization: `Bearer ${ephemeralKey}`,
+            "Content-Type": "application/sdp",
+          },
+        }
+      );
+      if (!sdpResp.ok) {
+        const body = await sdpResp.text();
+        throw new Error(`SDP handshake failed (${sdpResp.status}): ${body}`);
+      }
+      const answer: RTCSessionDescriptionInit = {
+        type: "answer",
+        sdp: await sdpResp.text(),
+      };
+      await pc.setRemoteDescription(answer);
+    } catch (err) {
+      if (closedRef.current) return;
+      setErrorMsg(
+        err instanceof Error ? err.message : "Could not connect to Rick."
+      );
+      setState("idle");
+      cleanup();
+    }
+  }, [cleanup, handleRealtimeEvent]);
 
   // Open / close lifecycle
   useEffect(() => {
     if (!isOpen) {
       closedRef.current = true;
-      stopRecognition();
-      cancelSpeaking();
-      setState("idle");
+      cleanup();
+      setState("connecting");
       setUserTranscript("");
       setRickTranscript("");
       setErrorMsg(null);
-      finalTranscriptRef.current = "";
+      setMuted(false);
       return;
     }
 
     closedRef.current = false;
-    setErrorMsg(null);
-    setMuted(false);
-
-    // Greeting — same contract as chat Rick (rickOpening[0])
-    const greeting = rickOpening[0]?.text ?? "";
-    setRickTranscript(greeting);
-    speakRick(greeting, () => {
-      if (closedRef.current) return;
-      startListening();
-    });
+    connect();
 
     return () => {
       closedRef.current = true;
-      stopRecognition();
-      cancelSpeaking();
+      cleanup();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  // Mute toggle
+  // Mute = disable the mic track. Rick stops hearing Lance but the session
+  // stays alive, so unmuting is instant (no reconnect).
   const toggleMute = useCallback(() => {
     setMuted((prev) => {
       const next = !prev;
-      if (next) {
-        stopRecognition();
-        cancelSpeaking();
-        setState("idle");
-      } else {
-        startListening();
+      const stream = micStreamRef.current;
+      if (stream) {
+        stream.getAudioTracks().forEach((t) => {
+          t.enabled = !next;
+        });
       }
       return next;
     });
-  }, [stopRecognition, cancelSpeaking, startListening]);
+  }, []);
 
   const handleClose = useCallback(() => {
     closedRef.current = true;
-    stopRecognition();
-    cancelSpeaking();
+    flushExchange();
+    cleanup();
     onClose();
-  }, [stopRecognition, cancelSpeaking, onClose]);
+  }, [cleanup, flushExchange, onClose]);
 
   // ESC to close
   useEffect(() => {
@@ -393,15 +386,17 @@ export default function RickVoiceMode({
   }, [isOpen, handleClose]);
 
   const stateLabel =
-    state === "listening"
-      ? "Listening"
-      : state === "thinking"
-        ? "Thinking"
-        : state === "speaking"
-          ? "Speaking"
-          : muted
-            ? "Muted"
-            : "Tap the mic to talk";
+    state === "connecting"
+      ? "Connecting"
+      : state === "listening"
+        ? "Listening"
+        : state === "thinking"
+          ? "Thinking"
+          : state === "speaking"
+            ? "Speaking"
+            : muted
+              ? "Muted"
+              : "Go ahead";
 
   return (
     <AnimatePresence>
@@ -419,17 +414,14 @@ export default function RickVoiceMode({
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-emerald-400/5 rounded-full blur-3xl" />
           </div>
 
-          {/* Top bar */}
+          {/* Top bar — orb-first, ChatGPT-style. No avatar chip. */}
           <div className="relative flex items-center justify-between px-6 py-5">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-sm font-bold text-white">
-                R
+            <div className="flex flex-col">
+              <div className="text-sm font-semibold text-white tracking-wide">
+                Rick
               </div>
-              <div>
-                <div className="text-sm font-semibold text-white">Rick</div>
-                <div className="text-[11px] uppercase tracking-widest text-green-500/80">
-                  {stateLabel}
-                </div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-green-400/70">
+                {stateLabel}
               </div>
             </div>
             <button
@@ -466,7 +458,7 @@ export default function RickVoiceMode({
             <AnimatePresence mode="wait">
               {rickTranscript && (
                 <motion.div
-                  key={rickTranscript}
+                  key="rick-transcript"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
@@ -484,7 +476,7 @@ export default function RickVoiceMode({
           <div className="relative flex items-center justify-center gap-4 px-6 pb-10 pt-4">
             <button
               onClick={toggleMute}
-              disabled={!supported}
+              disabled={state === "connecting"}
               className={`group flex items-center justify-center w-16 h-16 rounded-full border-2 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
                 muted
                   ? "bg-red-900/40 border-red-700 text-red-300 hover:bg-red-800/40"
@@ -521,7 +513,7 @@ export default function RickVoiceMode({
 function VoiceOrb({ state }: { state: VoiceState }) {
   const speaking = state === "speaking";
   const listening = state === "listening";
-  const thinking = state === "thinking";
+  const thinking = state === "thinking" || state === "connecting";
 
   return (
     <div className="relative w-[280px] h-[280px] md:w-[360px] md:h-[360px]">
