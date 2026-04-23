@@ -110,6 +110,12 @@ interface SavedTranscript {
 
 // ---------- Static content ------------------------------------------------
 
+// Drive folder URLs. All five cards currently point at the shared WEI root.
+// Replace per-category URLs here once Pete creates subfolders.
+// Empty string on any entry => "Pending" pill instead of a link.
+const WEI_DRIVE_ROOT =
+  "https://drive.google.com/drive/folders/1MpKqfdidnBgd0j9UXGSoOHdLTIGJnPOM";
+
 const DRIVE_FOLDERS: {
   label: string;
   description: string;
@@ -118,27 +124,27 @@ const DRIVE_FOLDERS: {
   {
     label: "Signed Agreements",
     description: "Plan C Addendum + any future addenda.",
-    url: "",
+    url: WEI_DRIVE_ROOT,
   },
   {
     label: "Brand Assets",
     description: "Logos, fonts, color palette, imagery.",
-    url: "",
+    url: WEI_DRIVE_ROOT,
   },
   {
     label: "Artist Roster & Onboarding",
     description: "Pilot artist list, bios, consent docs.",
-    url: "",
+    url: WEI_DRIVE_ROOT,
   },
   {
     label: "Milestone Deliverables",
     description: "Shipped artifacts per milestone (code, configs, docs).",
-    url: "",
+    url: WEI_DRIVE_ROOT,
   },
   {
     label: "Meeting Notes & Transcripts",
     description: "Milestone reviews and Rick transcription exports.",
-    url: "",
+    url: WEI_DRIVE_ROOT,
   },
 ];
 
