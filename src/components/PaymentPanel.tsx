@@ -38,25 +38,59 @@ export default function PaymentPanel({
     []
   );
 
+  const isAddendum = Boolean(proposalMeta.paymentSchedule);
+  const depositLabel = isAddendum
+    ? `First Payment — ${proposalMeta.investmentAtSigning}`
+    : `Initial Deposit — ${proposalMeta.investmentAtSigning}`;
+  const depositBlurb = isAddendum
+    ? `Send today's first ${proposalMeta.investmentAtSigning} payment via PayPal or Zelle. Seven more biweekly payments of ${proposalMeta.perMilestone} follow every two weeks. Addendum terms are only valid if this first payment is received today.`
+    : `Send your initial deposit via PayPal or Zelle to lock in your project start date. Work begins the day payment is received. Six milestone payments of ${proposalMeta.perMilestone} follow every two weeks.`;
+  const memoText = isAddendum
+    ? "WEI Platform — Plan C Addendum, Payment 1 of 8"
+    : "WEI Platform — Milestone 1 Deposit";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       className="max-w-4xl mx-auto px-6 pb-16"
     >
-      <div className="bg-[#141414] border border-green-800/40 rounded-2xl overflow-hidden">
+      <div
+        className={`bg-[#141414] border rounded-2xl overflow-hidden ${
+          isAddendum ? "border-yellow-600/50" : "border-green-800/40"
+        }`}
+      >
+        {/* Addendum conditional banner */}
+        {isAddendum && proposalMeta.conditionalBanner && (
+          <div className="bg-yellow-950/40 border-b border-yellow-600/40 px-8 py-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 px-2 py-1 rounded bg-yellow-500 text-black text-[10px] font-bold tracking-wider uppercase flex-shrink-0">
+                Valid Today Only
+              </div>
+              <p className="text-yellow-100 text-sm leading-relaxed">
+                {proposalMeta.conditionalBanner}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-900/30 to-[#141414] px-8 py-6 border-b border-green-900/30">
+        <div
+          className={`px-8 py-6 border-b ${
+            isAddendum
+              ? "bg-gradient-to-r from-yellow-900/20 to-[#141414] border-yellow-900/30"
+              : "bg-gradient-to-r from-green-900/30 to-[#141414] border-green-900/30"
+          }`}
+        >
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-            <DollarSign className="w-6 h-6 text-green-400" />
-            Initial Deposit — {proposalMeta.investmentAtSigning}
+            <DollarSign
+              className={`w-6 h-6 ${
+                isAddendum ? "text-yellow-400" : "text-green-400"
+              }`}
+            />
+            {depositLabel}
           </h2>
-          <p className="text-zinc-400 text-sm mt-2">
-            Send your initial deposit via PayPal or Zelle to lock in your
-            project start date. Work begins the day payment is received. Six
-            milestone payments of {proposalMeta.perMilestone} follow every two
-            weeks.
-          </p>
+          <p className="text-zinc-400 text-sm mt-2">{depositBlurb}</p>
         </div>
 
         <div className="p-8 space-y-6">
@@ -118,7 +152,7 @@ export default function PaymentPanel({
                   Memo / Note
                 </div>
                 <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 text-sm">
-                  WEI Platform — Milestone 1 Deposit
+                  {memoText}
                 </div>
               </div>
             </div>
@@ -182,7 +216,7 @@ export default function PaymentPanel({
                   Memo / Note
                 </div>
                 <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 text-sm">
-                  WEI Platform — Milestone 1 Deposit
+                  {memoText}
                 </div>
               </div>
             </div>
@@ -207,7 +241,9 @@ export default function PaymentPanel({
                 step: 3,
                 icon: Check,
                 title: "We Start",
-                desc: "Peter confirms receipt and Milestone 1 kicks off immediately",
+                desc: isAddendum
+                  ? "Pete confirms receipt today and Milestone 1 kicks off same day"
+                  : "Pete confirms receipt and Milestone 1 kicks off immediately",
               },
             ].map((item) => (
               <div

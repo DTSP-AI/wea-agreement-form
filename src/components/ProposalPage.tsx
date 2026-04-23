@@ -12,7 +12,14 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
   ssr: false,
 });
 
-const PLAN_ORDER: PlanId[] = ["A", "B", "C"];
+const PLAN_ORDER: PlanId[] = ["A", "B", "C", "CA"];
+
+const PLAN_TAB_LABELS: Record<PlanId, string> = {
+  A: "Plan A",
+  B: "Plan B",
+  C: "Plan C",
+  CA: "C Addendum",
+};
 
 export default function ProposalPage({
   initialPlanId = "C",
@@ -143,29 +150,46 @@ export default function ProposalPage({
         </div>
 
         <div className="max-w-4xl mx-auto px-6 pb-3">
-          <div className="relative inline-flex bg-[#141414] border border-[#262626] rounded-full p-1 gap-1">
+          <div className="relative inline-flex flex-wrap bg-[#141414] border border-[#262626] rounded-full p-1 gap-1">
             {PLAN_ORDER.map((id) => {
               const isActive = id === activePlanId;
+              const isAddendum = id === "CA";
+              const activeBg = isAddendum ? "bg-yellow-400" : "bg-green-400";
               return (
                 <button
                   key={id}
                   onClick={() => handlePlanSwitch(id)}
                   className={`relative z-10 px-5 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
-                    isActive ? "text-black" : "text-zinc-400 hover:text-white"
+                    isActive
+                      ? "text-black"
+                      : isAddendum
+                        ? "text-yellow-300 hover:text-yellow-200"
+                        : "text-zinc-400 hover:text-white"
                   }`}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="plan-tab-pill"
-                      className="absolute inset-0 bg-green-400 rounded-full"
+                      className={`absolute inset-0 ${activeBg} rounded-full`}
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
-                  <span className="relative">
-                    Plan {id} —{" "}
+                  <span className="relative flex items-center gap-1.5">
+                    {PLAN_TAB_LABELS[id]} —{" "}
                     <span className={isActive ? "font-bold" : "font-normal"}>
                       {plans[id].meta.totalValue}
                     </span>
+                    {isAddendum && (
+                      <span
+                        className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase ${
+                          isActive
+                            ? "bg-black/20 text-black"
+                            : "bg-yellow-500/20 text-yellow-300"
+                        }`}
+                      >
+                        Today
+                      </span>
+                    )}
                   </span>
                 </button>
               );

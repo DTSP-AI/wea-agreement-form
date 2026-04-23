@@ -1,14 +1,28 @@
-// Plan A = Full-stack build with 3D Interactive Site (DTSP-AI builds custom 3D frontend + intelligence layer)
-// Plan B = Full-stack build with 2D React web site (DTSP-AI builds custom 2D frontend + intelligence layer)
-// Plan C = Intelligence layer only (GoDaddy handles the storefront, we handle the backend)
+// Plan A  = Full-stack build with 3D Interactive Site (DTSP-AI builds custom 3D frontend + intelligence layer)
+// Plan B  = Full-stack build with 2D React web site (DTSP-AI builds custom 2D frontend + intelligence layer)
+// Plan C  = Intelligence layer only (GoDaddy handles the storefront, we handle the backend)
+// Plan CA = Plan C Addendum — same scope as Plan C, conditional payment structure.
+//           8 × $1,800 biweekly starting today (2026-04-23). Valid only if paid today.
 //
 // All plans run 12 weeks with 6 milestones, one milestone every 2 weeks.
 // Math:
-//   Plan A: $5,400 at signing + (6 × $2,000) = $5,400 + $12,000 = $17,400
-//   Plan B: $4,400 at signing + (6 × $2,000) = $4,400 + $12,000 = $16,400
-//   Plan C: $3,800 at signing + (6 × $1,800) = $3,800 + $10,800 = $14,600
+//   Plan A:  $5,400 at signing + (6 × $2,000) = $5,400 + $12,000 = $17,400
+//   Plan B:  $4,400 at signing + (6 × $2,000) = $4,400 + $12,000 = $16,400
+//   Plan C:  $3,600 at signing + (6 × $1,800) = $3,600 + $10,800 = $14,400
+//   Plan CA: 8 × $1,800 biweekly (today + 7 biweekly)          = $14,400
 
-export type PlanId = "A" | "B" | "C";
+export type PlanId = "A" | "B" | "C" | "CA";
+
+export interface ScheduledPayment {
+  /** Human-readable date, e.g. "Wed, Apr 23 2026". */
+  dateLabel: string;
+  /** ISO date for internal use, e.g. "2026-04-23". */
+  isoDate: string;
+  /** Display amount, e.g. "$1,800". */
+  amount: string;
+  /** Optional tag rendered next to the row, e.g. "Today", "Biweekly". */
+  tag?: string;
+}
 
 export interface ProposalMeta {
   preparedFor: string;
@@ -23,6 +37,11 @@ export interface ProposalMeta {
   clientName: string;
   zelleEmail: string;
   paypalHandle: string;
+  /** Optional full payment schedule. If present, renderers show this instead
+   *  of the default "deposit + N milestones" layout. */
+  paymentSchedule?: ScheduledPayment[];
+  /** Optional "valid only if paid by" banner copy. */
+  conditionalBanner?: string;
 }
 
 export interface ComparisonRow {
@@ -388,10 +407,10 @@ export const planC: Plan = {
   meta: {
     ...sharedMeta,
     projectTerm: "12 Weeks — 6 Milestones",
-    investmentAtSigning: "$3,800",
+    investmentAtSigning: "$3,600",
     perMilestone: "$1,800",
     milestoneCount: 6,
-    totalValue: "$14,600",
+    totalValue: "$14,400",
   },
   comparisonHeading: "What GoDaddy Can Do. What We Do.",
   comparisonColumnLabel: "GoDaddy",
@@ -525,10 +544,47 @@ export const planC: Plan = {
   ],
 };
 
+// ---------- PLAN CA: Plan C Addendum — conditional 8-payment plan ----------
+// Same scope as Plan C. Different payment structure:
+//   $1,800 today (2026-04-23) + 7 × $1,800 every 2 weeks = $14,400 total
+// This plan is ONLY valid if the first $1,800 is paid today.
+const planCAddendumSchedule: ScheduledPayment[] = [
+  { dateLabel: "Thu, Apr 23 2026", isoDate: "2026-04-23", amount: "$1,800", tag: "Today" },
+  { dateLabel: "Thu, May 07 2026", isoDate: "2026-05-07", amount: "$1,800", tag: "Payment 2" },
+  { dateLabel: "Thu, May 21 2026", isoDate: "2026-05-21", amount: "$1,800", tag: "Payment 3" },
+  { dateLabel: "Thu, Jun 04 2026", isoDate: "2026-06-04", amount: "$1,800", tag: "Payment 4" },
+  { dateLabel: "Thu, Jun 18 2026", isoDate: "2026-06-18", amount: "$1,800", tag: "Payment 5" },
+  { dateLabel: "Thu, Jul 02 2026", isoDate: "2026-07-02", amount: "$1,800", tag: "Payment 6" },
+  { dateLabel: "Thu, Jul 16 2026", isoDate: "2026-07-16", amount: "$1,800", tag: "Payment 7" },
+  { dateLabel: "Thu, Jul 30 2026", isoDate: "2026-07-30", amount: "$1,800", tag: "Payment 8" },
+];
+
+export const planCAddendum: Plan = {
+  ...planC,
+  id: "CA",
+  name: "Plan C Addendum",
+  tagline: "Plan C — 8-Payment Conditional (Valid Today Only)",
+  heroTitle: planC.heroTitle,
+  heroSubtitle:
+    "Same scope and deliverables as Plan C — AI-powered marketplace infrastructure behind your GoDaddy site. This addendum restructures the payment plan into eight equal biweekly payments of $1,800 starting today. Valid only if the first payment is received today.",
+  meta: {
+    ...planC.meta,
+    projectTerm: "12 Weeks — 8 Biweekly Payments",
+    investmentAtSigning: "$1,800",
+    perMilestone: "$1,800",
+    milestoneCount: 8,
+    totalValue: "$14,400",
+    paymentSchedule: planCAddendumSchedule,
+    conditionalBanner:
+      "Addendum terms are valid ONLY if the first $1,800 payment is received today, Thursday April 23, 2026. After today, revert to standard Plan C terms.",
+  },
+};
+
 export const plans: Record<PlanId, Plan> = {
   A: planA,
   B: planB,
   C: planC,
+  CA: planCAddendum,
 };
 
 // Back-compat: default exports point at Plan C (the previously-active GoDaddy proposal)
