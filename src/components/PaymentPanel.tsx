@@ -40,12 +40,22 @@ export default function PaymentPanel({
   );
 
   const isAddendum = Boolean(proposalMeta.paymentSchedule);
-  const depositLabel = isAddendum
-    ? `First Payment — ${proposalMeta.investmentAtSigning}`
-    : `Initial Deposit — ${proposalMeta.investmentAtSigning}`;
-  const depositBlurb = isAddendum
-    ? `Pay today's first ${proposalMeta.investmentAtSigning} payment via PayPal or Zelle. Seven more biweekly payments of ${proposalMeta.perMilestone} follow every two weeks. Addendum terms are only valid if this first payment is received today.`
-    : `Pay your initial deposit via PayPal or Zelle to lock in your project start date. Work begins the day payment is received. Six milestone payments of ${proposalMeta.perMilestone} follow every two weeks.`;
+  const firstPayment = proposalMeta.paymentSchedule?.[0];
+  const isPaid = firstPayment?.paid === true;
+  const paidOn = firstPayment?.paidOn;
+
+  const depositLabel = isPaid
+    ? `Payment Received — ${proposalMeta.investmentAtSigning}`
+    : isAddendum
+      ? `First Payment — ${proposalMeta.investmentAtSigning}`
+      : `Initial Deposit — ${proposalMeta.investmentAtSigning}`;
+  const depositBlurb = isPaid
+    ? `Thanks Lance — the first ${proposalMeta.investmentAtSigning} was received${
+        paidOn ? ` on ${paidOn}` : ""
+      }. Plan C Addendum is now active. Milestone 1 (Foundation) is underway. Seven biweekly payments of ${proposalMeta.perMilestone} remain on the schedule below.`
+    : isAddendum
+      ? `Pay today's first ${proposalMeta.investmentAtSigning} payment via PayPal or Zelle. Seven more biweekly payments of ${proposalMeta.perMilestone} follow every two weeks. Addendum terms are only valid if this first payment is received today.`
+      : `Pay your initial deposit via PayPal or Zelle to lock in your project start date. Work begins the day payment is received. Six milestone payments of ${proposalMeta.perMilestone} follow every two weeks.`;
   const memoText = isAddendum
     ? "WEI Platform — Plan C Addendum, Payment 1 of 8"
     : "WEI Platform — Milestone 1 Deposit";
@@ -58,17 +68,35 @@ export default function PaymentPanel({
     >
       <div
         className={`bg-[#141414] border rounded-2xl overflow-hidden ${
-          isAddendum ? "border-yellow-600/50" : "border-green-800/40"
+          isPaid
+            ? "border-green-500/60"
+            : isAddendum
+              ? "border-yellow-600/50"
+              : "border-green-800/40"
         }`}
       >
         {/* Addendum conditional banner */}
         {isAddendum && proposalMeta.conditionalBanner && (
-          <div className="bg-yellow-950/40 border-b border-yellow-600/40 px-8 py-4">
+          <div
+            className={`px-8 py-4 border-b ${
+              isPaid
+                ? "bg-green-950/40 border-green-500/40"
+                : "bg-yellow-950/40 border-yellow-600/40"
+            }`}
+          >
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 px-2 py-1 rounded bg-yellow-500 text-black text-[10px] font-bold tracking-wider uppercase flex-shrink-0">
-                Valid Today Only
+              <div
+                className={`mt-0.5 px-2 py-1 rounded text-[10px] font-bold tracking-wider uppercase flex-shrink-0 ${
+                  isPaid ? "bg-green-500 text-black" : "bg-yellow-500 text-black"
+                }`}
+              >
+                {isPaid ? "Addendum Active" : "Valid Today Only"}
               </div>
-              <p className="text-yellow-100 text-sm leading-relaxed">
+              <p
+                className={`text-sm leading-relaxed ${
+                  isPaid ? "text-green-100" : "text-yellow-100"
+                }`}
+              >
                 {proposalMeta.conditionalBanner}
               </p>
             </div>
@@ -78,23 +106,64 @@ export default function PaymentPanel({
         {/* Header */}
         <div
           className={`px-8 py-6 border-b ${
-            isAddendum
-              ? "bg-gradient-to-r from-yellow-900/20 to-[#141414] border-yellow-900/30"
-              : "bg-gradient-to-r from-green-900/30 to-[#141414] border-green-900/30"
+            isPaid
+              ? "bg-gradient-to-r from-green-900/40 to-[#141414] border-green-500/40"
+              : isAddendum
+                ? "bg-gradient-to-r from-yellow-900/20 to-[#141414] border-yellow-900/30"
+                : "bg-gradient-to-r from-green-900/30 to-[#141414] border-green-900/30"
           }`}
         >
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-            <DollarSign
-              className={`w-6 h-6 ${
-                isAddendum ? "text-yellow-400" : "text-green-400"
-              }`}
-            />
+            {isPaid ? (
+              <Check className="w-6 h-6 text-green-400" />
+            ) : (
+              <DollarSign
+                className={`w-6 h-6 ${
+                  isAddendum ? "text-yellow-400" : "text-green-400"
+                }`}
+              />
+            )}
             {depositLabel}
           </h2>
           <p className="text-zinc-400 text-sm mt-2">{depositBlurb}</p>
         </div>
 
         <div className="p-8 space-y-6">
+          {isPaid ? (
+            // ---------- Paid state ----------
+            <div className="bg-green-950/30 border border-green-500/50 rounded-xl p-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500 mb-4 shadow-[0_0_40px_rgba(34,197,94,0.5)]">
+                <Check className="w-9 h-9 text-black" strokeWidth={3} />
+              </div>
+              <div className="text-green-300 text-xs font-bold uppercase tracking-[0.25em] mb-1">
+                Payment Received
+              </div>
+              <div className="text-white text-4xl font-bold">
+                {proposalMeta.investmentAtSigning}
+                <span className="text-zinc-500 text-base font-normal ml-2">
+                  USD
+                </span>
+              </div>
+              {paidOn && (
+                <div className="text-green-400 text-sm mt-2">
+                  Received {paidOn}
+                </div>
+              )}
+              <div className="text-zinc-400 text-xs mt-4 max-w-md mx-auto">
+                Payment 1 of 8 cleared. Milestone 1 — Foundation (database
+                schema, consent pipeline, auth) — kicked off the same day.
+                Next payment: {proposalMeta.paymentSchedule?.[1]?.dateLabel}.
+              </div>
+              <a
+                href="/portal"
+                className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-semibold text-sm transition-all cursor-pointer"
+              >
+                Go to Client Portal
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          ) : (
+          <>
           {/* PayPal invoice CTA */}
           <div
             className={`bg-[#0d1117] border rounded-xl p-6 ${
@@ -286,8 +355,11 @@ export default function PaymentPanel({
               </div>
             </div>
           </div>
+          </>
+          )}
 
-          {/* Steps */}
+          {/* Steps — hidden once payment is received */}
+          {!isPaid && (
           <div className="grid md:grid-cols-3 gap-4">
             {[
               {
@@ -331,6 +403,7 @@ export default function PaymentPanel({
               </div>
             ))}
           </div>
+          )}
 
           {/* Export PDF */}
           <div className="pt-4 border-t border-[#262626]">

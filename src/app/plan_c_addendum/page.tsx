@@ -1,5 +1,5 @@
 import ProposalPage from "@/components/ProposalPage";
 
 export default function PlanCAddendumPage() {
-  return <ProposalPage initialPlanId="CA" />;
+  return <ProposalPage initialPlanId="CA" lockPlan />;
 }

@@ -38,6 +38,7 @@ export default function SignaturePanel({
 
   // Initialize date on client only (prevents SSR hydration mismatch)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData((prev) => {
       if (prev.clientDate) return prev;
       return {
@@ -57,6 +58,7 @@ export default function SignaturePanel({
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as SignatureData;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setFormData(parsed);
         if (parsed.clientSignature) {
           setHasSignature(true);
@@ -354,17 +356,39 @@ export default function SignaturePanel({
                 <span className="text-green-400 font-semibold">
                   {plan.name} — {plan.tagline}
                 </span>
-                , including the project scope, a timeline of 12 weeks across 6
-                milestones (one milestone meeting every 2 weeks), and the
-                investment of {proposalMeta.investmentAtSigning} at signing
-                plus {proposalMeta.perMilestone} per milestone for 6 milestones
-                ({proposalMeta.totalValue} total). Infrastructure costs (AWS
-                hosting, database, bandwidth) and third-party API / LLM token
-                usage (Claude, OpenAI, Stripe, GoHighLevel, etc.) are pass-through
-                at cost and billed separately from this total. I understand that
-                DTSP-AI Technologies will begin work upon receipt of the initial
-                deposit and that all deliverables remain the property of Whole
-                Earth Advertising upon payment.
+                ,{" "}
+                {proposalMeta.paymentSchedule ? (
+                  <>
+                    including the project scope, a timeline of 12 weeks across
+                    6 milestones (one milestone meeting every 2 weeks), and{" "}
+                    {proposalMeta.milestoneCount} biweekly payments of{" "}
+                    {proposalMeta.perMilestone} ({proposalMeta.totalValue}{" "}
+                    total), with the first payment due today (
+                    {proposalMeta.paymentSchedule[0]?.dateLabel}) and remaining
+                    payments every two weeks through{" "}
+                    {
+                      proposalMeta.paymentSchedule[
+                        proposalMeta.paymentSchedule.length - 1
+                      ]?.dateLabel
+                    }
+                    .
+                  </>
+                ) : (
+                  <>
+                    including the project scope, a timeline of 12 weeks across
+                    6 milestones (one milestone meeting every 2 weeks), and
+                    the investment of {proposalMeta.investmentAtSigning} at
+                    signing plus {proposalMeta.perMilestone} per milestone for
+                    6 milestones ({proposalMeta.totalValue} total).
+                  </>
+                )}{" "}
+                Infrastructure costs (AWS hosting, database, bandwidth) and
+                third-party API / LLM token usage (Claude, OpenAI, Stripe,
+                GoHighLevel, etc.) are pass-through at cost and billed
+                separately from this total. I understand that DTSP-AI
+                Technologies will begin work upon receipt of the first
+                payment and that all deliverables remain the property of Whole
+                Earth Industries upon payment.
               </span>
             </label>
           </div>

@@ -22,6 +22,10 @@ export interface ScheduledPayment {
   amount: string;
   /** Optional tag rendered next to the row, e.g. "Today", "Biweekly". */
   tag?: string;
+  /** True if this payment has been received. Drives "PAID" badge. */
+  paid?: boolean;
+  /** Human-readable date the payment was received, e.g. "Apr 23 2026". */
+  paidOn?: string;
 }
 
 export interface ProposalMeta {
@@ -55,7 +59,10 @@ export interface Phase {
   number: number;
   title: string;
   weeks: string;
+  /** What DTSP-AI ships this phase. */
   deliverables: string[];
+  /** What the client needs to provide for this phase to execute. */
+  requirements?: string[];
   milestone: string;
 }
 
@@ -479,6 +486,11 @@ export const planC: Plan = {
       number: 1,
       title: "Foundation",
       weeks: "Weeks 1–2",
+      requirements: [
+        "Confirm brand name, tagline, and color palette",
+        "Primary domain name and registrar access (for DKIM/SPF setup later)",
+        "List of 3–5 artist categories the marketplace will launch with",
+      ],
       deliverables: [
         "Database schema design & deployment",
         "Artist consent pipeline with e-sign",
@@ -490,6 +502,11 @@ export const planC: Plan = {
       number: 2,
       title: "SEO & Payout Infrastructure",
       weeks: "Weeks 3–4",
+      requirements: [
+        "Stripe account (business) ready to connect",
+        "Top 10 target buyer queries (seed keywords)",
+        "Transactional email sender name / address",
+      ],
       deliverables: [
         "SEO article generator engine",
         "Domain auth (DKIM, SPF, DMARC)",
@@ -501,6 +518,11 @@ export const planC: Plan = {
       number: 3,
       title: "WooCommerce Integration",
       weeks: "Weeks 5–6",
+      requirements: [
+        "GoDaddy admin access or WooCommerce REST API keys",
+        "Confirmed product taxonomy (categories + tags)",
+        "Sample product listing to validate the push pipeline",
+      ],
       deliverables: [
         "WooCommerce REST API connection",
         "Product push pipeline",
@@ -512,6 +534,11 @@ export const planC: Plan = {
       number: 4,
       title: "Marketplace Ingestion & AI",
       weeks: "Weeks 7–8",
+      requirements: [
+        "Etsy and/or Shopify seller credentials (OAuth consent)",
+        "3–5 example artist bios + style guides for AI tone reference",
+        "GoHighLevel account access (or consent to provision)",
+      ],
       deliverables: [
         "Etsy/Shopify OAuth ingestion agents",
         "AI listing enhancement (Claude Sonnet)",
@@ -523,6 +550,11 @@ export const planC: Plan = {
       number: 5,
       title: "Artist Onboarding",
       weeks: "Weeks 9–10",
+      requirements: [
+        "List of 5–10 pilot artists (name + contact email)",
+        "Stripe Connect test account or sandbox for payout testing",
+        "Approval of the onboarding e-sign copy",
+      ],
       deliverables: [
         "Artist onboarding flow (consent → listing)",
         "Automated payout testing (80/20 split)",
@@ -535,6 +567,11 @@ export const planC: Plan = {
       number: 6,
       title: "Launch & Scale",
       weeks: "Weeks 11–12",
+      requirements: [
+        "Final content sign-off on public-facing copy",
+        "Monitoring + alert email distribution list",
+        "Confirmation of the go-live window",
+      ],
       deliverables: [
         "Production deployment & monitoring",
         "Load testing & optimization",
@@ -551,7 +588,7 @@ export const planC: Plan = {
 //   $1,800 today (2026-04-23) + 7 × $1,800 every 2 weeks = $14,400 total
 // This plan is ONLY valid if the first $1,800 is paid today.
 const planCAddendumSchedule: ScheduledPayment[] = [
-  { dateLabel: "Thu, Apr 23 2026", isoDate: "2026-04-23", amount: "$1,800", tag: "Today" },
+  { dateLabel: "Thu, Apr 23 2026", isoDate: "2026-04-23", amount: "$1,800", tag: "Paid", paid: true, paidOn: "Apr 23 2026" },
   { dateLabel: "Thu, May 07 2026", isoDate: "2026-05-07", amount: "$1,800", tag: "Payment 2" },
   { dateLabel: "Thu, May 21 2026", isoDate: "2026-05-21", amount: "$1,800", tag: "Payment 3" },
   { dateLabel: "Thu, Jun 04 2026", isoDate: "2026-06-04", amount: "$1,800", tag: "Payment 4" },
@@ -578,7 +615,7 @@ export const planCAddendum: Plan = {
     totalValue: "$14,400",
     paymentSchedule: planCAddendumSchedule,
     conditionalBanner:
-      "Addendum terms are valid ONLY if the first $1,800 payment is received today, Thursday April 23, 2026. After today, revert to standard Plan C terms.",
+      "Addendum is ACTIVE. First $1,800 payment received on April 23, 2026. Seven biweekly payments of $1,800 remain through July 30, 2026.",
   },
 };
 
