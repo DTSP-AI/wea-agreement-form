@@ -8,10 +8,20 @@
 //   • Every Requirement is `approved` by Pete
 //   • Every Deliverable is `accepted` (by Lance) OR `override` (by Pete)
 //
-// Role model (no real auth — this is a demo/meeting tool):
+// Role model:
 //   • Default view  = CLIENT (Lance). Can Submit requirements + Accept deliverables.
-//   • ?admin=1      = ADMIN (Pete). Can Approve/Reject requirements + Mark shipped
-//                      + Override deliverable acceptance.
+//     Requires login via email + password checked at /api/portal/login.
+//   • ?admin=1      = ADMIN (Pete). Bypasses login — this is the builder URL.
+//                      Can Approve/Reject requirements + Mark shipped + Override
+//                      deliverable acceptance.
+//
+// Login:
+//   • The login gate is a demo gate, not production auth. Credentials live in
+//     env vars (PORTAL_LANCE_EMAIL, PORTAL_LANCE_PASSWORD). Success sets a
+//     localStorage flag (wea-portal-auth) that the page trusts thereafter.
+//   • Rotate password: change PORTAL_LANCE_PASSWORD in Vercel env + redeploy.
+//     Existing client sessions will still read stale — they log out by clicking
+//     "Sign out" in the header, or by clearing localStorage.
 //
 // Persistence:
 //   • All state lives in localStorage under PORTAL_STATE_KEY.
@@ -48,6 +58,9 @@ import {
   Trophy,
   AlertCircle,
   Link as LinkIcon,
+  LogOut,
+  Mail,
+  KeyRound,
 } from "lucide-react";
 import { planCAddendum } from "@/lib/proposal-data";
 
@@ -61,6 +74,8 @@ const PORTAL_STATE_KEY = "wea-portal-state-v2";
 const PORTAL_STATE_VERSION = 2;
 const KICKOFF_STORAGE_KEY = "wea-portal-kickoff-v1";
 const TRANSCRIPT_STORAGE_KEY = "wea-portal-transcripts-v1";
+const AUTH_STORAGE_KEY = "wea-portal-auth";
+const ROLE_STORAGE_KEY = "wea-portal-role";
 
 // ---------- Types ----------------------------------------------------------
 
@@ -235,12 +250,14 @@ export default function ClientPortal() {
   const [kickoff, setKickoff] = useState<Record<string, boolean>>({});
   const [transcripts, setTranscripts] = useState<SavedTranscript[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [authed, setAuthed] = useState(false);
+  const [authHydrated, setAuthHydrated] = useState(false);
+  const [authedEmail, setAuthedEmail] = useState<string>("");
   const [levelUp, setLevelUp] = useState<number | null>(null);
   const lastCompletedRef = useRef<number>(0);
 
   // ---------- Hydrate from localStorage + detect admin mode --------------
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState(loadPortalState());
     const loadedKick = loadKickoff();
     const autoIds = KICKOFF_TASKS.filter((t) => t.auto).map((t) => t.id);
@@ -252,17 +269,39 @@ export default function ClientPortal() {
     setTranscripts(loadTranscripts());
 
     // Admin detection: ?admin=1 in URL, or previously stored flag.
+    let adminNow = false;
     try {
       const url = new URL(window.location.href);
       const qp = url.searchParams.get("admin");
       if (qp === "1") {
-        localStorage.setItem("wea-portal-role", "admin");
+        localStorage.setItem(ROLE_STORAGE_KEY, "admin");
       } else if (qp === "0") {
-        localStorage.removeItem("wea-portal-role");
+        localStorage.removeItem(ROLE_STORAGE_KEY);
       }
-      setIsAdmin(localStorage.getItem("wea-portal-role") === "admin");
+      adminNow = localStorage.getItem(ROLE_STORAGE_KEY) === "admin";
+      setIsAdmin(adminNow);
     } catch {
       /* noop */
+    }
+
+    // Auth hydrate. Admin bypasses the gate entirely (that's Pete's builder URL).
+    try {
+      if (adminNow) {
+        setAuthed(true);
+      } else {
+        const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as { email?: string };
+          if (parsed?.email) {
+            setAuthed(true);
+            setAuthedEmail(parsed.email);
+          }
+        }
+      }
+    } catch {
+      /* noop */
+    } finally {
+      setAuthHydrated(true);
     }
   }, []);
 
@@ -281,6 +320,29 @@ export default function ClientPortal() {
 
   const toggleKickoff = useCallback((id: string) => {
     setKickoff((prev) => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+
+  const handleLoginSuccess = useCallback((email: string) => {
+    try {
+      localStorage.setItem(
+        AUTH_STORAGE_KEY,
+        JSON.stringify({ email, issuedAt: new Date().toISOString() })
+      );
+    } catch {
+      /* noop */
+    }
+    setAuthedEmail(email);
+    setAuthed(true);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    try {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    } catch {
+      /* noop */
+    }
+    setAuthedEmail("");
+    setAuthed(false);
   }, []);
 
   // ---------- Per-phase completion + unlock rules ------------------------
@@ -325,7 +387,6 @@ export default function ClientPortal() {
         .map((p) => p.phaseNumber)
         .pop();
       if (just !== undefined) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLevelUp(just);
         const t = setTimeout(() => setLevelUp(null), 4200);
         lastCompletedRef.current = phasesComplete;
@@ -426,6 +487,21 @@ export default function ClientPortal() {
   const paidCount = schedule.filter((p) => p.paid).length;
   const nextPayment = schedule.find((p) => !p.paid);
 
+  // ---------- Auth gate ----------
+  // Avoid flashing either state: wait for auth hydration, then either show
+  // the login form (unauthed) or the portal (authed or admin).
+  if (!authHydrated) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <Loader2 className="w-6 h-6 text-green-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!authed) {
+    return <LoginGate onSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
       {/* Level-up fanfare overlay */}
@@ -483,6 +559,16 @@ export default function ClientPortal() {
               </span>
             </div>
             <RoleBadge isAdmin={isAdmin} />
+            {!isAdmin && authedEmail && (
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-zinc-300 hover:text-white hover:bg-white/10 text-xs font-semibold transition-colors cursor-pointer"
+                title={`Signed in as ${authedEmail}`}
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Sign out</span>
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -911,6 +997,158 @@ export default function ClientPortal() {
 // ============================================================================
 // Subcomponents
 // ============================================================================
+
+function LoginGate({ onSuccess }: { onSuccess: (email: string) => void }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (submitting) return;
+      setErrorMsg(null);
+      setSubmitting(true);
+      try {
+        const res = await fetch("/api/portal/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+        const data = (await res.json()) as {
+          ok?: boolean;
+          email?: string;
+          error?: string;
+        };
+        if (!res.ok || !data.ok) {
+          throw new Error(
+            data.error ?? "Login failed. Try again in a moment."
+          );
+        }
+        onSuccess(data.email ?? email.trim());
+      } catch (err) {
+        setErrorMsg(
+          err instanceof Error
+            ? err.message
+            : "Something went wrong logging in."
+        );
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [email, password, submitting, onSuccess]
+  );
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center px-6 py-12 relative overflow-hidden">
+      {/* Ambient backdrop */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-green-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-[400px] bg-emerald-400/5 rounded-full blur-3xl" />
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative w-full max-w-md bg-[#141414] border border-green-800/40 rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(34,197,94,0.08)]"
+      >
+        <div className="bg-gradient-to-br from-green-950/60 via-[#141414] to-[#0d1117] px-8 py-6 border-b border-green-900/30">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white font-bold">
+              W
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-green-400/80">
+                Client Portal
+              </div>
+              <div className="font-semibold text-white">
+                Whole Earth Industries
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="px-8 py-6 space-y-4">
+          <div>
+            <label className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-semibold mb-1.5 flex items-center gap-1.5">
+              <Mail className="w-3 h-3" />
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@wholeearthindustries.com"
+              autoComplete="username"
+              autoFocus
+              required
+              className="w-full bg-[#0d0d0d] border border-[#262626] focus:border-green-600 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors placeholder-zinc-700"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-semibold mb-1.5 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <KeyRound className="w-3 h-3" />
+                Password
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="text-zinc-500 hover:text-zinc-300 text-[10px] normal-case tracking-normal cursor-pointer"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </label>
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              required
+              className="w-full bg-[#0d0d0d] border border-[#262626] focus:border-green-600 rounded-lg px-4 py-2.5 text-white text-sm outline-none transition-colors placeholder-zinc-700"
+            />
+          </div>
+
+          {errorMsg && (
+            <div className="px-3 py-2 rounded-lg bg-red-900/30 border border-red-700/60 text-red-200 text-xs flex items-start gap-2">
+              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={submitting || !email || !password}
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-green-500 hover:bg-green-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-bold text-sm transition-all cursor-pointer shadow-[0_0_30px_rgba(34,197,94,0.25)]"
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Signing in…
+              </>
+            ) : (
+              <>
+                <Unlock className="w-4 h-4" />
+                Sign In to Portal
+              </>
+            )}
+          </button>
+
+          <div className="pt-3 border-t border-[#262626] text-center">
+            <div className="text-[10px] text-zinc-600 leading-relaxed">
+              Trouble signing in? Contact Pete at DTSP-AI.
+              <br />
+              Lost the password? Ask Pete to rotate it.
+            </div>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+}
 
 function RoleBadge({ isAdmin }: { isAdmin: boolean }) {
   return isAdmin ? (
