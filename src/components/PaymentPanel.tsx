@@ -10,6 +10,7 @@ import {
   FileText,
   CreditCard,
   ExternalLink,
+  Smartphone,
 } from "lucide-react";
 import { planC, type Plan } from "@/lib/proposal-data";
 
@@ -19,27 +20,32 @@ interface PaymentPanelProps {
   plan?: Plan;
 }
 
+type CopyTarget = "paypal" | "zelle";
+
 export default function PaymentPanel({
   onExportPDF,
   isExporting,
   plan = planC,
 }: PaymentPanelProps) {
   const proposalMeta = plan.meta;
-  const [copied, setCopied] = useState(false);
+  const [copiedTarget, setCopiedTarget] = useState<CopyTarget | null>(null);
 
-  const handleCopy = useCallback(async (value: string) => {
-    await navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, []);
+  const handleCopy = useCallback(
+    async (value: string, target: CopyTarget) => {
+      await navigator.clipboard.writeText(value);
+      setCopiedTarget(target);
+      setTimeout(() => setCopiedTarget(null), 2000);
+    },
+    []
+  );
 
   const isAddendum = Boolean(proposalMeta.paymentSchedule);
   const depositLabel = isAddendum
     ? `First Payment — ${proposalMeta.investmentAtSigning}`
     : `Initial Deposit — ${proposalMeta.investmentAtSigning}`;
   const depositBlurb = isAddendum
-    ? `Pay today's first ${proposalMeta.investmentAtSigning} payment directly via PayPal. Seven more biweekly payments of ${proposalMeta.perMilestone} follow every two weeks. Addendum terms are only valid if this first payment is received today.`
-    : `Pay your initial deposit directly via PayPal to lock in your project start date. Work begins the day payment is received. Six milestone payments of ${proposalMeta.perMilestone} follow every two weeks.`;
+    ? `Pay today's first ${proposalMeta.investmentAtSigning} payment via PayPal or Zelle. Seven more biweekly payments of ${proposalMeta.perMilestone} follow every two weeks. Addendum terms are only valid if this first payment is received today.`
+    : `Pay your initial deposit via PayPal or Zelle to lock in your project start date. Work begins the day payment is received. Six milestone payments of ${proposalMeta.perMilestone} follow every two weeks.`;
   const memoText = isAddendum
     ? "WEI Platform — Plan C Addendum, Payment 1 of 8"
     : "WEI Platform — Milestone 1 Deposit";
@@ -155,7 +161,9 @@ export default function PaymentPanel({
                     {proposalMeta.paypalHandle}
                   </div>
                   <button
-                    onClick={() => handleCopy(proposalMeta.paypalHandle)}
+                    onClick={() =>
+                      handleCopy(proposalMeta.paypalHandle, "paypal")
+                    }
                     className={`p-3 rounded-lg border transition-colors cursor-pointer ${
                       isAddendum
                         ? "bg-yellow-900/30 border-yellow-800/40 hover:bg-yellow-800/40 text-yellow-300"
@@ -163,14 +171,14 @@ export default function PaymentPanel({
                     }`}
                     title="Copy PayPal address"
                   >
-                    {copied ? (
+                    {copiedTarget === "paypal" ? (
                       <Check className="w-5 h-5" />
                     ) : (
                       <Copy className="w-5 h-5" />
                     )}
                   </button>
                 </div>
-                {copied && (
+                {copiedTarget === "paypal" && (
                   <motion.p
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -185,20 +193,114 @@ export default function PaymentPanel({
             </div>
           </div>
 
+          {/* Zelle card */}
+          <div
+            className={`bg-[#0d1117] border rounded-xl p-6 ${
+              isAddendum ? "border-yellow-600/40" : "border-green-900/30"
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-5">
+              <Smartphone
+                className={`w-5 h-5 ${
+                  isAddendum ? "text-yellow-400" : "text-green-400"
+                }`}
+              />
+              <h3
+                className={`font-semibold ${
+                  isAddendum ? "text-yellow-300" : "text-green-300"
+                }`}
+              >
+                Pay via Zelle
+              </h3>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
+                  Amount Due
+                </div>
+                <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-white font-bold text-2xl">
+                  {proposalMeta.investmentAtSigning}
+                  <span className="text-zinc-500 text-sm font-normal ml-2">
+                    USD
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
+                  Send to
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-green-400 font-mono text-lg break-all">
+                    {proposalMeta.zelleEmail}
+                  </div>
+                  <button
+                    onClick={() =>
+                      handleCopy(proposalMeta.zelleEmail, "zelle")
+                    }
+                    className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                      isAddendum
+                        ? "bg-yellow-900/30 border-yellow-800/40 hover:bg-yellow-800/40 text-yellow-300"
+                        : "bg-green-900/30 border-green-800/40 hover:bg-green-800/40 text-green-400"
+                    }`}
+                    title="Copy Zelle email"
+                  >
+                    {copiedTarget === "zelle" ? (
+                      <Check className="w-5 h-5" />
+                    ) : (
+                      <Copy className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+                {copiedTarget === "zelle" && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`text-xs mt-2 ${
+                      isAddendum ? "text-yellow-300" : "text-green-400"
+                    }`}
+                  >
+                    Copied to clipboard
+                  </motion.p>
+                )}
+              </div>
+
+              <div>
+                <div className="text-xs text-zinc-500 uppercase tracking-wider mb-1">
+                  Memo / Note
+                </div>
+                <div className="bg-[#141414] border border-[#262626] rounded-lg px-4 py-3 text-zinc-300 text-sm">
+                  {memoText}
+                </div>
+              </div>
+
+              <div className="text-[11px] text-zinc-500 leading-relaxed">
+                Zelle is routed through your bank app (Chase, Bank of America,
+                Wells Fargo, etc.). Open the app, pick Zelle, send{" "}
+                {proposalMeta.investmentAtSigning} to{" "}
+                <span className="text-green-400 font-mono">
+                  {proposalMeta.zelleEmail}
+                </span>{" "}
+                with the memo above. Typically clears in seconds.
+              </div>
+            </div>
+          </div>
+
           {/* Steps */}
           <div className="grid md:grid-cols-3 gap-4">
             {[
               {
                 step: 1,
-                icon: ExternalLink,
-                title: "Open Invoice",
-                desc: "Click the Pay button above — opens the PayPal invoice in a new tab.",
+                icon: CreditCard,
+                title: "Pick a Method",
+                desc: "PayPal (green button — one click to Pete's invoice) or Zelle (open your bank app).",
               },
               {
                 step: 2,
                 icon: DollarSign,
-                title: `Pay ${proposalMeta.investmentAtSigning}`,
-                desc: "Sign in to PayPal and complete the payment. Takes under a minute.",
+                title: `Send ${proposalMeta.investmentAtSigning}`,
+                desc: "Complete the payment with the memo above. Takes under a minute either way.",
               },
               {
                 step: 3,

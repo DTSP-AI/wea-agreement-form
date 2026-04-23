@@ -37,6 +37,7 @@ export interface ProposalMeta {
   clientName: string;
   paypalHandle: string;
   paypalInvoiceUrl: string;
+  zelleEmail: string;
   /** Optional full payment schedule. If present, renderers show this instead
    *  of the default "deposit + N milestones" layout. */
   paymentSchedule?: ScheduledPayment[];
@@ -80,6 +81,7 @@ const sharedMeta = {
   clientName: "Alanson Charles",
   paypalHandle: "dtspdigitalmedia@gmail.com",
   paypalInvoiceUrl: "https://www.paypal.com/invoice/p/#RXF9STZ87RGHJWA8",
+  zelleEmail: "combatperformfit@gmail.com",
 };
 
 // ---------- PLAN A: Full-Stack Build with 3D Interactive Site ----------
