@@ -80,11 +80,13 @@ export default function RickChat() {
 
   const queueIntroCollapse = useCallback(() => {
     clearIntroCloseTimer();
+    // Hold the intro open for 10s so Lance has time to read Rick's greeting
+    // before it auto-collapses. Any user interaction cancels the timer.
     introCloseTimerRef.current = setTimeout(() => {
       if (hasUserInteractedRef.current) return;
       setIsOpen(false);
       setLauncherHint("I'm here when you need me.");
-    }, 3200);
+    }, 10000);
   }, [clearIntroCloseTimer]);
 
   const initializeChat = useCallback(
