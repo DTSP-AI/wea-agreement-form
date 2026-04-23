@@ -1,11 +1,34 @@
 "use client";
 
+// ============================================================================
+// ClientPortal — Gamified Project Portal for Lance (Whole Earth Industries)
+// ============================================================================
+// Levels = milestones (6 total). Phase N+1 is locked until Phase N is complete.
+// Phase N is complete when:
+//   • Every Requirement is `approved` by Pete
+//   • Every Deliverable is `accepted` (by Lance) OR `override` (by Pete)
+//
+// Role model (no real auth — this is a demo/meeting tool):
+//   • Default view  = CLIENT (Lance). Can Submit requirements + Accept deliverables.
+//   • ?admin=1      = ADMIN (Pete). Can Approve/Reject requirements + Mark shipped
+//                      + Override deliverable acceptance.
+//
+// Persistence:
+//   • All state lives in localStorage under PORTAL_STATE_KEY.
+//   • If the shape changes, bump PORTAL_STATE_VERSION — older data will be ignored
+//     so the user starts fresh rather than reading the wrong shape.
+//
+// Rollback note (2026-04-23, commit introducing this file):
+//   This replaces the simple-checkbox portal from commit 3a117a6 with a
+//   state-machine portal. Revert this file alone to go back; no data model
+//   changes outside ClientPortal were required.
+// ============================================================================
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
-  Circle,
   Clock,
   DollarSign,
   FolderOpen,
@@ -16,6 +39,15 @@ import {
   Check,
   Loader2,
   FileText,
+  Lock,
+  Unlock,
+  Shield,
+  Send,
+  Truck,
+  XCircle,
+  Trophy,
+  AlertCircle,
+  Link as LinkIcon,
 } from "lucide-react";
 import { planCAddendum } from "@/lib/proposal-data";
 
@@ -23,11 +55,46 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
   ssr: false,
 });
 
-const CHECKLIST_STORAGE_KEY = "wea-portal-checklist-v1";
+// ---------- Storage keys (bump versions if shapes change) -----------------
+
+const PORTAL_STATE_KEY = "wea-portal-state-v2";
+const PORTAL_STATE_VERSION = 2;
+const KICKOFF_STORAGE_KEY = "wea-portal-kickoff-v1";
 const TRANSCRIPT_STORAGE_KEY = "wea-portal-transcripts-v1";
 
-// Drive folder placeholders — Pete drops in real URLs and these light up.
-// Anything left as empty string renders a "Pending" pill instead of a link.
+// ---------- Types ----------------------------------------------------------
+
+type ReqStatus = "pending" | "submitted" | "approved" | "rejected";
+type DelStatus = "in_progress" | "shipped" | "accepted" | "override";
+
+interface ReqItem {
+  status: ReqStatus;
+  driveUrl?: string;
+  note?: string; // rejection reason or client comment
+  updatedAt?: string;
+}
+
+interface DelItem {
+  status: DelStatus;
+  driveUrl?: string;
+  note?: string;
+  updatedAt?: string;
+}
+
+interface PortalState {
+  version: number;
+  requirements: Record<string, ReqItem>;
+  deliverables: Record<string, DelItem>;
+}
+
+interface SavedTranscript {
+  id: string;
+  text: string;
+  createdAt: string;
+}
+
+// ---------- Static content ------------------------------------------------
+
 const DRIVE_FOLDERS: {
   label: string;
   description: string;
@@ -60,7 +127,6 @@ const DRIVE_FOLDERS: {
   },
 ];
 
-// Kickoff tasks that sit BEFORE the milestone work — onboarding hygiene.
 const KICKOFF_TASKS: { id: string; label: string; auto?: boolean }[] = [
   { id: "kickoff-signed", label: "Agreement signed", auto: true },
   { id: "kickoff-paid", label: "First payment received", auto: true },
@@ -70,32 +136,57 @@ const KICKOFF_TASKS: { id: string; label: string; auto?: boolean }[] = [
   { id: "kickoff-slack", label: "Shared channel / comms set up" },
 ];
 
-type CheckState = Record<string, boolean>;
+// ---------- Storage helpers -----------------------------------------------
 
-function loadCheckState(): CheckState {
-  if (typeof window === "undefined") return {};
+function loadPortalState(): PortalState {
+  const empty: PortalState = {
+    version: PORTAL_STATE_VERSION,
+    requirements: {},
+    deliverables: {},
+  };
+  if (typeof window === "undefined") return empty;
   try {
-    const raw = localStorage.getItem(CHECKLIST_STORAGE_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as CheckState;
+    const raw = localStorage.getItem(PORTAL_STATE_KEY);
+    if (!raw) return empty;
+    const parsed = JSON.parse(raw) as Partial<PortalState>;
+    if (parsed.version !== PORTAL_STATE_VERSION) return empty;
+    return {
+      version: PORTAL_STATE_VERSION,
+      requirements: parsed.requirements ?? {},
+      deliverables: parsed.deliverables ?? {},
+    };
   } catch {
-    return {};
+    return empty;
   }
 }
 
-function saveCheckState(state: CheckState) {
+function savePortalState(state: PortalState) {
   if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(CHECKLIST_STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(PORTAL_STATE_KEY, JSON.stringify(state));
   } catch {
     /* noop */
   }
 }
 
-interface SavedTranscript {
-  id: string;
-  text: string;
-  createdAt: string;
+function loadKickoff(): Record<string, boolean> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(KICKOFF_STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) as Record<string, boolean>;
+  } catch {
+    return {};
+  }
+}
+
+function saveKickoff(v: Record<string, boolean>) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(KICKOFF_STORAGE_KEY, JSON.stringify(v));
+  } catch {
+    /* noop */
+  }
 }
 
 function loadTranscripts(): SavedTranscript[] {
@@ -118,87 +209,280 @@ function saveTranscripts(items: SavedTranscript[]) {
   }
 }
 
+// ---------- Gamification math --------------------------------------------
+
+function isReqDone(r?: ReqItem): boolean {
+  return r?.status === "approved";
+}
+
+function isDelDone(d?: DelItem): boolean {
+  return d?.status === "accepted" || d?.status === "override";
+}
+
+// ===========================================================================
+// Main component
+// ===========================================================================
+
 export default function ClientPortal() {
   const plan = planCAddendum;
   const schedule = plan.meta.paymentSchedule ?? [];
 
-  const [checkState, setCheckState] = useState<CheckState>({});
+  const [state, setState] = useState<PortalState>({
+    version: PORTAL_STATE_VERSION,
+    requirements: {},
+    deliverables: {},
+  });
+  const [kickoff, setKickoff] = useState<Record<string, boolean>>({});
   const [transcripts, setTranscripts] = useState<SavedTranscript[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [levelUp, setLevelUp] = useState<number | null>(null);
+  const lastCompletedRef = useRef<number>(0);
 
-  // Hydrate from localStorage once on client. Pre-existing localStorage
-  // state is a classic exception to "no setState in effect".
+  // ---------- Hydrate from localStorage + detect admin mode --------------
   useEffect(() => {
-    const loaded = loadCheckState();
-    // Auto-mark kickoff-signed and kickoff-paid unless user toggled them off.
-    const autoIds = KICKOFF_TASKS.filter((t) => t.auto).map((t) => t.id);
-    const next = { ...loaded };
-    for (const id of autoIds) {
-      if (next[id] === undefined) next[id] = true;
-    }
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setCheckState(next);
+    setState(loadPortalState());
+    const loadedKick = loadKickoff();
+    const autoIds = KICKOFF_TASKS.filter((t) => t.auto).map((t) => t.id);
+    const mergedKick = { ...loadedKick };
+    for (const id of autoIds) {
+      if (mergedKick[id] === undefined) mergedKick[id] = true;
+    }
+    setKickoff(mergedKick);
     setTranscripts(loadTranscripts());
+
+    // Admin detection: ?admin=1 in URL, or previously stored flag.
+    try {
+      const url = new URL(window.location.href);
+      const qp = url.searchParams.get("admin");
+      if (qp === "1") {
+        localStorage.setItem("wea-portal-role", "admin");
+      } else if (qp === "0") {
+        localStorage.removeItem("wea-portal-role");
+      }
+      setIsAdmin(localStorage.getItem("wea-portal-role") === "admin");
+    } catch {
+      /* noop */
+    }
   }, []);
 
-  const toggleCheck = useCallback((id: string) => {
-    setCheckState((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
-      saveCheckState(next);
-      return next;
-    });
+  // ---------- Persist portal state on change -----------------------------
+  useEffect(() => {
+    savePortalState(state);
+  }, [state]);
+
+  useEffect(() => {
+    saveKickoff(kickoff);
+  }, [kickoff]);
+
+  useEffect(() => {
+    saveTranscripts(transcripts);
+  }, [transcripts]);
+
+  const toggleKickoff = useCallback((id: string) => {
+    setKickoff((prev) => ({ ...prev, [id]: !prev[id] }));
   }, []);
+
+  // ---------- Per-phase completion + unlock rules ------------------------
+  const phaseStats = useMemo(() => {
+    return plan.phases.map((phase) => {
+      const reqIds = (phase.requirements ?? []).map(
+        (_, i) => `p${phase.number}-req-${i}`
+      );
+      const delIds = phase.deliverables.map(
+        (_, i) => `p${phase.number}-del-${i}`
+      );
+      const reqsDone = reqIds.filter((id) => isReqDone(state.requirements[id]))
+        .length;
+      const delsDone = delIds.filter((id) => isDelDone(state.deliverables[id]))
+        .length;
+      const total = reqIds.length + delIds.length;
+      const done = reqsDone + delsDone;
+      const reqsAllDone = reqsDone === reqIds.length;
+      const complete = reqsAllDone && delsDone === delIds.length && total > 0;
+      return {
+        phaseNumber: phase.number,
+        reqIds,
+        delIds,
+        reqsDone,
+        delsDone,
+        total,
+        done,
+        reqsAllDone,
+        complete,
+      };
+    });
+  }, [plan.phases, state.requirements, state.deliverables]);
+
+  const phasesComplete = phaseStats.filter((p) => p.complete).length;
+
+  // Level-up fanfare when a phase flips from incomplete → complete
+  useEffect(() => {
+    if (phasesComplete > lastCompletedRef.current) {
+      // Find which phase just completed (highest complete one)
+      const just = phaseStats
+        .filter((p) => p.complete)
+        .map((p) => p.phaseNumber)
+        .pop();
+      if (just !== undefined) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLevelUp(just);
+        const t = setTimeout(() => setLevelUp(null), 4200);
+        lastCompletedRef.current = phasesComplete;
+        return () => clearTimeout(t);
+      }
+    }
+    lastCompletedRef.current = phasesComplete;
+  }, [phasesComplete, phaseStats]);
+
+  // A phase is unlocked if it is phase 1, or the PREVIOUS phase is complete.
+  const isPhaseUnlocked = useCallback(
+    (phaseNumber: number) => {
+      if (phaseNumber === 1) return true;
+      const prev = phaseStats.find((p) => p.phaseNumber === phaseNumber - 1);
+      return Boolean(prev?.complete);
+    },
+    [phaseStats]
+  );
+
+  // ---------- XP / totals ------------------------------------------------
+  const totalItems = phaseStats.reduce((n, p) => n + p.total, 0);
+  const doneItems = phaseStats.reduce((n, p) => n + p.done, 0);
+  const xpPct =
+    totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+
+  // Admin's pending approvals queue
+  const pendingApprovals = useMemo(() => {
+    const q: { phaseNumber: number; id: string; label: string; item: ReqItem }[] =
+      [];
+    plan.phases.forEach((phase) => {
+      (phase.requirements ?? []).forEach((label, i) => {
+        const id = `p${phase.number}-req-${i}`;
+        const item = state.requirements[id];
+        if (item?.status === "submitted") {
+          q.push({ phaseNumber: phase.number, id, label, item });
+        }
+      });
+    });
+    return q;
+  }, [plan.phases, state.requirements]);
+
+  // Client's pending-acceptance queue (shipped but not yet accepted)
+  const pendingAcceptance = useMemo(() => {
+    const q: {
+      phaseNumber: number;
+      id: string;
+      label: string;
+      item: DelItem;
+    }[] = [];
+    plan.phases.forEach((phase) => {
+      phase.deliverables.forEach((label, i) => {
+        const id = `p${phase.number}-del-${i}`;
+        const item = state.deliverables[id];
+        if (item?.status === "shipped") {
+          q.push({ phaseNumber: phase.number, id, label, item });
+        }
+      });
+    });
+    return q;
+  }, [plan.phases, state.deliverables]);
+
+  // ---------- Mutations --------------------------------------------------
+  const mutateReq = useCallback(
+    (id: string, patch: Partial<ReqItem>) => {
+      setState((prev) => ({
+        ...prev,
+        requirements: {
+          ...prev.requirements,
+          [id]: {
+            ...(prev.requirements[id] ?? { status: "pending" }),
+            ...patch,
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      }));
+    },
+    []
+  );
+
+  const mutateDel = useCallback(
+    (id: string, patch: Partial<DelItem>) => {
+      setState((prev) => ({
+        ...prev,
+        deliverables: {
+          ...prev.deliverables,
+          [id]: {
+            ...(prev.deliverables[id] ?? { status: "in_progress" }),
+            ...patch,
+            updatedAt: new Date().toISOString(),
+          },
+        },
+      }));
+    },
+    []
+  );
 
   // ---------- Payment summary ----------
   const paidCount = schedule.filter((p) => p.paid).length;
   const nextPayment = schedule.find((p) => !p.paid);
 
-  // ---------- Checklist progress ----------
-  const allChecklistIds = useMemo(() => {
-    const ids: string[] = [];
-    KICKOFF_TASKS.forEach((t) => ids.push(t.id));
-    plan.phases.forEach((phase) => {
-      phase.requirements?.forEach((_, i) =>
-        ids.push(`p${phase.number}-req-${i}`)
-      );
-      phase.deliverables.forEach((_, i) =>
-        ids.push(`p${phase.number}-del-${i}`)
-      );
-    });
-    return ids;
-  }, [plan.phases]);
-
-  const completedCount = allChecklistIds.filter((id) => checkState[id]).length;
-  const progressPct =
-    allChecklistIds.length > 0
-      ? Math.round((completedCount / allChecklistIds.length) * 100)
-      : 0;
-
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
+      {/* Level-up fanfare overlay */}
+      {levelUp !== null && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 pointer-events-none"
+        >
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="bg-gradient-to-br from-green-600 to-emerald-700 border-2 border-green-300/60 rounded-2xl px-10 py-8 shadow-[0_0_120px_rgba(34,197,94,0.6)] text-center max-w-md"
+          >
+            <Trophy className="w-14 h-14 text-yellow-300 mx-auto mb-3 drop-shadow-lg" />
+            <div className="text-xs uppercase tracking-[0.3em] text-green-200 mb-1">
+              Level {levelUp} complete
+            </div>
+            <div className="text-3xl font-black text-white mb-2">
+              Phase {levelUp + 1} Unlocked
+            </div>
+            <div className="text-green-100 text-sm">
+              {levelUp === 6
+                ? "Project delivered. Launch party next."
+                : `Next up: ${
+                    plan.phases.find((p) => p.number === levelUp + 1)?.title ?? ""
+                  }`}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
       <header className="sticky top-0 z-40 bg-[#0a0a0a]/90 backdrop-blur-xl border-b border-[#1a1a1a]">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white font-bold">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white font-bold flex-shrink-0">
               W
             </div>
-            <div>
-              <div className="text-sm font-semibold text-white">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-white truncate">
                 Whole Earth Industries — Client Portal
               </div>
-              <div className="text-xs text-zinc-500">
-                Artist Marketplace Platform · Plan C Addendum
+              <div className="text-xs text-zinc-500 truncate">
+                Artist Marketplace · Plan C Addendum · Level {phasesComplete}
+                /6
               </div>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-4 text-xs text-zinc-400">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-              {paidCount}/{schedule.length} paid
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-green-400" />
-              {completedCount}/{allChecklistIds.length} checklist
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-3 text-xs text-zinc-400">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                {paidCount}/{schedule.length} paid
+              </span>
+            </div>
+            <RoleBadge isAdmin={isAdmin} />
           </div>
         </div>
       </header>
@@ -213,15 +497,17 @@ export default function ClientPortal() {
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <div className="text-xs uppercase tracking-[0.2em] text-green-400/80 mb-2">
-                Welcome, Alanson
+                Welcome{isAdmin ? ", Pete" : ", Alanson"}
               </div>
               <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-green-200 to-green-500 bg-clip-text text-transparent">
-                Plan C Addendum is Active
+                {isAdmin
+                  ? "Admin View — Approvals & Overrides"
+                  : "Plan C Addendum is Active"}
               </h1>
               <p className="text-zinc-400 text-sm mt-3 max-w-xl leading-relaxed">
-                First payment received April 23, 2026. Foundation milestone is
-                underway. Rick is available 24/7 in the chat widget — talk,
-                type, or transcribe a note and he&apos;ll hang on every word.
+                {isAdmin
+                  ? "Approve Lance's submitted requirements. Ship deliverables. Override client sign-off if you need to. Levels unlock when every requirement is approved and every deliverable is accepted (or overridden)."
+                  : "Each milestone is a level. Submit your Requirements via Drive for Pete to approve. As Pete ships Deliverables, you accept them. All items cleared = next level unlocks."}
               </p>
             </div>
             <div className="flex gap-3">
@@ -235,7 +521,52 @@ export default function ClientPortal() {
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-4 mt-8">
+          {/* XP bar */}
+          <div className="mt-8 bg-[#0d0d0d] border border-[#262626] rounded-xl p-5">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-4 h-4 text-yellow-300" />
+                <span className="text-sm font-bold text-white">
+                  Level {Math.max(1, phasesComplete + (phasesComplete < 6 ? 1 : 0))}{" "}
+                  of 6
+                </span>
+                <span className="text-xs text-zinc-500">
+                  ·{" "}
+                  {phasesComplete === 6
+                    ? "All milestones delivered"
+                    : plan.phases.find(
+                        (p) => p.number === phasesComplete + 1
+                      )?.title}
+                </span>
+              </div>
+              <div className="text-xs text-zinc-400 font-mono">
+                {doneItems}/{totalItems} ({xpPct}%)
+              </div>
+            </div>
+            <div className="h-2 rounded-full bg-[#262626] overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-500"
+                style={{ width: `${xpPct}%` }}
+              />
+            </div>
+            <div className="mt-3 grid grid-cols-6 gap-1">
+              {phaseStats.map((p) => (
+                <div
+                  key={p.phaseNumber}
+                  className={`h-1 rounded-full ${
+                    p.complete
+                      ? "bg-green-400"
+                      : p.done > 0
+                        ? "bg-yellow-500"
+                        : "bg-[#262626]"
+                  }`}
+                  title={`Phase ${p.phaseNumber}: ${p.done}/${p.total}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-4 mt-6">
             <StatCard
               label="Plan Total"
               value={plan.meta.totalValue}
@@ -255,13 +586,119 @@ export default function ClientPortal() {
               label="Next Payment"
               value={nextPayment?.amount ?? "—"}
               sub={
-                nextPayment
-                  ? nextPayment.dateLabel
-                  : "All payments received"
+                nextPayment ? nextPayment.dateLabel : "All payments received"
               }
             />
           </div>
         </motion.section>
+
+        {/* Admin: pending approvals queue */}
+        {isAdmin && pendingApprovals.length > 0 && (
+          <section className="bg-yellow-950/30 border border-yellow-600/50 rounded-2xl p-6">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="w-5 h-5 text-yellow-300" />
+              <h2 className="text-lg font-bold text-yellow-100">
+                {pendingApprovals.length} requirement
+                {pendingApprovals.length === 1 ? "" : "s"} awaiting your
+                approval
+              </h2>
+            </div>
+            <div className="space-y-2">
+              {pendingApprovals.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between gap-3 bg-[#0d0d0d] border border-yellow-900/40 rounded-lg px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <div className="text-xs text-yellow-400 font-mono">
+                      Phase {p.phaseNumber}
+                    </div>
+                    <div className="text-sm text-white truncate">{p.label}</div>
+                    {p.item.driveUrl && (
+                      <a
+                        href={p.item.driveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-green-400 hover:text-green-300 inline-flex items-center gap-1 mt-1 truncate"
+                      >
+                        <LinkIcon className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{p.item.driveUrl}</span>
+                      </a>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => {
+                        const note =
+                          prompt(
+                            "Rejection note (optional — tell Lance what to fix):"
+                          ) ?? undefined;
+                        mutateReq(p.id, { status: "rejected", note });
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-red-900/30 border border-red-800/40 text-red-300 hover:bg-red-800/40 text-xs font-semibold cursor-pointer"
+                    >
+                      Reject
+                    </button>
+                    <button
+                      onClick={() =>
+                        mutateReq(p.id, { status: "approved", note: undefined })
+                      }
+                      className="px-3 py-1.5 rounded-lg bg-green-500 text-black hover:bg-green-400 text-xs font-bold cursor-pointer"
+                    >
+                      Approve
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Client: pending acceptance queue */}
+        {!isAdmin && pendingAcceptance.length > 0 && (
+          <section className="bg-green-950/30 border border-green-600/50 rounded-2xl p-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Truck className="w-5 h-5 text-green-300" />
+              <h2 className="text-lg font-bold text-green-100">
+                {pendingAcceptance.length} deliverable
+                {pendingAcceptance.length === 1 ? "" : "s"} shipped — review
+                and accept
+              </h2>
+            </div>
+            <div className="space-y-2">
+              {pendingAcceptance.map((p) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between gap-3 bg-[#0d0d0d] border border-green-900/40 rounded-lg px-4 py-3"
+                >
+                  <div className="min-w-0">
+                    <div className="text-xs text-green-400 font-mono">
+                      Phase {p.phaseNumber}
+                    </div>
+                    <div className="text-sm text-white truncate">{p.label}</div>
+                    {p.item.driveUrl && (
+                      <a
+                        href={p.item.driveUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-green-400 hover:text-green-300 inline-flex items-center gap-1 mt-1 truncate"
+                      >
+                        <LinkIcon className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{p.item.driveUrl}</span>
+                      </a>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => mutateDel(p.id, { status: "accepted" })}
+                    className="px-3 py-1.5 rounded-lg bg-green-500 text-black hover:bg-green-400 text-xs font-bold cursor-pointer flex-shrink-0"
+                  >
+                    Accept
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Payment schedule */}
         <section>
@@ -333,116 +770,58 @@ export default function ClientPortal() {
           </div>
         </section>
 
-        {/* Kickoff checklist */}
+        {/* Kickoff */}
         <section>
           <SectionHeader
-            icon={<Circle className="w-5 h-5 text-green-400" />}
+            icon={<Unlock className="w-5 h-5 text-green-400" />}
             title="Kickoff"
             subtitle="Onboarding hygiene before Milestone 1 work begins."
           />
           <div className="bg-[#141414] border border-[#262626] rounded-xl p-6 space-y-2">
             {KICKOFF_TASKS.map((t) => (
-              <ChecklistItem
+              <SimpleCheck
                 key={t.id}
-                checked={Boolean(checkState[t.id])}
-                onChange={() => toggleCheck(t.id)}
+                checked={Boolean(kickoff[t.id])}
+                onChange={() => toggleKickoff(t.id)}
                 label={t.label}
               />
             ))}
           </div>
         </section>
 
-        {/* Phases — Requirements + Deliverables per milestone */}
+        {/* Phase gates */}
         <section>
           <SectionHeader
-            icon={<CheckCircle className="w-5 h-5 text-green-400" />}
+            icon={<Trophy className="w-5 h-5 text-yellow-300" />}
             title="Milestones — Requirements & Deliverables"
-            subtitle="Check off requirements as you provide them. Check off deliverables as they ship."
-            trailing={
-              <div className="flex items-center gap-2 text-xs text-zinc-400">
-                <div className="w-32 h-1.5 rounded-full bg-[#262626] overflow-hidden">
-                  <div
-                    className="h-full bg-green-500 transition-all"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
-                {progressPct}%
-              </div>
+            subtitle={
+              isAdmin
+                ? "Approve Lance's requirement submissions. Ship deliverables and override client sign-off when needed."
+                : "Submit each Requirement with a Drive link. Accept Deliverables once Pete ships them. Clear every item to unlock the next level."
             }
           />
           <div className="space-y-5">
-            {plan.phases.map((phase) => (
-              <div
-                key={phase.number}
-                className="bg-[#141414] border border-[#262626] rounded-xl overflow-hidden"
-              >
-                <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-[#262626] bg-[#0d0d0d]">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-green-900/40 flex items-center justify-center text-green-400 font-bold text-sm">
-                      {phase.number}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-white">
-                        {phase.title}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-zinc-500 mt-0.5">
-                        <Clock className="w-3 h-3" />
-                        {phase.weeks}
-                        <span className="text-zinc-700">·</span>
-                        <span className="text-green-400">
-                          {phase.milestone}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-[#262626]">
-                  <div className="p-6">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-yellow-400/80 font-semibold mb-3">
-                      Requirements from you
-                    </div>
-                    <div className="space-y-1.5">
-                      {(phase.requirements ?? []).map((r, i) => {
-                        const id = `p${phase.number}-req-${i}`;
-                        return (
-                          <ChecklistItem
-                            key={id}
-                            checked={Boolean(checkState[id])}
-                            onChange={() => toggleCheck(id)}
-                            label={r}
-                          />
-                        );
-                      })}
-                      {(!phase.requirements ||
-                        phase.requirements.length === 0) && (
-                        <div className="text-xs text-zinc-600 italic">
-                          No inputs required this milestone.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-green-400/80 font-semibold mb-3">
-                      Deliverables from Pete
-                    </div>
-                    <div className="space-y-1.5">
-                      {phase.deliverables.map((d, i) => {
-                        const id = `p${phase.number}-del-${i}`;
-                        return (
-                          <ChecklistItem
-                            key={id}
-                            checked={Boolean(checkState[id])}
-                            onChange={() => toggleCheck(id)}
-                            label={d}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+            {plan.phases.map((phase) => {
+              const stats = phaseStats.find(
+                (s) => s.phaseNumber === phase.number
+              )!;
+              const unlocked = isPhaseUnlocked(phase.number);
+              return (
+                <PhaseCard
+                  key={phase.number}
+                  phase={phase}
+                  unlocked={unlocked}
+                  complete={stats.complete}
+                  isAdmin={isAdmin}
+                  requirementsState={state.requirements}
+                  deliverablesState={state.deliverables}
+                  onReqMutate={mutateReq}
+                  onDelMutate={mutateDel}
+                  doneCount={stats.done}
+                  totalCount={stats.total}
+                />
+              );
+            })}
           </div>
         </section>
 
@@ -505,10 +884,7 @@ export default function ClientPortal() {
           />
           <TranscribePanel
             transcripts={transcripts}
-            setTranscripts={(next) => {
-              setTranscripts(next);
-              saveTranscripts(next);
-            }}
+            setTranscripts={setTranscripts}
           />
         </section>
       </div>
@@ -517,6 +893,10 @@ export default function ClientPortal() {
         <p className="text-xs text-zinc-600">
           Whole Earth Industries — Client Portal · Prepared by DTSP-AI
           Technologies · {plan.meta.contact}
+        </p>
+        <p className="text-[10px] text-zinc-700 mt-1">
+          Admin mode: append <code className="text-zinc-500">?admin=1</code> to
+          URL. Clear with <code className="text-zinc-500">?admin=0</code>.
         </p>
       </footer>
 
@@ -528,7 +908,23 @@ export default function ClientPortal() {
   );
 }
 
-// ---------- Helpers ----------
+// ============================================================================
+// Subcomponents
+// ============================================================================
+
+function RoleBadge({ isAdmin }: { isAdmin: boolean }) {
+  return isAdmin ? (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 text-[10px] font-bold uppercase tracking-wider">
+      <Shield className="w-3 h-3" />
+      Admin
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-900/30 border border-green-700/40 text-green-300 text-[10px] font-bold uppercase tracking-wider">
+      <Shield className="w-3 h-3" />
+      Client
+    </span>
+  );
+}
 
 function SectionHeader({
   icon,
@@ -587,7 +983,7 @@ function StatCard({
   );
 }
 
-function ChecklistItem({
+function SimpleCheck({
   checked,
   onChange,
   label,
@@ -623,14 +1019,517 @@ function ChecklistItem({
   );
 }
 
-// ---------- Transcribe Panel ----------
+// ----------------------------------------------------------------------------
+// PhaseCard — one per milestone. Locks when previous phase incomplete.
+// ----------------------------------------------------------------------------
+function PhaseCard({
+  phase,
+  unlocked,
+  complete,
+  isAdmin,
+  requirementsState,
+  deliverablesState,
+  onReqMutate,
+  onDelMutate,
+  doneCount,
+  totalCount,
+}: {
+  phase: (typeof planCAddendum.phases)[number];
+  unlocked: boolean;
+  complete: boolean;
+  isAdmin: boolean;
+  requirementsState: Record<string, ReqItem>;
+  deliverablesState: Record<string, DelItem>;
+  onReqMutate: (id: string, patch: Partial<ReqItem>) => void;
+  onDelMutate: (id: string, patch: Partial<DelItem>) => void;
+  doneCount: number;
+  totalCount: number;
+}) {
+  const pct =
+    totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
+  return (
+    <div
+      className={`bg-[#141414] border rounded-xl overflow-hidden transition-all ${
+        complete
+          ? "border-green-500/60"
+          : unlocked
+            ? "border-[#262626]"
+            : "border-[#1a1a1a] opacity-60"
+      }`}
+    >
+      <div
+        className={`flex items-start justify-between gap-4 px-6 py-4 border-b border-[#262626] ${
+          complete ? "bg-green-950/30" : "bg-[#0d0d0d]"
+        }`}
+      >
+        <div className="flex items-center gap-4 min-w-0">
+          <div
+            className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm ${
+              complete
+                ? "bg-green-500 text-black"
+                : unlocked
+                  ? "bg-green-900/40 text-green-400"
+                  : "bg-zinc-900 text-zinc-600"
+            }`}
+          >
+            {complete ? <CheckCircle className="w-4 h-4" /> : phase.number}
+          </div>
+          <div className="min-w-0">
+            <div className="font-semibold text-white flex items-center gap-2 flex-wrap">
+              <span>
+                Level {phase.number}: {phase.title}
+              </span>
+              {complete && (
+                <span className="px-2 py-0.5 rounded bg-green-500 text-black text-[10px] font-bold uppercase tracking-wider">
+                  Complete
+                </span>
+              )}
+              {!unlocked && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 text-[10px] font-bold uppercase tracking-wider">
+                  <Lock className="w-3 h-3" /> Locked
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-zinc-500 mt-0.5">
+              <Clock className="w-3 h-3" />
+              {phase.weeks}
+              <span className="text-zinc-700">·</span>
+              <span className="text-green-400">{phase.milestone}</span>
+              <span className="text-zinc-700">·</span>
+              <span>
+                {doneCount}/{totalCount} cleared
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex-shrink-0 w-32 hidden sm:block">
+          <div className="h-1.5 rounded-full bg-[#262626] overflow-hidden">
+            <div
+              className={`h-full transition-all ${
+                complete ? "bg-green-400" : "bg-green-600"
+              }`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <div className="text-[10px] text-zinc-500 text-right mt-1">
+            {pct}%
+          </div>
+        </div>
+      </div>
+
+      {!unlocked ? (
+        <div className="px-6 py-8 text-center">
+          <Lock className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+          <div className="text-sm text-zinc-400 font-semibold">
+            Complete Level {phase.number - 1} to unlock
+          </div>
+          <div className="text-xs text-zinc-600 mt-1">
+            Every requirement must be approved and every deliverable must be
+            accepted or overridden.
+          </div>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-[#262626]">
+          {/* Requirements column */}
+          <div className="p-6">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-yellow-400/80 font-semibold mb-3">
+              Requirements from you
+            </div>
+            <div className="space-y-2">
+              {(phase.requirements ?? []).map((label, i) => {
+                const id = `p${phase.number}-req-${i}`;
+                const item = requirementsState[id] ?? { status: "pending" as ReqStatus };
+                return (
+                  <RequirementRow
+                    key={id}
+                    id={id}
+                    label={label}
+                    item={item}
+                    isAdmin={isAdmin}
+                    onMutate={onReqMutate}
+                  />
+                );
+              })}
+              {(!phase.requirements || phase.requirements.length === 0) && (
+                <div className="text-xs text-zinc-600 italic">
+                  No inputs required this milestone.
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Deliverables column */}
+          <div className="p-6">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-green-400/80 font-semibold mb-3">
+              Deliverables from Pete
+            </div>
+            <div className="space-y-2">
+              {phase.deliverables.map((label, i) => {
+                const id = `p${phase.number}-del-${i}`;
+                const item = deliverablesState[id] ?? { status: "in_progress" as DelStatus };
+                return (
+                  <DeliverableRow
+                    key={id}
+                    id={id}
+                    label={label}
+                    item={item}
+                    isAdmin={isAdmin}
+                    onMutate={onDelMutate}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// RequirementRow — client-submittable, admin-approvable
+// ----------------------------------------------------------------------------
+function RequirementRow({
+  id,
+  label,
+  item,
+  isAdmin,
+  onMutate,
+}: {
+  id: string;
+  label: string;
+  item: ReqItem;
+  isAdmin: boolean;
+  onMutate: (id: string, patch: Partial<ReqItem>) => void;
+}) {
+  const status = item.status;
+
+  return (
+    <div
+      className={`rounded-lg border px-3 py-2.5 ${
+        status === "approved"
+          ? "bg-green-950/20 border-green-700/40"
+          : status === "rejected"
+            ? "bg-red-950/20 border-red-700/40"
+            : status === "submitted"
+              ? "bg-yellow-950/20 border-yellow-700/40"
+              : "bg-[#0d0d0d] border-[#262626]"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-2 min-w-0 flex-1">
+          <StatusIcon
+            kind={
+              status === "approved"
+                ? "done"
+                : status === "rejected"
+                  ? "bad"
+                  : status === "submitted"
+                    ? "pending"
+                    : "idle"
+            }
+          />
+          <div className="min-w-0 flex-1">
+            <div
+              className={`text-xs leading-relaxed ${
+                status === "approved"
+                  ? "text-green-200 line-through decoration-green-700"
+                  : "text-zinc-200"
+              }`}
+            >
+              {label}
+            </div>
+            {item.driveUrl && (
+              <a
+                href={item.driveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-green-400 hover:text-green-300 inline-flex items-center gap-1 mt-1 truncate max-w-full"
+                title={item.driveUrl}
+              >
+                <LinkIcon className="w-2.5 h-2.5 flex-shrink-0" />
+                <span className="truncate">{item.driveUrl}</span>
+              </a>
+            )}
+            {status === "rejected" && item.note && (
+              <div className="text-[10px] text-red-300 mt-1 italic">
+                Pete: {item.note}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex-shrink-0 flex flex-col gap-1 items-end">
+          <StatusPill status={status} />
+          <div className="flex items-center gap-1 mt-1">
+            {!isAdmin && (status === "pending" || status === "rejected") && (
+              <button
+                onClick={() => {
+                  const url = prompt(
+                    "Paste the Drive link for this submission:",
+                    item.driveUrl ?? ""
+                  );
+                  if (url === null) return;
+                  onMutate(id, {
+                    status: "submitted",
+                    driveUrl: url.trim() || item.driveUrl,
+                  });
+                }}
+                className="px-2 py-1 rounded-md bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1"
+              >
+                <Send className="w-3 h-3" />
+                {status === "rejected" ? "Resubmit" : "Submit"}
+              </button>
+            )}
+            {isAdmin && status === "submitted" && (
+              <>
+                <button
+                  onClick={() => {
+                    const note =
+                      prompt(
+                        "Rejection note (optional — tell Lance what to fix):"
+                      ) ?? undefined;
+                    onMutate(id, { status: "rejected", note });
+                  }}
+                  className="px-2 py-1 rounded-md bg-red-900/40 hover:bg-red-800/50 text-red-300 text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                >
+                  Reject
+                </button>
+                <button
+                  onClick={() =>
+                    onMutate(id, { status: "approved", note: undefined })
+                  }
+                  className="px-2 py-1 rounded-md bg-green-500 hover:bg-green-400 text-black text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                >
+                  Approve
+                </button>
+              </>
+            )}
+            {isAdmin && status !== "submitted" && status !== "approved" && (
+              <button
+                onClick={() =>
+                  onMutate(id, { status: "approved", note: undefined })
+                }
+                className="px-2 py-1 rounded-md bg-yellow-600 hover:bg-yellow-500 text-black text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                title="Admin override — force approve"
+              >
+                Override
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------------
+// DeliverableRow — admin ships, client accepts, admin can override
+// ----------------------------------------------------------------------------
+function DeliverableRow({
+  id,
+  label,
+  item,
+  isAdmin,
+  onMutate,
+}: {
+  id: string;
+  label: string;
+  item: DelItem;
+  isAdmin: boolean;
+  onMutate: (id: string, patch: Partial<DelItem>) => void;
+}) {
+  const status = item.status;
+  const isDone = status === "accepted" || status === "override";
+
+  return (
+    <div
+      className={`rounded-lg border px-3 py-2.5 ${
+        isDone
+          ? "bg-green-950/20 border-green-700/40"
+          : status === "shipped"
+            ? "bg-blue-950/20 border-blue-700/40"
+            : "bg-[#0d0d0d] border-[#262626]"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-2 min-w-0 flex-1">
+          <StatusIcon
+            kind={
+              isDone
+                ? "done"
+                : status === "shipped"
+                  ? "pending"
+                  : "idle"
+            }
+          />
+          <div className="min-w-0 flex-1">
+            <div
+              className={`text-xs leading-relaxed ${
+                isDone
+                  ? "text-green-200 line-through decoration-green-700"
+                  : "text-zinc-200"
+              }`}
+            >
+              {label}
+            </div>
+            {item.driveUrl && (
+              <a
+                href={item.driveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-green-400 hover:text-green-300 inline-flex items-center gap-1 mt-1 truncate max-w-full"
+                title={item.driveUrl}
+              >
+                <LinkIcon className="w-2.5 h-2.5 flex-shrink-0" />
+                <span className="truncate">{item.driveUrl}</span>
+              </a>
+            )}
+            {status === "override" && (
+              <div className="text-[10px] text-yellow-300 mt-1 italic">
+                Marked complete by admin override.
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex-shrink-0 flex flex-col gap-1 items-end">
+          <StatusPill status={status} />
+          <div className="flex items-center gap-1 mt-1">
+            {isAdmin && status === "in_progress" && (
+              <button
+                onClick={() => {
+                  const url = prompt(
+                    "Drive link for the shipped deliverable (optional):",
+                    item.driveUrl ?? ""
+                  );
+                  if (url === null) return;
+                  onMutate(id, {
+                    status: "shipped",
+                    driveUrl: url.trim() || item.driveUrl,
+                  });
+                }}
+                className="px-2 py-1 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1"
+              >
+                <Truck className="w-3 h-3" />
+                Ship
+              </button>
+            )}
+            {!isAdmin && status === "shipped" && (
+              <button
+                onClick={() => onMutate(id, { status: "accepted" })}
+                className="px-2 py-1 rounded-md bg-green-500 hover:bg-green-400 text-black text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Accept
+              </button>
+            )}
+            {isAdmin && !isDone && (
+              <button
+                onClick={() => onMutate(id, { status: "override" })}
+                className="px-2 py-1 rounded-md bg-yellow-600 hover:bg-yellow-500 text-black text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                title="Force complete — on top of client sign-off"
+              >
+                Override
+              </button>
+            )}
+            {isAdmin && status !== "in_progress" && !isDone && (
+              <button
+                onClick={() => onMutate(id, { status: "in_progress", driveUrl: undefined })}
+                className="px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                title="Send back to in-progress"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatusIcon({
+  kind,
+}: {
+  kind: "idle" | "pending" | "done" | "bad";
+}) {
+  if (kind === "done")
+    return (
+      <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+    );
+  if (kind === "pending")
+    return (
+      <Clock className="w-4 h-4 text-yellow-300 flex-shrink-0 mt-0.5" />
+    );
+  if (kind === "bad")
+    return (
+      <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+    );
+  return (
+    <div className="w-4 h-4 rounded-full border-2 border-zinc-600 flex-shrink-0 mt-0.5" />
+  );
+}
+
+function StatusPill({ status }: { status: ReqStatus | DelStatus }) {
+  const map: Record<string, { label: string; bg: string; fg: string }> = {
+    pending: {
+      label: "Pending",
+      bg: "bg-zinc-800",
+      fg: "text-zinc-400",
+    },
+    submitted: {
+      label: "Submitted",
+      bg: "bg-yellow-500/20",
+      fg: "text-yellow-300",
+    },
+    approved: {
+      label: "Approved",
+      bg: "bg-green-500/20",
+      fg: "text-green-300",
+    },
+    rejected: {
+      label: "Rejected",
+      bg: "bg-red-500/20",
+      fg: "text-red-300",
+    },
+    in_progress: {
+      label: "In Progress",
+      bg: "bg-zinc-800",
+      fg: "text-zinc-400",
+    },
+    shipped: {
+      label: "Shipped",
+      bg: "bg-blue-500/20",
+      fg: "text-blue-300",
+    },
+    accepted: {
+      label: "Accepted",
+      bg: "bg-green-500/20",
+      fg: "text-green-300",
+    },
+    override: {
+      label: "Override",
+      bg: "bg-yellow-500/20",
+      fg: "text-yellow-300",
+    },
+  };
+  const m = map[status] ?? map.pending;
+  return (
+    <span
+      className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${m.bg} ${m.fg}`}
+    >
+      {m.label}
+    </span>
+  );
+}
+
+// ============================================================================
+// TranscribePanel — record audio, hit /api/rick/transcribe, save locally.
+// ============================================================================
 function TranscribePanel({
   transcripts,
   setTranscripts,
 }: {
   transcripts: SavedTranscript[];
-  setTranscripts: (items: SavedTranscript[]) => void;
+  setTranscripts: React.Dispatch<React.SetStateAction<SavedTranscript[]>>;
 }) {
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -690,10 +1589,12 @@ function TranscribePanel({
               text,
               createdAt: new Date().toLocaleString(),
             };
-            setTranscripts([entry, ...transcripts]);
+            setTranscripts((prev) => [entry, ...prev]);
           }
         } catch (err) {
-          setErrorMsg(err instanceof Error ? err.message : "Transcription failed.");
+          setErrorMsg(
+            err instanceof Error ? err.message : "Transcription failed."
+          );
         } finally {
           setProcessing(false);
         }
@@ -708,7 +1609,7 @@ function TranscribePanel({
       );
       stopStream();
     }
-  }, [setTranscripts, transcripts, stopStream]);
+  }, [setTranscripts, stopStream]);
 
   const stop = useCallback(() => {
     const r = mediaRecorderRef.current;
@@ -730,9 +1631,9 @@ function TranscribePanel({
 
   const handleDelete = useCallback(
     (id: string) => {
-      setTranscripts(transcripts.filter((t) => t.id !== id));
+      setTranscripts((prev) => prev.filter((t) => t.id !== id));
     },
-    [setTranscripts, transcripts]
+    [setTranscripts]
   );
 
   return (
