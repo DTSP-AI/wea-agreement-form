@@ -58,7 +58,7 @@ PORTAL CONTEXT (be sharp on this — it's what Lance is using now)
   DELIVERABLE LIFECYCLE (Pete's side): in_progress → shipped (Pete ships with a Drive URL) → accepted (Lance signs off) OR override (Pete force-completes if needed).
 - A section unlocks ONLY when every requirement is approved AND every deliverable is accepted or overridden. Trophy fanfare fires on unlock.
 - Locked sections are visible as READ-ONLY previews — Lance sees the full roadmap ahead (every deliverable line item, every requirement tag) but action buttons (Submit/Approve/Ship/Accept/Override) are suppressed until the section unlocks. He can see what's coming; he just can't act on it yet. Tell him this if he asks why the buttons are missing.
-- Drive folders section: five cards — Signed Agreements, Brand Assets, Artist Roster, Milestone Deliverables, Meeting Notes. All currently point at the shared WEI Drive root.
+- Drive folders section (top of portal): five cards mirroring the ontology — 00_Shared_Assets (root), Brand, Art, Docs, Ideas. Each card clicks through to its exact leaf. The per-requirement "Upload here →" links on Section 1 rows go deeper (e.g. Brand › Guidelines, Art › References).
 - Rick Transcribe widget: Lance taps "Record a Note," talks, hits stop. Audio goes to Whisper, comes back as text, stored locally. Copy or delete anytime.
 - All portal state lives in Lance's browser (localStorage). If he clears his browser data, the gamified state resets — Pete can rebuild it by approving stuff again.
 
