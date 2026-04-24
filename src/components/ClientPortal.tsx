@@ -1431,10 +1431,13 @@ function SectionCard({
   const pct =
     totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
   const hasRequirements = section.requirements.length > 0;
-  // In dev, show locked sections as read-only previews instead of the lock
-  // card. This lets Pete see what's coming without tripping state machines.
-  const showDevPreview = !unlocked && isDev;
-  const readOnly = showDevPreview;
+  // Locked sections render as read-only previews (for everyone — not just
+  // dev). Lance sees the full roadmap ahead of time, which builds confidence
+  // and reduces "what's next?" anxiety. Actions stay suppressed so the
+  // state machine can't be tripped early.
+  void isDev; // retained in props for future dev-only toggles; currently unused
+  const showPreview = !unlocked;
+  const readOnly = showPreview;
 
   return (
     <div
@@ -1506,27 +1509,18 @@ function SectionCard({
         </div>
       </div>
 
-      {!unlocked && !showDevPreview ? (
-        <div className="px-6 py-8 text-center">
-          <Lock className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
-          <div className="text-sm text-zinc-400 font-semibold">
-            Complete Section {section.number - 1} to unlock
-          </div>
-          <div className="text-xs text-zinc-600 mt-1">
-            Every requirement must be approved and every deliverable must be
-            accepted or overridden.
-          </div>
-        </div>
-      ) : (
+      {(
         <>
-          {showDevPreview && (
-            <div className="bg-zinc-900/60 border-y border-zinc-700 px-6 py-2 flex items-center gap-2">
-              <span className="px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300 text-[9px] font-bold tracking-wider uppercase">
-                Dev Preview
+          {showPreview && (
+            <div className="bg-zinc-900/60 border-y border-zinc-700 px-6 py-2 flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300 text-[9px] font-bold tracking-wider uppercase">
+                <Lock className="w-2.5 h-2.5" />
+                Locked — Preview Only
               </span>
               <span className="text-[11px] text-zinc-500">
-                Read-only shadow of what Lance will see when this section
-                unlocks. No actions available.
+                Unlocks once Section {section.number - 1} is complete. Every
+                requirement approved + every deliverable accepted or
+                overridden.
               </span>
             </div>
           )}
