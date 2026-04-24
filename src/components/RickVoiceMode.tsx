@@ -20,6 +20,56 @@ interface RickVoiceModeProps {
 const VOICE_EXCHANGE_STAGE = "post_tangent";
 const DEFAULT_MODEL = "gpt-realtime";
 
+// Same localStorage key RickChat uses. Reading it lets voice Rick resume
+// the exact conversation from the chat widget instead of starting fresh.
+const CHAT_STORAGE_KEY = "wea-rick-chat-v1";
+
+interface StoredChatMessage {
+  id: string;
+  role: "rick" | "user";
+  text: string;
+}
+
+interface StoredChat {
+  messages?: StoredChatMessage[];
+}
+
+// Build SDK-shaped RealtimeItem[] from the persisted chat history so
+// session.updateHistory() can seed voice Rick with what was already said.
+function loadChatHistoryForVoice(): RealtimeItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as StoredChat;
+    const msgs = Array.isArray(parsed.messages) ? parsed.messages : [];
+    const items: RealtimeItem[] = [];
+    for (const m of msgs) {
+      if (!m || typeof m.text !== "string" || !m.text.trim()) continue;
+      if (m.role === "user") {
+        items.push({
+          itemId: m.id || `seed-user-${items.length}`,
+          type: "message",
+          role: "user",
+          status: "completed",
+          content: [{ type: "input_text", text: m.text }],
+        } as RealtimeItem);
+      } else if (m.role === "rick") {
+        items.push({
+          itemId: m.id || `seed-asst-${items.length}`,
+          type: "message",
+          role: "assistant",
+          status: "completed",
+          content: [{ type: "output_text", text: m.text }],
+        } as RealtimeItem);
+      }
+    }
+    return items;
+  } catch {
+    return [];
+  }
+}
+
 // Pull the latest user + assistant transcripts out of the SDK's history snapshot.
 // Returns the last completed user utterance and the last assistant utterance
 // (which may still be in progress / streaming in).
@@ -243,16 +293,38 @@ export default function RickVoiceMode({
         return;
       }
 
-      // 4. Ask Rick to open with the canonical greeting. Same contract as
-      // the chat widget — he says the opening line, in his voice.
-      const greeting = rickOpening[0]?.text ?? "";
-      if (greeting) {
+      // 4. Seed the voice session with whatever chat history already
+      // happened on this device. This is what makes voice Rick feel
+      // like the SAME Rick Lance has been typing to — not a separate
+      // entity who doesn't know the context. If there's no prior
+      // conversation, fall back to the canonical opening greeting.
+      const priorHistory = loadChatHistoryForVoice();
+      if (priorHistory.length > 0) {
+        try {
+          session.updateHistory(priorHistory);
+        } catch {
+          /* history seed is best-effort; session still works without it */
+        }
+        // Nudge Rick to continue naturally instead of re-introducing
+        // himself. Framed as a silent system-style hint, not a greeting.
         try {
           session.sendMessage(
-            `Open the conversation by saying exactly this, verbatim, in your natural voice: "${greeting.replace(/"/g, '\\"')}"`
+            "[system] You are continuing an existing conversation with Lance that started in the chat widget. Do not re-introduce yourself, do not recap, do not say hi again. Wait for him to speak, then respond naturally as if you just walked over to the bench he's sitting on."
           );
         } catch {
-          /* noop — session will still accept user speech */
+          /* noop */
+        }
+      } else {
+        // Fresh session — speak the canonical opener verbatim.
+        const greeting = rickOpening[0]?.text ?? "";
+        if (greeting) {
+          try {
+            session.sendMessage(
+              `Open the conversation by saying exactly this, verbatim, in your natural voice: "${greeting.replace(/"/g, '\\"')}"`
+            );
+          } catch {
+            /* noop — session will still accept user speech */
+          }
         }
       }
     } catch (err) {

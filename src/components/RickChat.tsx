@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Mic } from "lucide-react";
+import { MessageCircle, X, Send, AudioLines } from "lucide-react";
 import {
   rickOpening,
   ctaStages,
@@ -364,17 +364,6 @@ export default function RickChat() {
                   onClick={() => {
                     hasUserInteractedRef.current = true;
                     clearIntroCloseTimer();
-                    setVoiceModeOpen(true);
-                  }}
-                  className="p-2 rounded-lg text-green-400 hover:text-green-200 hover:bg-green-900/30 transition-colors cursor-pointer"
-                  title="Voice mode"
-                >
-                  <Mic className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => {
-                    hasUserInteractedRef.current = true;
-                    clearIntroCloseTimer();
                     setIsOpen(false);
                     setLauncherHint("I'm here when you need me.");
                   }}
@@ -452,16 +441,34 @@ export default function RickChat() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                  placeholder="Or type your question..."
+                  placeholder="Type, or tap the voice icon to talk..."
                   className="flex-1 bg-[#1a2332] text-green-100 placeholder-green-800 px-4 py-2.5 rounded-xl border border-green-900/30 focus:border-green-600 focus:outline-none text-sm"
                 />
-                <button
-                  onClick={handleSend}
-                  disabled={!input.trim()}
-                  className="bg-green-700 hover:bg-green-600 disabled:opacity-30 text-white p-2.5 rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
+                {input.trim() ? (
+                  // Typing → show Send. Classic swap pattern.
+                  <button
+                    onClick={handleSend}
+                    className="bg-green-700 hover:bg-green-600 text-white p-2.5 rounded-xl transition-colors cursor-pointer"
+                    title="Send"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                ) : (
+                  // Empty input → show voice-mode button in the Send slot.
+                  // Same position as every chat app (WhatsApp, iMessage,
+                  // ChatGPT) so it feels familiar.
+                  <button
+                    onClick={() => {
+                      hasUserInteractedRef.current = true;
+                      clearIntroCloseTimer();
+                      setVoiceModeOpen(true);
+                    }}
+                    className="bg-green-700 hover:bg-green-600 text-white p-2.5 rounded-xl transition-colors cursor-pointer"
+                    title="Talk to Rick"
+                  >
+                    <AudioLines className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>
