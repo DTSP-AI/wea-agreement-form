@@ -135,6 +135,12 @@ interface PortalSection {
 const WEI_DRIVE_ROOT =
   "https://drive.google.com/drive/folders/1MpKqfdidnBgd0j9UXGSoOHdLTIGJnPOM";
 
+// Where Lance drops files when submitting requirements. Used as the default
+// value in the Submit prompt + surfaced as a prominent "Drop files here"
+// link on Section 1 so he knows where to upload before submitting.
+const LANCE_SUBMIT_FOLDER =
+  "https://drive.google.com/drive/folders/1c0Mcfw6L28OOCjI8qToFET6MB63NRtS0";
+
 const DRIVE_FOLDERS: {
   label: string;
   description: string;
@@ -1531,6 +1537,28 @@ function SectionCard({
                 <div className="text-[10px] uppercase tracking-[0.2em] text-yellow-400/80 font-semibold mb-3">
                   Requirements from you (all milestones)
                 </div>
+
+                {/* Drop-folder callout — where Lance uploads before Submit */}
+                <a
+                  href={LANCE_SUBMIT_FOLDER}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-start gap-3 mb-4 rounded-lg border border-yellow-700/40 bg-yellow-950/20 hover:bg-yellow-950/30 hover:border-yellow-600/60 transition-colors px-4 py-3 cursor-pointer"
+                >
+                  <FolderOpen className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-yellow-200 mb-0.5">
+                      Drop your files here → Shared Drive
+                    </div>
+                    <div className="text-[11px] text-yellow-100/80 leading-relaxed">
+                      Upload each requirement&apos;s files into this folder,
+                      then hit <span className="font-semibold">Submit</span>{" "}
+                      on the matching row below. Pete reviews and approves.
+                    </div>
+                  </div>
+                  <ExternalLink className="w-3.5 h-3.5 text-yellow-500/70 group-hover:text-yellow-300 transition-colors flex-shrink-0 mt-1" />
+                </a>
+
                 <div className="space-y-2">
                   {section.requirements.map((r) => {
                     const item =
@@ -1709,13 +1737,14 @@ function RequirementRow({
               <button
                 onClick={() => {
                   const url = prompt(
-                    "Paste the Drive link for this submission:",
-                    item.driveUrl ?? ""
+                    "Upload your file to the shared Drive folder, then paste the link here (or leave this as the folder URL and Pete will find it):\n\nDrop folder: " +
+                      LANCE_SUBMIT_FOLDER,
+                    item.driveUrl ?? LANCE_SUBMIT_FOLDER
                   );
                   if (url === null) return;
                   onMutate(id, {
                     status: "submitted",
-                    driveUrl: url.trim() || item.driveUrl,
+                    driveUrl: url.trim() || LANCE_SUBMIT_FOLDER,
                   });
                 }}
                 className="px-2 py-1 rounded-md bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1"
