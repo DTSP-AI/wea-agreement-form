@@ -129,54 +129,76 @@ interface PortalSection {
 
 // ---------- Static content ------------------------------------------------
 
-// Drive folder URLs. All five cards currently point at the shared WEI root.
-// Replace per-category URLs here once Pete creates subfolders.
-// Empty string on any entry => "Pending" pill instead of a link.
-const WEI_DRIVE_ROOT =
+// Parent of 00_Shared_Assets (1MpK...) — holds agreements + sibling-
+// numbered folders (01_..., 02_..., etc.) outside this traversal.
+// Kept as a reference constant for any future card that should point
+// at the higher scope.
+// Source: shared_assets_folder_ontology.yml, notes[1].
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const WEI_DRIVE_ROOT_PARENT =
   "https://drive.google.com/drive/folders/1MpKqfdidnBgd0j9UXGSoOHdLTIGJnPOM";
 
-// Where Lance drops files when submitting requirements. Each requirement
-// routes to the correct sub-folder by category. Until per-category
-// sub-folder URLs are provisioned, everything points at the shared
-// intake root below — just edit the map here and the whole portal updates.
-const LANCE_SUBMIT_FOLDER_ROOT =
-  "https://drive.google.com/drive/folders/1c0Mcfw6L28OOCjI8qToFET6MB63NRtS0";
+// 00_Shared_Assets ontology (live traversal 2026-04-24, owner
+// dtspdigitalmedia@gmail.com). Leaf folders Lance can drop into.
+// Source: shared_assets_folder_ontology.yml
+const DRIVE = {
+  root:               "https://drive.google.com/drive/folders/1c0Mcfw6L28OOCjI8qToFET6MB63NRtS0", // 00_Shared_Assets
+  archive:            "https://drive.google.com/drive/folders/1uxUItmdi4XqX1GtTtAoSEVqghtSgtS0R", // /Archive
+  art:                "https://drive.google.com/drive/folders/1P4D4WVxNkr_FyJefVNaQNzTfbz3o2H_Q", // /Art
+  art_concepts:       "https://drive.google.com/drive/folders/1FeqyEknqgfEvoiB039ct9B_zFSAa8R9S", // /Art/Concepts
+  art_originals:      "https://drive.google.com/drive/folders/1IKvT0CpxPRBG1-ae38Fg9C3Gx8EI_kTU", // /Art/Originals
+  art_references:     "https://drive.google.com/drive/folders/1qzACdvDnH1K414f-WBwo6D11soqlqBkU", // /Art/References
+  brand:              "https://drive.google.com/drive/folders/1jEBf7jFHb4nZiSV5VSv7uGsTyncquNgU", // /Brand
+  brand_guidelines:   "https://drive.google.com/drive/folders/1uWvOTUftKCBC58VH4kt3dcgpJ7TU11qe", // /Brand/Guidelines
+  brand_logos:        "https://drive.google.com/drive/folders/1fGyWFRpkvhXUJNcnMEKy2ahMolSsK7Ae", // /Brand/Logos
+  docs:               "https://drive.google.com/drive/folders/1ivpW8u-gwpUO5B5vqXscCBZPibD_hsim", // /Docs
+  ideas:              "https://drive.google.com/drive/folders/1Ez58cObbCh4IJTadPn1zQBgl9uuXuqTX", // /Ideas
+  images:             "https://drive.google.com/drive/folders/1k4_fAwWky7or2SjkLGyMKsFCnUi8Bli0", // /Images
+  lances_inspiration: "https://drive.google.com/drive/folders/1gPqDCoOC6xi_6VC6XO789MB6FAin20JC", // /Lances_Inspiration
+} as const;
 
-// Categories map each requirement (by its phase-based item id) to the
-// right Drive sub-folder. To wire real sub-folders, replace the URLs on
-// the right-hand side. Any id not listed here falls back to the ROOT.
+// Per-requirement routing. Each requirement drops into the most
+// appropriate leaf folder in 00_Shared_Assets. Rationale inline.
 const REQ_DROP_FOLDERS: Record<string, { category: string; url: string }> = {
   // ---------- Milestone 1 — Foundation ----------
-  "p1-req-0": { category: "Brand Assets", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p1-req-1": { category: "Credentials — Domain / Registrar", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p1-req-2": { category: "Artist Roster & Categories", url: LANCE_SUBMIT_FOLDER_ROOT },
+  // Brand identity (name, tagline, color palette) → brand guidelines doc
+  "p1-req-0": { category: "Brand › Guidelines", url: DRIVE.brand_guidelines },
+  // Registrar creds / access instructions → Docs (catch-all for auth)
+  "p1-req-1": { category: "Docs", url: DRIVE.docs },
+  // Conceptual list of artist categories to launch with → Ideas
+  "p1-req-2": { category: "Ideas", url: DRIVE.ideas },
+
   // ---------- Milestone 2 — SEO & Payouts ----------
-  "p2-req-0": { category: "Credentials — Stripe", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p2-req-1": { category: "SEO Seed Keywords", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p2-req-2": { category: "Credentials — Email Sender", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p2-req-0": { category: "Docs", url: DRIVE.docs },       // Stripe creds
+  "p2-req-1": { category: "Ideas", url: DRIVE.ideas },     // Seed keywords
+  "p2-req-2": { category: "Docs", url: DRIVE.docs },       // Email sender info
+
   // ---------- Milestone 3 — WooCommerce ----------
-  "p3-req-0": { category: "Credentials — GoDaddy / WP", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p3-req-1": { category: "Product Taxonomy", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p3-req-2": { category: "Sample Product Listing", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p3-req-0": { category: "Docs", url: DRIVE.docs },            // GoDaddy / WP creds
+  "p3-req-1": { category: "Docs", url: DRIVE.docs },            // Product taxonomy
+  "p3-req-2": { category: "Art › Originals", url: DRIVE.art_originals }, // Sample product (real art)
+
   // ---------- Milestone 4 — Ingestion & AI ----------
-  "p4-req-0": { category: "Credentials — Etsy / Shopify", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p4-req-1": { category: "Artist Bios & Style Guides", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p4-req-2": { category: "Credentials — GoHighLevel", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p4-req-0": { category: "Docs", url: DRIVE.docs },                   // Etsy/Shopify creds
+  "p4-req-1": { category: "Art › References", url: DRIVE.art_references }, // Artist bios + style guides for AI tone
+  "p4-req-2": { category: "Docs", url: DRIVE.docs },                   // GHL access
+
   // ---------- Milestone 5 — Artist Onboarding ----------
-  "p5-req-0": { category: "Pilot Artist List", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p5-req-1": { category: "Credentials — Stripe Connect Test", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p5-req-2": { category: "E-sign Copy Approval", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p5-req-0": { category: "Docs", url: DRIVE.docs },  // Pilot artist list (name + email)
+  "p5-req-1": { category: "Docs", url: DRIVE.docs },  // Stripe Connect test creds
+  "p5-req-2": { category: "Docs", url: DRIVE.docs },  // E-sign copy approval
+
   // ---------- Milestone 6 — Launch ----------
-  "p6-req-0": { category: "Final Content Sign-off", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p6-req-1": { category: "Monitoring / Alert Email List", url: LANCE_SUBMIT_FOLDER_ROOT },
-  "p6-req-2": { category: "Go-live Window", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p6-req-0": { category: "Docs", url: DRIVE.docs },  // Final content sign-off
+  "p6-req-1": { category: "Docs", url: DRIVE.docs },  // Monitoring email list
+  "p6-req-2": { category: "Docs", url: DRIVE.docs },  // Go-live window
 };
 
 function dropFolderFor(id: string): { category: string; url: string } {
   return (
     REQ_DROP_FOLDERS[id] ?? {
-      category: "Shared Drive",
-      url: LANCE_SUBMIT_FOLDER_ROOT,
+      category: "00_Shared_Assets",
+      url: DRIVE.root,
     }
   );
 }
@@ -187,29 +209,30 @@ const DRIVE_FOLDERS: {
   url: string;
 }[] = [
   {
-    label: "Signed Agreements",
-    description: "Plan C Addendum + any future addenda.",
-    url: WEI_DRIVE_ROOT,
+    label: "00_Shared_Assets (root)",
+    description: "Top-level intake tree for everything on the project.",
+    url: DRIVE.root,
   },
   {
-    label: "Brand Assets",
-    description: "Logos, fonts, color palette, imagery.",
-    url: WEI_DRIVE_ROOT,
+    label: "Brand",
+    description: "Brand guidelines + logos. Two sub-folders inside.",
+    url: DRIVE.brand,
   },
   {
-    label: "Artist Roster & Onboarding",
-    description: "Pilot artist list, bios, consent docs.",
-    url: WEI_DRIVE_ROOT,
+    label: "Art",
+    description: "Concepts, Originals, and References for the marketplace.",
+    url: DRIVE.art,
   },
   {
-    label: "Milestone Deliverables",
-    description: "Shipped artifacts per milestone (code, configs, docs).",
-    url: WEI_DRIVE_ROOT,
+    label: "Docs",
+    description:
+      "Credentials, lists, sign-offs, and all text-based project docs.",
+    url: DRIVE.docs,
   },
   {
-    label: "Meeting Notes & Transcripts",
-    description: "Milestone reviews and Rick transcription exports.",
-    url: WEI_DRIVE_ROOT,
+    label: "Ideas",
+    description: "Artist categories, seed keywords, conceptual inputs.",
+    url: DRIVE.ideas,
   },
 ];
 
