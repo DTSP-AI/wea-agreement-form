@@ -139,6 +139,10 @@ export default function RickVoiceMode({
   const sessionRef = useRef<RealtimeSession | null>(null);
   const closedRef = useRef(false);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
+  // True once voice has left the "connecting" phase. If an error fires
+  // after this point we treat it as non-fatal (log only, don't surface a
+  // red banner) since audio is already flowing.
+  const sessionLiveRef = useRef(false);
 
   // Exchange dedup — fire onExchange only once per (user, rick) turn pair.
   const lastEmittedUserRef = useRef<string>("");
@@ -154,6 +158,7 @@ export default function RickVoiceMode({
       }
     }
     sessionRef.current = null;
+    sessionLiveRef.current = false;
 
     // Tear down the DOM audio element we attached during connect.
     const a = audioElRef.current;
@@ -298,6 +303,7 @@ export default function RickVoiceMode({
 
       session.on("audio_start", () => {
         if (closedRef.current) return;
+        sessionLiveRef.current = true;
         setState("speaking");
       });
 
@@ -315,10 +321,12 @@ export default function RickVoiceMode({
         if (closedRef.current) return;
         const type = (evt as { type?: string })?.type;
         if (type === "input_audio_buffer.speech_started") {
+          sessionLiveRef.current = true;
           setState("listening");
         } else if (type === "input_audio_buffer.speech_stopped") {
           setState("thinking");
         } else if (type === "session.created" || type === "session.updated") {
+          sessionLiveRef.current = true;
           setState((prev) => (prev === "connecting" ? "idle" : prev));
         }
       });
@@ -329,6 +337,12 @@ export default function RickVoiceMode({
         // Event, nested error stacks, and anything else the SDK might emit.
         // Pete + I inspect this when something fails in the field.
         console.error("[RickVoice] session error event:", err);
+        // If audio is already flowing (session past connecting), swallow
+        // the visible banner. The SDK sometimes emits transient
+        // non-fatal events (guardrail trips, late session.updated
+        // acks, network blips) that shouldn't spook the user when
+        // voice is clearly working.
+        if (sessionLiveRef.current) return;
         const extracted =
           err && typeof err === "object" && "error" in err
             ? extractErrorMessage((err as { error: unknown }).error)
