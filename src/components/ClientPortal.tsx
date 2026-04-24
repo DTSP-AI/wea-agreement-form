@@ -310,13 +310,18 @@ export default function ClientPortal() {
     }
 
     // Auth hydrate. Priority order:
+    //   0. Dev mode bypass — localhost only, no production impact.
     //   1. Admin URL (?admin=1) bypasses everything.
     //   2. Existing portal session in localStorage.
     //   3. Signed-agreement fallback — if Lance signed on this device, treat
     //      that as proof of identity and skip the password prompt. (Same app,
     //      same device, same person — no need to ask him twice.)
     try {
-      if (adminNow) {
+      const isDev = process.env.NODE_ENV === "development";
+      if (isDev) {
+        setAuthed(true);
+        setAuthedEmail("dev-preview@localhost");
+      } else if (adminNow) {
         setAuthed(true);
       } else {
         const raw = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -1032,6 +1037,7 @@ export default function ClientPortal() {
                   unlocked={unlocked}
                   complete={stats.complete}
                   isAdmin={isAdmin}
+                  isDev={process.env.NODE_ENV === "development"}
                   requirementsState={state.requirements}
                   deliverablesState={state.deliverables}
                   onReqMutate={mutateReq}
@@ -1401,6 +1407,7 @@ function SectionCard({
   unlocked,
   complete,
   isAdmin,
+  isDev,
   requirementsState,
   deliverablesState,
   onReqMutate,
@@ -1413,6 +1420,7 @@ function SectionCard({
   unlocked: boolean;
   complete: boolean;
   isAdmin: boolean;
+  isDev: boolean;
   requirementsState: Record<string, ReqItem>;
   deliverablesState: Record<string, DelItem>;
   onReqMutate: (id: string, patch: Partial<ReqItem>) => void;
@@ -1423,6 +1431,10 @@ function SectionCard({
   const pct =
     totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
   const hasRequirements = section.requirements.length > 0;
+  // In dev, show locked sections as read-only previews instead of the lock
+  // card. This lets Pete see what's coming without tripping state machines.
+  const showDevPreview = !unlocked && isDev;
+  const readOnly = showDevPreview;
 
   return (
     <div
@@ -1494,7 +1506,7 @@ function SectionCard({
         </div>
       </div>
 
-      {!unlocked ? (
+      {!unlocked && !showDevPreview ? (
         <div className="px-6 py-8 text-center">
           <Lock className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
           <div className="text-sm text-zinc-400 font-semibold">
@@ -1505,90 +1517,108 @@ function SectionCard({
             accepted or overridden.
           </div>
         </div>
-      ) : hasRequirements ? (
-        <div className="grid md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-[#262626]">
-          {/* Requirements column */}
-          <div className="p-6">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-yellow-400/80 font-semibold mb-3">
-              Requirements from you (all milestones)
-            </div>
-            <div className="space-y-2">
-              {section.requirements.map((r) => {
-                const item =
-                  requirementsState[r.id] ??
-                  ({ status: "pending" as ReqStatus });
-                return (
-                  <RequirementRow
-                    key={r.id}
-                    id={r.id}
-                    label={r.label}
-                    fromPhase={r.fromPhase}
-                    item={item}
-                    isAdmin={isAdmin}
-                    onMutate={onReqMutate}
-                  />
-                );
-              })}
-            </div>
-          </div>
-          {/* Deliverables column */}
-          <div className="p-6">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-green-400/80 font-semibold mb-3">
-              Deliverables from Pete
-            </div>
-            <div className="space-y-2">
-              {section.deliverables.map((d) => {
-                const item =
-                  deliverablesState[d.id] ??
-                  ({ status: "in_progress" as DelStatus });
-                return (
-                  <DeliverableRow
-                    key={d.id}
-                    id={d.id}
-                    label={d.label}
-                    item={item}
-                    isAdmin={isAdmin}
-                    onMutate={onDelMutate}
-                  />
-                );
-              })}
-              {section.deliverables.length === 0 && (
-                <div className="text-xs text-zinc-600 italic">
-                  No deliverables in this section.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
       ) : (
-        // Deliverables-only sections (2..N) — single column, full width
-        <div className="p-6">
-          <div className="text-[10px] uppercase tracking-[0.2em] text-green-400/80 font-semibold mb-3">
-            Deliverables from Pete
-          </div>
-          <div className="space-y-2">
-            {section.deliverables.map((d) => {
-              const item =
-                deliverablesState[d.id] ??
-                ({ status: "in_progress" as DelStatus });
-              return (
-                <DeliverableRow
-                  key={d.id}
-                  id={d.id}
-                  label={d.label}
-                  item={item}
-                  isAdmin={isAdmin}
-                  onMutate={onDelMutate}
-                />
-              );
-            })}
-            {section.deliverables.length === 0 && (
-              <div className="text-xs text-zinc-600 italic">
-                No deliverables in this section.
+        <>
+          {showDevPreview && (
+            <div className="bg-zinc-900/60 border-y border-zinc-700 px-6 py-2 flex items-center gap-2">
+              <span className="px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300 text-[9px] font-bold tracking-wider uppercase">
+                Dev Preview
+              </span>
+              <span className="text-[11px] text-zinc-500">
+                Read-only shadow of what Lance will see when this section
+                unlocks. No actions available.
+              </span>
+            </div>
+          )}
+          {hasRequirements ? (
+            <div className="grid md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-[#262626]">
+              {/* Requirements column */}
+              <div className="p-6">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-yellow-400/80 font-semibold mb-3">
+                  Requirements from you (all milestones)
+                </div>
+                <div className="space-y-2">
+                  {section.requirements.map((r) => {
+                    const item =
+                      requirementsState[r.id] ??
+                      ({ status: "pending" as ReqStatus });
+                    return (
+                      <RequirementRow
+                        key={r.id}
+                        id={r.id}
+                        label={r.label}
+                        fromPhase={r.fromPhase}
+                        item={item}
+                        isAdmin={isAdmin}
+                        readOnly={readOnly}
+                        onMutate={onReqMutate}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            )}
-          </div>
-        </div>
+              {/* Deliverables column */}
+              <div className="p-6">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-green-400/80 font-semibold mb-3">
+                  Deliverables from Pete
+                </div>
+                <div className="space-y-2">
+                  {section.deliverables.map((d) => {
+                    const item =
+                      deliverablesState[d.id] ??
+                      ({ status: "in_progress" as DelStatus });
+                    return (
+                      <DeliverableRow
+                        key={d.id}
+                        id={d.id}
+                        label={d.label}
+                        item={item}
+                        isAdmin={isAdmin}
+                        readOnly={readOnly}
+                        onMutate={onDelMutate}
+                      />
+                    );
+                  })}
+                  {section.deliverables.length === 0 && (
+                    <div className="text-xs text-zinc-600 italic">
+                      No deliverables in this section.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Deliverables-only sections (2..N) — single column, full width
+            <div className="p-6">
+              <div className="text-[10px] uppercase tracking-[0.2em] text-green-400/80 font-semibold mb-3">
+                Deliverables from Pete
+              </div>
+              <div className="space-y-2">
+                {section.deliverables.map((d) => {
+                  const item =
+                    deliverablesState[d.id] ??
+                    ({ status: "in_progress" as DelStatus });
+                  return (
+                    <DeliverableRow
+                      key={d.id}
+                      id={d.id}
+                      label={d.label}
+                      item={item}
+                      isAdmin={isAdmin}
+                      readOnly={readOnly}
+                      onMutate={onDelMutate}
+                    />
+                  );
+                })}
+                {section.deliverables.length === 0 && (
+                  <div className="text-xs text-zinc-600 italic">
+                    No deliverables in this section.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -1603,6 +1633,7 @@ function RequirementRow({
   fromPhase,
   item,
   isAdmin,
+  readOnly = false,
   onMutate,
 }: {
   id: string;
@@ -1610,6 +1641,7 @@ function RequirementRow({
   fromPhase?: number;
   item: ReqItem;
   isAdmin: boolean;
+  readOnly?: boolean;
   onMutate: (id: string, patch: Partial<ReqItem>) => void;
 }) {
   const status = item.status;
@@ -1675,6 +1707,7 @@ function RequirementRow({
         </div>
         <div className="flex-shrink-0 flex flex-col gap-1 items-end">
           <StatusPill status={status} />
+          {!readOnly && (
           <div className="flex items-center gap-1 mt-1">
             {/* Submit — client action, also exposed to admin so Pete can
                 log a submission on Lance's behalf from the same view. */}
@@ -1738,6 +1771,7 @@ function RequirementRow({
               </button>
             )}
           </div>
+          )}
         </div>
       </div>
     </div>
@@ -1752,12 +1786,14 @@ function DeliverableRow({
   label,
   item,
   isAdmin,
+  readOnly = false,
   onMutate,
 }: {
   id: string;
   label: string;
   item: DelItem;
   isAdmin: boolean;
+  readOnly?: boolean;
   onMutate: (id: string, patch: Partial<DelItem>) => void;
 }) {
   const status = item.status;
@@ -1815,6 +1851,7 @@ function DeliverableRow({
         </div>
         <div className="flex-shrink-0 flex flex-col gap-1 items-end">
           <StatusPill status={status} />
+          {!readOnly && (
           <div className="flex items-center gap-1 mt-1">
             {isAdmin && status === "in_progress" && (
               <button
@@ -1867,6 +1904,7 @@ function DeliverableRow({
               </button>
             )}
           </div>
+          )}
         </div>
       </div>
     </div>
