@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mic, MicOff } from "lucide-react";
-import { RealtimeAgent, RealtimeSession } from "@openai/agents/realtime";
+import {
+  RealtimeAgent,
+  RealtimeSession,
+  OpenAIRealtimeWebRTC,
+} from "@openai/agents/realtime";
 import type { RealtimeItem } from "@openai/agents/realtime";
 import { RICK_SYSTEM_PROMPT, rickOpening } from "@/lib/rick-messages";
 
@@ -134,6 +138,7 @@ export default function RickVoiceMode({
 
   const sessionRef = useRef<RealtimeSession | null>(null);
   const closedRef = useRef(false);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
 
   // Exchange dedup — fire onExchange only once per (user, rick) turn pair.
   const lastEmittedUserRef = useRef<string>("");
@@ -149,6 +154,19 @@ export default function RickVoiceMode({
       }
     }
     sessionRef.current = null;
+
+    // Tear down the DOM audio element we attached during connect.
+    const a = audioElRef.current;
+    if (a) {
+      try {
+        a.pause();
+        a.srcObject = null;
+        a.remove();
+      } catch {
+        /* noop */
+      }
+    }
+    audioElRef.current = null;
   }, []);
 
   const connect = useCallback(async () => {
@@ -194,8 +212,12 @@ export default function RickVoiceMode({
 
     if (closedRef.current) return;
 
-    // 2. Spin up the Agents SDK — RealtimeAgent carries the contract, the
-    // RealtimeSession handles WebRTC, mic, playback, VAD, and turn management.
+    // 2. Spin up the Agents SDK with a hand-built WebRTC transport.
+    // We create the <audio> element ourselves and attach it to the DOM
+    // with `playsInline` set — iOS Safari refuses to play audio from
+    // peer connections where the element is detached or lacks the
+    // playsInline attribute. Same tree is used for microphone capture
+    // so the whole pipeline goes through one gesture-authorized context.
     try {
       const agent = new RealtimeAgent({
         name: "Rick",
@@ -203,8 +225,30 @@ export default function RickVoiceMode({
         voice,
       });
 
+      // Create the audio sink first, in the DOM, before peer connection
+      // handshake. Mobile browsers require this.
+      let audioEl = audioElRef.current;
+      if (!audioEl) {
+        audioEl = document.createElement("audio");
+        audioEl.autoplay = true;
+        audioEl.setAttribute("playsinline", "true");
+        audioEl.setAttribute("webkit-playsinline", "true");
+        audioEl.style.display = "none";
+        document.body.appendChild(audioEl);
+        audioElRef.current = audioEl;
+      }
+
+      // Custom WebRTC transport — we point baseUrl at the older
+      // /v1/realtime?model=X endpoint (the SDK default /v1/realtime/calls
+      // has been erroring against ephemeral tokens from /v1/realtime/sessions)
+      // and we pass the DOM-attached audio element so iOS plays audio.
+      const transport = new OpenAIRealtimeWebRTC({
+        baseUrl: `https://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`,
+        audioElement: audioEl,
+      });
+
       const session = new RealtimeSession(agent, {
-        transport: "webrtc",
+        transport,
         model,
         config: {
           audio: {
@@ -281,28 +325,26 @@ export default function RickVoiceMode({
 
       session.on("error", (err) => {
         if (closedRef.current) return;
-        const msg =
-          (err && typeof err === "object" && "error" in err
+        // Always log the full object to console — covers DOMException,
+        // Event, nested error stacks, and anything else the SDK might emit.
+        // Pete + I inspect this when something fails in the field.
+        console.error("[RickVoice] session error event:", err);
+        const extracted =
+          err && typeof err === "object" && "error" in err
             ? extractErrorMessage((err as { error: unknown }).error)
-            : undefined) ?? "Realtime session error.";
-        setErrorMsg(msg);
+            : undefined;
+        // Secondary probe: if the event itself is an Error / has a message,
+        // use that. (SDK sometimes emits plain Error objects.)
+        const fallback =
+          extractErrorMessage(err) ??
+          "Voice connection failed. Check the browser console for detail.";
+        setErrorMsg(extracted ?? fallback);
       });
 
-      // 3. Connect using the ephemeral token.
-      //
-      // The SDK defaults to https://api.openai.com/v1/realtime/calls (the
-      // new OpenAI endpoint). That endpoint has been returning JSON errors
-      // against our ephemeral tokens minted from /v1/realtime/sessions —
-      // the browser then passes that JSON to setRemoteDescription and
-      // hits "Expect line: v=". The older /v1/realtime?model=X endpoint
-      // still works with these tokens, so we override the URL here.
-      // Once OpenAI stabilises /realtime/calls against /sessions tokens
-      // we can remove the override.
-      await session.connect({
-        apiKey: ephemeralKey,
-        model,
-        url: `https://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`,
-      });
+      // 3. Connect using the ephemeral token. The URL override lives on
+      // the transport's baseUrl above, not on connect(), so all the
+      // session.reconnect()-style flows inherit it.
+      await session.connect({ apiKey: ephemeralKey, model });
 
       if (closedRef.current) {
         cleanup();
