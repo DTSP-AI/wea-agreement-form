@@ -18,7 +18,10 @@ interface RickVoiceModeProps {
 // Stage we emit for voice exchanges. Keeps the chat CTAs in "still-talking" mode
 // so Lance can either dig deeper or jump to signing when he closes voice.
 const VOICE_EXCHANGE_STAGE = "post_tangent";
-const DEFAULT_MODEL = "gpt-realtime";
+// Must match REALTIME_MODEL in /api/rick/realtime-session/route.ts.
+// The server response IS the source of truth — this is only a defensive
+// fallback if the route somehow returns without a model field.
+const DEFAULT_MODEL = "gpt-4o-realtime-preview-2024-12-17";
 
 // Same localStorage key RickChat uses. Reading it lets voice Rick resume
 // the exact conversation from the chat widget instead of starting fresh.

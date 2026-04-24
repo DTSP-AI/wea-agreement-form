@@ -5,10 +5,17 @@ import { RICK_SYSTEM_PROMPT } from "@/lib/rick-messages";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// gpt-realtime is the GA speech-to-speech model (Aug 2025+). Naturally
-// conversational, supports cedar/marin — the warmest voices OpenAI ships.
-const REALTIME_MODEL = "gpt-realtime";
-const REALTIME_VOICE = "cedar"; // warm, slightly gritty, fits Rick's deadhead cadence
+// Known-stable Realtime config. We previously tried gpt-realtime + cedar
+// + semantic_vad — that combination caused OpenAI to return a non-SDP
+// error body, which the browser then failed to parse in
+// setRemoteDescription ("Expect line: v="). Dropping back to the
+// verified-working preview snapshot + ash voice + server_vad.
+//
+// The voice still sounds natural (ash is a warm male voice) and the
+// ACCESS to Rick via chat is unchanged — only the Realtime session
+// config is affected.
+const REALTIME_MODEL = "gpt-4o-realtime-preview-2024-12-17";
+const REALTIME_VOICE = "ash";
 
 export async function GET() {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -32,13 +39,11 @@ export async function GET() {
         instructions: RICK_SYSTEM_PROMPT,
         modalities: ["audio", "text"],
         input_audio_transcription: { model: "whisper-1" },
-        // Semantic VAD uses the model to detect end-of-turn instead of raw
-        // silence — dramatically more natural than server_vad for real chat.
         turn_detection: {
-          type: "semantic_vad",
-          eagerness: "medium",
-          create_response: true,
-          interrupt_response: true,
+          type: "server_vad",
+          threshold: 0.5,
+          prefix_padding_ms: 300,
+          silence_duration_ms: 500,
         },
       }),
     });
@@ -52,6 +57,20 @@ export async function GET() {
     }
 
     const data = await res.json();
+    // Surface the upstream error body if the session response is missing
+    // the client_secret — the UI will display it instead of silently
+    // feeding garbage into setRemoteDescription.
+    if (!data?.client_secret?.value) {
+      return NextResponse.json(
+        {
+          error:
+            "OpenAI session response missing client_secret. Upstream body follows.",
+          body: data,
+        },
+        { status: 502 }
+      );
+    }
+
     return NextResponse.json({
       client_secret: data.client_secret,
       model: REALTIME_MODEL,
