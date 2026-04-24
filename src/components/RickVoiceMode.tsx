@@ -289,7 +289,20 @@ export default function RickVoiceMode({
       });
 
       // 3. Connect using the ephemeral token.
-      await session.connect({ apiKey: ephemeralKey, model });
+      //
+      // The SDK defaults to https://api.openai.com/v1/realtime/calls (the
+      // new OpenAI endpoint). That endpoint has been returning JSON errors
+      // against our ephemeral tokens minted from /v1/realtime/sessions —
+      // the browser then passes that JSON to setRemoteDescription and
+      // hits "Expect line: v=". The older /v1/realtime?model=X endpoint
+      // still works with these tokens, so we override the URL here.
+      // Once OpenAI stabilises /realtime/calls against /sessions tokens
+      // we can remove the override.
+      await session.connect({
+        apiKey: ephemeralKey,
+        model,
+        url: `https://api.openai.com/v1/realtime?model=${encodeURIComponent(model)}`,
+      });
 
       if (closedRef.current) {
         cleanup();
