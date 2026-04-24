@@ -135,11 +135,51 @@ interface PortalSection {
 const WEI_DRIVE_ROOT =
   "https://drive.google.com/drive/folders/1MpKqfdidnBgd0j9UXGSoOHdLTIGJnPOM";
 
-// Where Lance drops files when submitting requirements. Used as the default
-// value in the Submit prompt + surfaced as a prominent "Drop files here"
-// link on Section 1 so he knows where to upload before submitting.
-const LANCE_SUBMIT_FOLDER =
+// Where Lance drops files when submitting requirements. Each requirement
+// routes to the correct sub-folder by category. Until per-category
+// sub-folder URLs are provisioned, everything points at the shared
+// intake root below — just edit the map here and the whole portal updates.
+const LANCE_SUBMIT_FOLDER_ROOT =
   "https://drive.google.com/drive/folders/1c0Mcfw6L28OOCjI8qToFET6MB63NRtS0";
+
+// Categories map each requirement (by its phase-based item id) to the
+// right Drive sub-folder. To wire real sub-folders, replace the URLs on
+// the right-hand side. Any id not listed here falls back to the ROOT.
+const REQ_DROP_FOLDERS: Record<string, { category: string; url: string }> = {
+  // ---------- Milestone 1 — Foundation ----------
+  "p1-req-0": { category: "Brand Assets", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p1-req-1": { category: "Credentials — Domain / Registrar", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p1-req-2": { category: "Artist Roster & Categories", url: LANCE_SUBMIT_FOLDER_ROOT },
+  // ---------- Milestone 2 — SEO & Payouts ----------
+  "p2-req-0": { category: "Credentials — Stripe", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p2-req-1": { category: "SEO Seed Keywords", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p2-req-2": { category: "Credentials — Email Sender", url: LANCE_SUBMIT_FOLDER_ROOT },
+  // ---------- Milestone 3 — WooCommerce ----------
+  "p3-req-0": { category: "Credentials — GoDaddy / WP", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p3-req-1": { category: "Product Taxonomy", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p3-req-2": { category: "Sample Product Listing", url: LANCE_SUBMIT_FOLDER_ROOT },
+  // ---------- Milestone 4 — Ingestion & AI ----------
+  "p4-req-0": { category: "Credentials — Etsy / Shopify", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p4-req-1": { category: "Artist Bios & Style Guides", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p4-req-2": { category: "Credentials — GoHighLevel", url: LANCE_SUBMIT_FOLDER_ROOT },
+  // ---------- Milestone 5 — Artist Onboarding ----------
+  "p5-req-0": { category: "Pilot Artist List", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p5-req-1": { category: "Credentials — Stripe Connect Test", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p5-req-2": { category: "E-sign Copy Approval", url: LANCE_SUBMIT_FOLDER_ROOT },
+  // ---------- Milestone 6 — Launch ----------
+  "p6-req-0": { category: "Final Content Sign-off", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p6-req-1": { category: "Monitoring / Alert Email List", url: LANCE_SUBMIT_FOLDER_ROOT },
+  "p6-req-2": { category: "Go-live Window", url: LANCE_SUBMIT_FOLDER_ROOT },
+};
+
+function dropFolderFor(id: string): { category: string; url: string } {
+  return (
+    REQ_DROP_FOLDERS[id] ?? {
+      category: "Shared Drive",
+      url: LANCE_SUBMIT_FOLDER_ROOT,
+    }
+  );
+}
 
 const DRIVE_FOLDERS: {
   label: string;
@@ -1538,26 +1578,22 @@ function SectionCard({
                   Requirements from you (all milestones)
                 </div>
 
-                {/* Drop-folder callout — where Lance uploads before Submit */}
-                <a
-                  href={LANCE_SUBMIT_FOLDER}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-start gap-3 mb-4 rounded-lg border border-yellow-700/40 bg-yellow-950/20 hover:bg-yellow-950/30 hover:border-yellow-600/60 transition-colors px-4 py-3 cursor-pointer"
-                >
+                {/* Per-requirement routing note — each row has its own
+                    destination folder that opens on hover. */}
+                <div className="flex items-start gap-3 mb-4 rounded-lg border border-yellow-700/40 bg-yellow-950/20 px-4 py-3">
                   <FolderOpen className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-semibold text-yellow-200 mb-0.5">
-                      Drop your files here → Shared Drive
+                      Each requirement has its own Drive folder
                     </div>
                     <div className="text-[11px] text-yellow-100/80 leading-relaxed">
-                      Upload each requirement&apos;s files into this folder,
-                      then hit <span className="font-semibold">Submit</span>{" "}
-                      on the matching row below. Pete reviews and approves.
+                      Click the &ldquo;Upload here&rdquo; link on any row to
+                      open its folder. Drop your files in, then hit{" "}
+                      <span className="font-semibold">Submit</span> on that
+                      row. Pete reviews and approves.
                     </div>
                   </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-yellow-500/70 group-hover:text-yellow-300 transition-colors flex-shrink-0 mt-1" />
-                </a>
+                </div>
 
                 <div className="space-y-2">
                   {section.requirements.map((r) => {
@@ -1708,6 +1744,26 @@ function RequirementRow({
               )}
               {label}
             </div>
+
+            {/* "Upload here" — per-requirement Drive destination.
+                Shown when the row is pending or rejected so Lance knows
+                where to drop his file before he hits Submit. */}
+            {(status === "pending" || status === "rejected") && !readOnly && (() => {
+              const drop = dropFolderFor(id);
+              return (
+                <a
+                  href={drop.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-yellow-300 hover:text-yellow-200 inline-flex items-center gap-1 mt-1 font-semibold"
+                  title={`Opens: ${drop.url}`}
+                >
+                  <FolderOpen className="w-2.5 h-2.5 flex-shrink-0" />
+                  Upload here → {drop.category}
+                </a>
+              );
+            })()}
+
             {item.driveUrl && (
               <a
                 href={item.driveUrl}
@@ -1736,15 +1792,15 @@ function RequirementRow({
             {(status === "pending" || status === "rejected") && (
               <button
                 onClick={() => {
+                  const drop = dropFolderFor(id);
                   const url = prompt(
-                    "Upload your file to the shared Drive folder, then paste the link here (or leave this as the folder URL and Pete will find it):\n\nDrop folder: " +
-                      LANCE_SUBMIT_FOLDER,
-                    item.driveUrl ?? LANCE_SUBMIT_FOLDER
+                    `Upload your file into the "${drop.category}" folder, then paste the link here (or leave as the folder URL and Pete will find it):\n\nDrop folder: ${drop.url}`,
+                    item.driveUrl ?? drop.url
                   );
                   if (url === null) return;
                   onMutate(id, {
                     status: "submitted",
-                    driveUrl: url.trim() || LANCE_SUBMIT_FOLDER,
+                    driveUrl: url.trim() || drop.url,
                   });
                 }}
                 className="px-2 py-1 rounded-md bg-green-600 hover:bg-green-500 text-white text-[10px] font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1"
