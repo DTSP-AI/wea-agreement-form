@@ -44,20 +44,32 @@ export default function PaymentPanel({
   const isPaid = firstPayment?.paid === true;
   const paidOn = firstPayment?.paidOn;
 
+  // Dynamic counts so Plan A Addendum / Plan C Addendum / future addendums
+  // all read correctly without per-plan hardcoded strings.
+  const totalScheduled = proposalMeta.paymentSchedule?.length ?? 0;
+  const remainingPayments =
+    proposalMeta.paymentSchedule?.filter((p) => !p.paid).length ?? 0;
+  const cadenceWord =
+    proposalMeta.projectTerm.toLowerCase().includes("weekly")
+      ? "weekly"
+      : "biweekly";
+  const cadencePhrase =
+    cadenceWord === "weekly" ? "every Wednesday" : "every two weeks";
+
   const depositLabel = isPaid
     ? `Payment Received — ${proposalMeta.investmentAtSigning}`
     : isAddendum
       ? `First Payment — ${proposalMeta.investmentAtSigning}`
       : `Initial Deposit — ${proposalMeta.investmentAtSigning}`;
   const depositBlurb = isPaid
-    ? `Thanks Lance — the first ${proposalMeta.investmentAtSigning} was received${
+    ? `Thanks Lance — the ${proposalMeta.investmentAtSigning} deposit was received${
         paidOn ? ` on ${paidOn}` : ""
-      }. Plan C Addendum is now active. Milestone 1 (Foundation) is underway. Seven biweekly payments of ${proposalMeta.perMilestone} remain on the schedule below.`
+      }. ${plan.name} is now active. Milestone 1 (Foundation) is underway. ${remainingPayments} ${cadenceWord} payment${remainingPayments === 1 ? "" : "s"} of ${proposalMeta.perMilestone} remain on the schedule below.`
     : isAddendum
-      ? `Pay today's first ${proposalMeta.investmentAtSigning} payment via PayPal or Zelle. Seven more biweekly payments of ${proposalMeta.perMilestone} follow every two weeks. Addendum terms are only valid if this first payment is received today.`
-      : `Pay your initial deposit via PayPal or Zelle to lock in your project start date. Work begins the day payment is received. Six milestone payments of ${proposalMeta.perMilestone} follow every two weeks.`;
+      ? `Pay the ${proposalMeta.investmentAtSigning} deposit via PayPal or Zelle. ${remainingPayments} more ${cadenceWord} payment${remainingPayments === 1 ? "" : "s"} of ${proposalMeta.perMilestone} follow ${cadencePhrase}. Addendum terms are valid once the deposit clears.`
+      : `Pay your initial deposit via PayPal or Zelle to lock in your project start date. Work begins the day payment is received. ${proposalMeta.milestoneCount} milestone payments of ${proposalMeta.perMilestone} follow every two weeks.`;
   const memoText = isAddendum
-    ? "WEI Platform — Plan C Addendum, Payment 1 of 8"
+    ? `WEI Platform — ${plan.name}, Payment 1 of ${totalScheduled}`
     : "WEI Platform — Milestone 1 Deposit";
 
   return (
@@ -150,9 +162,9 @@ export default function PaymentPanel({
                 </div>
               )}
               <div className="text-zinc-400 text-xs mt-4 max-w-md mx-auto">
-                Payment 1 of 8 cleared. Milestone 1 — Foundation (database
-                schema, consent pipeline, auth) — kicked off the same day.
-                Next payment: {proposalMeta.paymentSchedule?.[1]?.dateLabel}.
+                Payment 1 of {totalScheduled} cleared. Milestone 1 — Foundation
+                (database schema, consent pipeline, auth) — kicked off the same
+                day. Next payment: {proposalMeta.paymentSchedule?.[1]?.dateLabel}.
               </div>
               <a
                 href="/portal"

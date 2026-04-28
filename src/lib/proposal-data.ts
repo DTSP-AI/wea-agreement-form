@@ -12,8 +12,13 @@
 //   Plan C:  $3,600 at signing + (6 × $1,800) = $3,600 + $10,800 = $14,400
 //   Plan CA: $1,800 deposit (paid 2026-04-23) + 17 × $900 weekly Wednesdays
 //            (Apr 29 → Aug 19 2026) = $1,800 + $15,300 = $17,100 total
+//   Plan AA: $1,800 deposit (paid 2026-04-23) + 15 × $900 weekly Wednesdays
+//            (Apr 29 → Aug 5 2026) = $1,800 + $13,500 = $15,300 total
+//            16-week project term, 8 biweekly reviews, same deliverables as
+//            Plan A (just spread across the longer term). Pete pre-signed
+//            for print-to-PDF.
 
-export type PlanId = "A" | "B" | "C" | "CA";
+export type PlanId = "A" | "AA" | "B" | "C" | "CA";
 
 export interface ScheduledPayment {
   /** Human-readable date, e.g. "Wed, Apr 23 2026". */
@@ -638,8 +643,58 @@ export const planCAddendum: Plan = {
   },
 };
 
+// ---------- PLAN AA: Plan A Addendum — restructured weekly payment plan ----
+// Same scope and deliverables as Plan A. Payment structure restructured
+// 2026-04-28 to match Lance's cash-flow request:
+//   - $1,800 deposit paid 2026-04-23 (preserved as Payment 1)
+//   - 15 weekly Wednesday payments of $900 from 2026-04-29 through 2026-08-05
+//   - Total project value: $1,800 + (15 × $900) = $15,300
+//
+// Pete's signature is pre-filled in the proposal and PDF — Lance only needs
+// to type his name, draw a signature, and check terms to print to PDF.
+const planAAddendumSchedule: ScheduledPayment[] = [
+  { dateLabel: "Thu, Apr 23 2026", isoDate: "2026-04-23", amount: "$1,800", tag: "Deposit", paid: true, paidOn: "Apr 23 2026" },
+  { dateLabel: "Wed, Apr 29 2026", isoDate: "2026-04-29", amount: "$900", tag: "Payment 2" },
+  { dateLabel: "Wed, May 06 2026", isoDate: "2026-05-06", amount: "$900", tag: "Payment 3" },
+  { dateLabel: "Wed, May 13 2026", isoDate: "2026-05-13", amount: "$900", tag: "Payment 4" },
+  { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$900", tag: "Payment 5" },
+  { dateLabel: "Wed, May 27 2026", isoDate: "2026-05-27", amount: "$900", tag: "Payment 6" },
+  { dateLabel: "Wed, Jun 03 2026", isoDate: "2026-06-03", amount: "$900", tag: "Payment 7" },
+  { dateLabel: "Wed, Jun 10 2026", isoDate: "2026-06-10", amount: "$900", tag: "Payment 8" },
+  { dateLabel: "Wed, Jun 17 2026", isoDate: "2026-06-17", amount: "$900", tag: "Payment 9" },
+  { dateLabel: "Wed, Jun 24 2026", isoDate: "2026-06-24", amount: "$900", tag: "Payment 10" },
+  { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$900", tag: "Payment 11" },
+  { dateLabel: "Wed, Jul 08 2026", isoDate: "2026-07-08", amount: "$900", tag: "Payment 12" },
+  { dateLabel: "Wed, Jul 15 2026", isoDate: "2026-07-15", amount: "$900", tag: "Payment 13" },
+  { dateLabel: "Wed, Jul 22 2026", isoDate: "2026-07-22", amount: "$900", tag: "Payment 14" },
+  { dateLabel: "Wed, Jul 29 2026", isoDate: "2026-07-29", amount: "$900", tag: "Payment 15" },
+  { dateLabel: "Wed, Aug 05 2026", isoDate: "2026-08-05", amount: "$900", tag: "Payment 16" },
+];
+
+export const planAAddendum: Plan = {
+  ...planA,
+  id: "AA",
+  name: "Plan A Addendum",
+  tagline: "Plan A — Restructured Weekly Payment Plan",
+  heroTitle: planA.heroTitle,
+  heroSubtitle:
+    "Same scope and deliverables as Plan A — full-stack 3D Interactive marketplace platform built end-to-end by DTSP-AI. Restructured 2026-04-28: $1,800 deposit (paid 2026-04-23) plus 15 weekly Wednesday payments of $900 from April 29 through August 5, 2026. 16-week project term with 8 biweekly reviews.",
+  meta: {
+    ...planA.meta,
+    projectTerm: "16-Week Project · 8 Biweekly Reviews · 15 Weekly Payments",
+    investmentAtSigning: "$1,800",
+    perMilestone: "$900",
+    milestoneCount: 15,
+    totalValue: "$15,300",
+    paymentSchedule: planAAddendumSchedule,
+    conditionalBanner:
+      "Plan A Addendum: $1,800 deposit credited from April 23, 2026. Fifteen weekly payments of $900 begin Wednesday April 29, 2026 and run through Wednesday August 5, 2026. $13,500 owed across the 15-week schedule. 16-week project term · reviews remain biweekly (8 total).",
+  },
+};
+
 export const plans: Record<PlanId, Plan> = {
   A: planA,
+  AA: planAAddendum,
   B: planB,
   C: planC,
   CA: planCAddendum,

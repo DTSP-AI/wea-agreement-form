@@ -12,10 +12,11 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
   ssr: false,
 });
 
-const PLAN_ORDER: PlanId[] = ["A", "B", "C", "CA"];
+const PLAN_ORDER: PlanId[] = ["A", "AA", "B", "C", "CA"];
 
 const PLAN_TAB_LABELS: Record<PlanId, string> = {
   A: "Plan A",
+  AA: "A Addendum",
   B: "Plan B",
   C: "Plan C",
   CA: "C Addendum",
@@ -369,9 +370,7 @@ export default function ProposalPage({
       // Using a Blob + anchor is the most reliable cross-platform trigger —
       // iOS Safari and Android Chrome both respect `download` on blob URLs.
       const filename =
-        (activePlan.id === "CA"
-          ? "WEI_Plan_C_Addendum_Signed"
-          : "WEI_" + activePlan.name.replace(/\s+/g, "_") + "_Signed") + ".pdf";
+        "WEI_" + activePlan.name.replace(/\s+/g, "_") + "_Signed.pdf";
       const blob = doc.output("blob") as Blob;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -431,7 +430,7 @@ export default function ProposalPage({
           <div className="relative inline-flex flex-wrap bg-[#141414] border border-[#262626] rounded-full p-1 gap-1">
             {PLAN_ORDER.filter((id) => !lockPlan || id === activePlanId).map((id) => {
               const isActive = id === activePlanId;
-              const isAddendum = id === "CA";
+              const isAddendum = id === "CA" || id === "AA";
               const activeBg = isAddendum ? "bg-yellow-400" : "bg-green-400";
               return (
                 <button
