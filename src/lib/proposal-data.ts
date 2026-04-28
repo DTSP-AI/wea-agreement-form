@@ -1,15 +1,17 @@
 // Plan A  = Full-stack build with 3D Interactive Site (DTSP-AI builds custom 3D frontend + intelligence layer)
 // Plan B  = Full-stack build with 2D React web site (DTSP-AI builds custom 2D frontend + intelligence layer)
 // Plan C  = Intelligence layer only (GoDaddy handles the storefront, we handle the backend)
-// Plan CA = Plan C Addendum — same scope as Plan C, conditional payment structure.
-//           8 × $1,800 biweekly starting today (2026-04-23). Valid only if paid today.
+// Plan CA = Plan C Addendum — same scope as Plan C, restructured weekly payment plan.
+//           Original 8-biweekly structure replaced 2026-04-28 with weekly Wednesday cadence.
 //
-// All plans run 12 weeks with 6 milestones, one milestone every 2 weeks.
+// All plans run a 12-week project term with 6 biweekly REVIEWS (the cadence Pete and
+// Lance meet on). Plan CA's PAYMENT cadence is now weekly (separate from review cadence).
 // Math:
 //   Plan A:  $5,400 at signing + (6 × $2,000) = $5,400 + $12,000 = $17,400
 //   Plan B:  $4,400 at signing + (6 × $2,000) = $4,400 + $12,000 = $16,400
 //   Plan C:  $3,600 at signing + (6 × $1,800) = $3,600 + $10,800 = $14,400
-//   Plan CA: 8 × $1,800 biweekly (today + 7 biweekly)          = $14,400
+//   Plan CA: $1,800 deposit (paid 2026-04-23) + 17 × $900 weekly Wednesdays
+//            (Apr 29 → Aug 19 2026) = $1,800 + $15,300 = $17,100 total
 
 export type PlanId = "A" | "B" | "C" | "CA";
 
@@ -583,39 +585,56 @@ export const planC: Plan = {
   ],
 };
 
-// ---------- PLAN CA: Plan C Addendum — conditional 8-payment plan ----------
-// Same scope as Plan C. Different payment structure:
-//   $1,800 today (2026-04-23) + 7 × $1,800 every 2 weeks = $14,400 total
-// This plan is ONLY valid if the first $1,800 is paid today.
+// ---------- PLAN CA: Plan C Addendum — restructured 2026-04-28 ------------
+// Same scope as Plan C. Payment structure restructured 2026-04-28:
+//   - $1,800 deposit paid on 2026-04-23 (preserved as Payment 1)
+//   - 17 weekly Wednesday payments of $900 from 2026-04-29 through 2026-08-19
+//   - Total project value: $1,800 + (17 × $900) = $17,100
+//   - PROJECT REVIEWS STAY BIWEEKLY — only the payment cadence changed.
+//
+// The weekly $900 amount is half of the prior biweekly $1,800 — same dollar
+// run-rate, just split into smaller weekly draws. The 17-week duration is
+// per Pete's spec; reviews remain on a biweekly cadence (6 reviews across
+// the 12-week project term).
 const planCAddendumSchedule: ScheduledPayment[] = [
-  { dateLabel: "Thu, Apr 23 2026", isoDate: "2026-04-23", amount: "$1,800", tag: "Paid", paid: true, paidOn: "Apr 23 2026" },
-  { dateLabel: "Thu, May 07 2026", isoDate: "2026-05-07", amount: "$1,800", tag: "Payment 2" },
-  { dateLabel: "Thu, May 21 2026", isoDate: "2026-05-21", amount: "$1,800", tag: "Payment 3" },
-  { dateLabel: "Thu, Jun 04 2026", isoDate: "2026-06-04", amount: "$1,800", tag: "Payment 4" },
-  { dateLabel: "Thu, Jun 18 2026", isoDate: "2026-06-18", amount: "$1,800", tag: "Payment 5" },
-  { dateLabel: "Thu, Jul 02 2026", isoDate: "2026-07-02", amount: "$1,800", tag: "Payment 6" },
-  { dateLabel: "Thu, Jul 16 2026", isoDate: "2026-07-16", amount: "$1,800", tag: "Payment 7" },
-  { dateLabel: "Thu, Jul 30 2026", isoDate: "2026-07-30", amount: "$1,800", tag: "Payment 8" },
+  { dateLabel: "Thu, Apr 23 2026", isoDate: "2026-04-23", amount: "$1,800", tag: "Deposit", paid: true, paidOn: "Apr 23 2026" },
+  { dateLabel: "Wed, Apr 29 2026", isoDate: "2026-04-29", amount: "$900", tag: "Payment 2" },
+  { dateLabel: "Wed, May 06 2026", isoDate: "2026-05-06", amount: "$900", tag: "Payment 3" },
+  { dateLabel: "Wed, May 13 2026", isoDate: "2026-05-13", amount: "$900", tag: "Payment 4" },
+  { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$900", tag: "Payment 5" },
+  { dateLabel: "Wed, May 27 2026", isoDate: "2026-05-27", amount: "$900", tag: "Payment 6" },
+  { dateLabel: "Wed, Jun 03 2026", isoDate: "2026-06-03", amount: "$900", tag: "Payment 7" },
+  { dateLabel: "Wed, Jun 10 2026", isoDate: "2026-06-10", amount: "$900", tag: "Payment 8" },
+  { dateLabel: "Wed, Jun 17 2026", isoDate: "2026-06-17", amount: "$900", tag: "Payment 9" },
+  { dateLabel: "Wed, Jun 24 2026", isoDate: "2026-06-24", amount: "$900", tag: "Payment 10" },
+  { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$900", tag: "Payment 11" },
+  { dateLabel: "Wed, Jul 08 2026", isoDate: "2026-07-08", amount: "$900", tag: "Payment 12" },
+  { dateLabel: "Wed, Jul 15 2026", isoDate: "2026-07-15", amount: "$900", tag: "Payment 13" },
+  { dateLabel: "Wed, Jul 22 2026", isoDate: "2026-07-22", amount: "$900", tag: "Payment 14" },
+  { dateLabel: "Wed, Jul 29 2026", isoDate: "2026-07-29", amount: "$900", tag: "Payment 15" },
+  { dateLabel: "Wed, Aug 05 2026", isoDate: "2026-08-05", amount: "$900", tag: "Payment 16" },
+  { dateLabel: "Wed, Aug 12 2026", isoDate: "2026-08-12", amount: "$900", tag: "Payment 17" },
+  { dateLabel: "Wed, Aug 19 2026", isoDate: "2026-08-19", amount: "$900", tag: "Payment 18" },
 ];
 
 export const planCAddendum: Plan = {
   ...planC,
   id: "CA",
   name: "Plan C Addendum",
-  tagline: "Plan C — 8-Payment Conditional (Valid Today Only)",
+  tagline: "Plan C — Restructured Weekly Payment Plan",
   heroTitle: planC.heroTitle,
   heroSubtitle:
-    "Same scope and deliverables as Plan C — AI-powered marketplace infrastructure behind your GoDaddy site. This addendum restructures the payment plan into eight equal biweekly payments of $1,800 starting today. Valid only if the first payment is received today.",
+    "Same scope and deliverables as Plan C — AI-powered marketplace infrastructure behind your GoDaddy site. Restructured 2026-04-28: $1,800 deposit (paid 2026-04-23) plus 17 weekly Wednesday payments of $900 from April 29 through August 19, 2026. Project reviews remain on a biweekly cadence.",
   meta: {
     ...planC.meta,
-    projectTerm: "12 Weeks — 8 Biweekly Payments",
+    projectTerm: "12-Week Project · 6 Biweekly Reviews · 17 Weekly Payments",
     investmentAtSigning: "$1,800",
-    perMilestone: "$1,800",
-    milestoneCount: 8,
-    totalValue: "$14,400",
+    perMilestone: "$900",
+    milestoneCount: 17,
+    totalValue: "$17,100",
     paymentSchedule: planCAddendumSchedule,
     conditionalBanner:
-      "Addendum is ACTIVE. First $1,800 payment received on April 23, 2026. Seven biweekly payments of $1,800 remain through July 30, 2026.",
+      "Addendum RESTRUCTURED 2026-04-28: $1,800 deposit received April 23, 2026. Seventeen weekly payments of $900 begin Wednesday April 29, 2026 and run through Wednesday August 19, 2026. Reviews remain biweekly.",
   },
 };
 
