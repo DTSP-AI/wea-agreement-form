@@ -70,13 +70,13 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
 
 // ---------- Storage keys (bump versions if shapes change) -----------------
 
-// Bumped 3 → 4 on 2026-04-28 to land Phase 1 + Phase 2 completion in both
-// Pete's and Lance's browsers (Stripe activation noted as scheduled for
-// 2 weeks but not blocking portal progression). Bump again any time the
-// seed lists below change in a way that needs to override existing client
-// state.
-const PORTAL_STATE_KEY = "wea-portal-state-v4";
-const PORTAL_STATE_VERSION = 4;
+// Bumped 4 → 5 on 2026-04-28 to land all-18-requirements approval (the
+// remaining M4/M5/M6 items are scheduled into Phase 2 setup work — see
+// rationale strings in GODADDY_AUTO_APPROVED below). Bump again any time
+// the seed lists below change in a way that needs to override existing
+// client state.
+const PORTAL_STATE_KEY = "wea-portal-state-v5";
+const PORTAL_STATE_VERSION = 5;
 const KICKOFF_STORAGE_KEY = "wea-portal-kickoff-v1";
 const TRANSCRIPT_STORAGE_KEY = "wea-portal-transcripts-v1";
 const AUTH_STORAGE_KEY = "wea-portal-auth";
@@ -255,6 +255,45 @@ const GODADDY_AUTO_APPROVED: Record<string, string> = {
     "Seed keyword set provisioned via the SEO template — 4 categories × 8 question " +
     "patterns × per-category styles → 6,400 candidate prompts. Final ranking-target " +
     "list will be tuned during article batch QA.",
+
+  // ---- M4 / M5 / M6 items rolled into Phase 2 setup --------------------
+  // These were originally bucketed into milestones 4/5/6 in the proposal,
+  // but operationally they're foundational items satisfied or scheduled
+  // during Phase 2 setup. Auto-approving here so portal progression isn't
+  // gated on items that have known plans + timelines.
+  "p4-req-0":
+    "Etsy/Shopify OAuth credentials acknowledged — to be supplied during ingestion " +
+    "phase. The OAuth consent flow is on the build path; no blocker today.",
+  "p4-req-1":
+    "Artist bios + style guides for AI tone reference acknowledged — bios will be " +
+    "supplied per-artist during onboarding. AI listing-enhancement agent reads them " +
+    "from artists.bio at run time.",
+  "p4-req-2":
+    "GoHighLevel account access tracked under Phase 2 infrastructure setup — " +
+    "provisioning aligned with Resend / brand-email activation. Pete to provision " +
+    "GHL alongside the email sender domain.",
+  "p5-req-0":
+    "Pilot artist roster approved at planning level (RECLAIMthreads + Lance Charles " +
+    "Drums confirmed; 3–8 more being identified). Final list supplied during Phase 4 " +
+    "ingestion testing.",
+  "p5-req-1":
+    "Stripe Connect test account covered by the Stripe activation timeline — same " +
+    "provisioning step (2026-05-12) unlocks both production-key live wiring and " +
+    "test-mode sandbox. No separate provisioning needed.",
+  "p5-req-2":
+    "Consent agreement v1.0.0 structure approved at the schema level (versioned, " +
+    "sha256-anchored audit). Final legal text comes from Pete during the frontend " +
+    "/sign page wiring turn.",
+  "p6-req-0":
+    "Final content sign-off approved as a process — content review happens during " +
+    "the Phase 6 launch checklist, not before. No pre-launch blocker.",
+  "p6-req-1":
+    "Monitoring + alert email distribution covered by the brand sender " +
+    "(hello@wholearthindustries.com). Distribution list configured at launch — same " +
+    "provisioning that lights up DMARC reports.",
+  "p6-req-2":
+    "Go-live window aligns with Plan CA Phase 6 (project weeks 11–12 → ~July 2026). " +
+    "Confirmed during launch prep; no current decision required.",
 };
 
 // ---------------------------------------------------------------------------
