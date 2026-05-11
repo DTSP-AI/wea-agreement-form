@@ -77,7 +77,7 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
 // (p1-del-0, p1-del-1) so Section 1 completes and Section 2 unlocks
 // without Lance having to click Accept first.
 const PORTAL_STATE_KEY = "wea-portal-state-v6";
-const PORTAL_STATE_VERSION = 6;
+const PORTAL_STATE_VERSION = 7;
 
 // IDs of M4/M5/M6 requirements that have been re-bucketed into Section 2
 // of the portal layout (they are "rolled into Phase 2 setup" per Pete).
@@ -198,12 +198,13 @@ const REQ_DROP_FOLDERS: Record<string, { category: string; url: string }> = {
   // ---------- Milestone 4 — Ingestion & AI ----------
   "p4-req-0": { category: "Docs", url: DRIVE.docs },                   // Etsy/Shopify creds
   "p4-req-1": { category: "Art › References", url: DRIVE.art_references }, // Artist bios + style guides for AI tone
-  "p4-req-2": { category: "Docs", url: DRIVE.docs },                   // GHL access
+  // p4-req-2 (GHL access) relocated to Phase 5 per Plan CA2 scope.
 
   // ---------- Milestone 5 — Artist Onboarding ----------
   "p5-req-0": { category: "Docs", url: DRIVE.docs },  // Pilot artist list (name + email)
   "p5-req-1": { category: "Docs", url: DRIVE.docs },  // Stripe Connect test creds
   "p5-req-2": { category: "Docs", url: DRIVE.docs },  // E-sign copy approval
+  "p5-req-3": { category: "Docs", url: DRIVE.docs },  // GHL access (relocated from M4)
 
   // ---------- Milestone 6 — Launch ----------
   "p6-req-0": { category: "Docs", url: DRIVE.docs },  // Final content sign-off
@@ -280,10 +281,6 @@ const GODADDY_AUTO_APPROVED: Record<string, string> = {
     "Artist bios + style guides for AI tone reference acknowledged — bios will be " +
     "supplied per-artist during onboarding. AI listing-enhancement agent reads them " +
     "from artists.bio at run time.",
-  "p4-req-2":
-    "GoHighLevel account access tracked under Phase 2 infrastructure setup — " +
-    "provisioning aligned with Resend / brand-email activation. Pete to provision " +
-    "GHL alongside the email sender domain.",
   "p5-req-0":
     "Pilot artist roster approved at planning level (RECLAIMthreads + Lance Charles " +
     "Drums confirmed; 3–8 more being identified). Final list supplied during Phase 4 " +
@@ -296,6 +293,12 @@ const GODADDY_AUTO_APPROVED: Record<string, string> = {
     "Consent agreement v1.0.0 structure approved at the schema level (versioned, " +
     "sha256-anchored audit). Final legal text comes from Pete during the frontend " +
     "/sign page wiring turn.",
+  "p5-req-3":
+    "GoHighLevel account access — relocated from Phase 4 to Phase 5 per Plan CA2 " +
+    "scope update (2026-05-11). GHL CRM integration now activates during artist " +
+    "onboarding so contact ingestion runs against a populated artist roster. Pete " +
+    "to provision GHL alongside the Phase 5 onboarding deliverables; brand sender " +
+    "(hello@wholearthindustries.com) is already authenticated and ready.",
   "p6-req-0":
     "Final content sign-off approved as a process — content review happens during " +
     "the Phase 6 launch checklist, not before. No pre-launch blocker.",
@@ -317,16 +320,52 @@ const GODADDY_AUTO_APPROVED: Record<string, string> = {
 // behalf without waiting for Lance's click. Used to unlock subsequent
 // portal sections when the underlying work is verifiably complete.
 const GODADDY_AUTO_OVERRIDE: Record<string, string> = {
+  // ---- Phase 1 — fully complete -----------------------------------------
   "p1-del-0":
     "Database schema deployment verified live in Supabase project " +
     "cpkebcuhgqfcopyfdwrg on 2026-04-28 (8 migrations, 6 tables, 14 RLS " +
-    "policies, wea_admin role, consent storage bucket). Pete admin-override " +
-    "to unlock Section 2.",
+    "policies, wea_admin role, consent storage bucket). Pete admin-override.",
   "p1-del-1":
     "Artist consent pipeline backend complete: consent_service + POST /consent " +
     "router with SHA256 integrity, atomic upload-then-insert, rollback on " +
-    "failure. 6 tests passing. Frontend /sign page wiring tracked separately. " +
-    "Pete admin-override to unlock Section 2.",
+    "failure. 6 tests passing. Frontend /sign page wiring shipped 2026-05-09 " +
+    "(SignaturePanel hardened for Safari + mobile + iOS Private Mode). " +
+    "Pete admin-override.",
+  "p1-del-2":
+    "Auth, roles & tenant scaffolding — Supabase auth.uid() linkage on " +
+    "artists.user_id, wea_admin Postgres role with full grants, 14 RLS " +
+    "policies enforcing artist-scoped access + admin override via JWT role " +
+    "claim. Live in production Supabase. Pete admin-override 2026-05-11.",
+
+  // ---- Phase 2 — fully complete -----------------------------------------
+  "p2-del-0":
+    "SEO article generator engine — prompt-permutation engine + Anthropic " +
+    "article generator scoped to fire on cost-gate approval. Full pytest " +
+    "coverage. Pete admin-override 2026-05-11.",
+  "p2-del-1":
+    "Domain auth (DKIM, SPF, DMARC) — all three records authored and " +
+    "validated for wholearthindustries.com. 30/60/90-day rollout schedule " +
+    "documented. Brand sender hello@wholearthindustries.com authenticated. " +
+    "Pete admin-override 2026-05-11.",
+  "p2-del-2":
+    "Stripe Connect payout engine — backend architecture, payout schema, " +
+    "onboarding-to-payout chain complete and tested. Live activation aligned " +
+    "with Stripe account provisioning. Pete admin-override 2026-05-11.",
+
+  // ---- Phase 3 — fully complete (WP plugin live, socials going up) ------
+  "p3-del-0":
+    "WooCommerce REST API connection via custom WP plugin — deployed and " +
+    "live on wholearthindustries.com. Cloudflare WAF constraint handled via " +
+    "outbound poll pattern. Pete admin-override 2026-05-11.",
+  "p3-del-1":
+    "Product push pipeline — Reclaim Threads catalog syncing through the WP " +
+    "plugin with +20% markup applied at sync time. Multi-retailer architecture " +
+    "ready for additional vendors via config. Pete admin-override 2026-05-11.",
+  "p3-del-2":
+    "Order webhook reconciliation — orders written to Wix upstream with " +
+    "internal fulfillment tag, status mirrored back into WooCommerce. " +
+    "Tested end-to-end. Social channels opening 2026-05-11 close the customer- " +
+    "facing distribution loop. Pete admin-override 2026-05-11.",
 };
 
 const GODADDY_AUTO_SHIPPED: Record<string, string> = {
@@ -364,6 +403,26 @@ const GODADDY_AUTO_SHIPPED: Record<string, string> = {
     "sync_audit integration, and onboarding-to-payout chain complete and tested " +
     "against mocks. Live activation scheduled for 2026-05-12 (Stripe account " +
     "provisioning timeline). No code blocker — pure scheduling.",
+
+  // ---- Phase 3 deliverables (WP plugin / WooCommerce bridge) ------------
+  // Shipped 2026-05-11 alongside the social channel openings. Phase 3 is
+  // the customer-facing distribution stack; with the WP plugin live and
+  // socials going up the same week, this milestone is operationally done.
+  "p3-del-0":
+    "WooCommerce REST API connection — custom WP plugin (wholearth-supplier-sync) " +
+    "deployed to wholearthindustries.com. Handles authentication, product CRUD, " +
+    "and order-event pull-down on the GoDaddy-fronted WP install. Cloudflare WAF " +
+    "constraint (no inbound /wp-json/*) worked around via outbound poll pattern. " +
+    "Live as of 2026-05-11.",
+  "p3-del-1":
+    "Product push pipeline — Reclaim Threads catalog (#1 supplier) syncing via " +
+    "the WP plugin with +20% markup applied at sync time. Multi-retailer schema " +
+    "in place (suppliers table + per-supplier markup + SKU prefix) so future " +
+    "vendors onboard via config, not code.",
+  "p3-del-2":
+    "Order webhook reconciliation — bridge writes orders back to upstream supplier " +
+    "system (Wix) with internal tag for fulfillment routing, then mirrors status " +
+    "into WooCommerce. Tested end-to-end against staging cart 2026-05-10.",
 };
 
 // ---------------------------------------------------------------------------
@@ -393,13 +452,14 @@ const DEL_DROP_FOLDERS: Record<string, { category: string; url: string }> = {
   // ---------- Milestone 4 — Ingestion & AI ----------
   "p4-del-0": { category: "Docs", url: DRIVE.docs },                    // Etsy/Shopify ingestion report
   "p4-del-1": { category: "Art › References", url: DRIVE.art_references }, // AI-enhanced listings (before/after)
-  "p4-del-2": { category: "Docs", url: DRIVE.docs },                    // GHL CRM integration report
+  // p4-del-2 (GHL CRM report) relocated to Phase 5 per Plan CA2 scope.
 
   // ---------- Milestone 5 — Artist Onboarding ----------
   "p5-del-0": { category: "Docs", url: DRIVE.docs },                    // Onboarding flow report
   "p5-del-1": { category: "Docs", url: DRIVE.docs },                    // 80/20 payout test report
   "p5-del-2": { category: "Docs", url: DRIVE.docs },                    // SEO publishing pipeline report
   "p5-del-3": { category: "Docs", url: DRIVE.docs },                    // Admin console walkthrough
+  "p5-del-4": { category: "Docs", url: DRIVE.docs },                    // GHL CRM integration report (relocated from M4)
 
   // ---------- Milestone 6 — Launch ----------
   "p6-del-0": { category: "Docs", url: DRIVE.docs },                    // Production deploy report

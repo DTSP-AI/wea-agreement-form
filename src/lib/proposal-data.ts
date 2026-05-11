@@ -18,7 +18,7 @@
 //            Plan A (just spread across the longer term). Pete pre-signed
 //            for print-to-PDF.
 
-export type PlanId = "A" | "AA" | "B" | "C" | "CA";
+export type PlanId = "A" | "AA" | "B" | "C" | "CA" | "CA2";
 
 export interface ScheduledPayment {
   /** Human-readable date, e.g. "Wed, Apr 23 2026". */
@@ -544,12 +544,10 @@ export const planC: Plan = {
       requirements: [
         "Etsy and/or Shopify seller credentials (OAuth consent)",
         "3–5 example artist bios + style guides for AI tone reference",
-        "GoHighLevel account access (or consent to provision)",
       ],
       deliverables: [
         "Etsy/Shopify OAuth ingestion agents",
         "AI listing enhancement (Claude Sonnet)",
-        "CRM integration (GoHighLevel)",
       ],
       milestone: "$1,800",
     },
@@ -561,12 +559,14 @@ export const planC: Plan = {
         "List of 5–10 pilot artists (name + contact email)",
         "Stripe Connect test account or sandbox for payout testing",
         "Approval of the onboarding e-sign copy",
+        "GoHighLevel account access (or consent to provision)",
       ],
       deliverables: [
         "Artist onboarding flow (consent → listing)",
         "Automated payout testing (80/20 split)",
         "SEO article publishing pipeline",
         "Admin console for marketplace management",
+        "CRM integration (GoHighLevel)",
       ],
       milestone: "$1,800",
     },
@@ -692,12 +692,140 @@ export const planAAddendum: Plan = {
   },
 };
 
+// ---------- PLAN CA2: Plan C Addendum 2 — Active Build + Ops Director ------
+// Restructured 2026-05-11. Supersedes the unpaid portion of Plan CA from
+// 2026-05-13 onward. Three blocks of paid history from Plan CA ($1,800
+// deposit + 2 × $900 weekly) are credited toward the project and are
+// NOT included in CA2's totalValue — CA2 represents only the new build
+// commitment.
+//
+// Why CA2 exists:
+//   1. Hourly floor — Pete must not drop below $75/hr × 20 hr/wk = $1,500/wk
+//   2. New scope — WEI Ops Director (white-label MSP/RMM-style agent layer
+//      for Alanson's marketplace ops) rolled into M4-M6
+//   3. Schedule compression — original CA ran to Aug 19; CA2 ends Jul 29
+//
+// Math:
+//   Weeks 1-8 (May 13 → Jul 1):  8 × $1,500 = $12,000  ($75/hr × 20 hr floor)
+//   Weeks 9-12 (Jul 8 → Jul 29): 4 × $1,200 = $4,800   (taper: handoff/maint)
+//   CA2 total:                                $16,800
+//
+// White-label note: the Ops Director PRODUCT surface is WEI-branded
+// (admin UI, email replies, reports, dashboard all carry WEI identity).
+// The CONTRACT remains DTSP-AI ↔ WEI. The agent architecture stays
+// reusable by DTSP-AI for future engagements; the prompts, brand voice,
+// data, and deployed instance belong to WEI.
+const planCA2Schedule: ScheduledPayment[] = [
+  // Intensive build phase — $75/hr × 20 hr/wk floor honored every week.
+  { dateLabel: "Wed, May 13 2026", isoDate: "2026-05-13", amount: "$1,500", tag: "Intensive 1/8" },
+  { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$1,500", tag: "Intensive 2/8" },
+  { dateLabel: "Wed, May 27 2026", isoDate: "2026-05-27", amount: "$1,500", tag: "Intensive 3/8" },
+  { dateLabel: "Wed, Jun 03 2026", isoDate: "2026-06-03", amount: "$1,500", tag: "Intensive 4/8" },
+  { dateLabel: "Wed, Jun 10 2026", isoDate: "2026-06-10", amount: "$1,500", tag: "Intensive 5/8" },
+  { dateLabel: "Wed, Jun 17 2026", isoDate: "2026-06-17", amount: "$1,500", tag: "Intensive 6/8" },
+  { dateLabel: "Wed, Jun 24 2026", isoDate: "2026-06-24", amount: "$1,500", tag: "Intensive 7/8" },
+  { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$1,500", tag: "Intensive 8/8" },
+  // Handoff / maintenance taper — Ops Director moves to autonomous-within-
+  // guardrails, support documentation finalized, ownership transferred.
+  { dateLabel: "Wed, Jul 08 2026", isoDate: "2026-07-08", amount: "$1,200", tag: "Handoff 1/4" },
+  { dateLabel: "Wed, Jul 15 2026", isoDate: "2026-07-15", amount: "$1,200", tag: "Handoff 2/4" },
+  { dateLabel: "Wed, Jul 22 2026", isoDate: "2026-07-22", amount: "$1,200", tag: "Handoff 3/4" },
+  { dateLabel: "Wed, Jul 29 2026", isoDate: "2026-07-29", amount: "$1,200", tag: "Handoff 4/4" },
+];
+
+export const planCA2: Plan = {
+  ...planC,
+  id: "CA2",
+  name: "Plan C Addendum 2",
+  tagline: "Active Build + WEI Ops Director — White-Label Agentic Ops Layer",
+  heroTitle: "Artist Marketplace Platform + WEI Operations Director",
+  heroSubtitle:
+    "Plan CA, restructured for the active build phase. The marketplace foundation is shipped (database, consent, payouts, SEO engine, WP plugin, transactional email, social channels). The remaining 12 weeks deliver Marketplace Ingestion, Artist Onboarding, and Launch — plus the WEI Operations Director: a white-label agentic ops layer that runs ticket triage, moderation, financial reconciliation, and reporting on Alanson's behalf. The marketplace platform we're building learns how to run itself.",
+  meta: {
+    ...planC.meta,
+    projectTerm:
+      "12-Week Build · 6 Biweekly Reviews · 12 Weekly Payments (Wed)",
+    investmentAtSigning: "$1,500",
+    perMilestone: "$1,500 / $1,200",
+    milestoneCount: 12,
+    totalValue: "$16,800",
+    paymentSchedule: planCA2Schedule,
+    conditionalBanner:
+      "PLAN CA2 — Active Build with WEI Ops Director rolled in. Supersedes the unpaid portion of Plan CA effective 2026-05-13. Plan CA's $1,800 deposit and 2 weekly payments ($3,600 total) are CREDITED toward the project — CA2 covers only the new 12-week commitment at the $75/hr × 20 hr/wk floor: 8 weeks at $1,500 (intensive build) + 4 weeks at $1,200 (handoff & maintenance taper). Final payment Wed Jul 29, 2026. Project reviews remain biweekly (6 total across the term).",
+  },
+  // Override phases to add the WEI Ops Director scope onto M4-M6.
+  // M1-M3 are kept (shown as complete in the portal) for proposal-page
+  // context, so Alanson sees the full arc he's signed for.
+  phases: [
+    ...planC.phases.slice(0, 3),
+    {
+      number: 4,
+      title: "Marketplace Ingestion & AI + Ops Director Foundation",
+      weeks: "Weeks 1–4 (May 13 → Jun 3)",
+      requirements: [
+        "Etsy and/or Shopify seller credentials (OAuth consent)",
+        "3–5 example artist bios + style guides for AI tone reference",
+        "Brand voice doc for Ops Director agent replies (or 3 sample emails Alanson would send himself)",
+      ],
+      deliverables: [
+        "Etsy/Shopify OAuth ingestion agents",
+        "AI listing enhancement (Claude Sonnet)",
+        "WEI Ops Director — Foundation: read-only agents observing tickets, payouts, listings, and reporting daily digests to Alanson (no actions yet)",
+        "Agent contracts + memory architecture wired to Supabase + Stripe + marketplace order data",
+      ],
+      milestone: "$6,000 (4 × $1,500)",
+    },
+    {
+      number: 5,
+      title: "Artist Onboarding + GHL CRM + Ops Director Workers",
+      weeks: "Weeks 5–8 (Jun 10 → Jul 1)",
+      requirements: [
+        "List of 5–10 pilot artists (name + contact email)",
+        "Stripe Connect test account or sandbox for payout testing",
+        "Approval of the onboarding e-sign copy",
+        "GoHighLevel account access (or consent to provision)",
+        "Refund / moderation rules Alanson wants the agents to follow (we draft, he approves)",
+      ],
+      deliverables: [
+        "Artist onboarding flow (consent → listing)",
+        "Automated payout testing (80/20 split)",
+        "SEO article publishing pipeline",
+        "Admin console for marketplace management — WEI-branded, white-label",
+        "CRM integration (GoHighLevel)",
+        "WEI Ops Director — Workers: 5 specialist agents (Onboarding, Support, Moderation, Finance, Reporting) in draft-and-approve mode. Agents propose actions; Alanson one-click approves from the WEI admin console.",
+      ],
+      milestone: "$6,000 (4 × $1,500)",
+    },
+    {
+      number: 6,
+      title: "Launch & Scale + Ops Director Autonomous + Handoff",
+      weeks: "Weeks 9–12 (Jul 8 → Jul 29)",
+      requirements: [
+        "Final content sign-off on public-facing copy",
+        "Monitoring + alert email distribution list",
+        "Confirmation of the go-live window",
+        "Guardrail thresholds for autonomous agent actions (refund cap $, KYC steps, escalation triggers)",
+      ],
+      deliverables: [
+        "Production deployment & monitoring",
+        "Load testing & optimization",
+        "Artist support documentation",
+        "Analytics dashboard & handoff",
+        "WEI Ops Director — Autonomous within guardrails: agents act on rule-bound work (refunds ≤ cap, KYC steps, standard support, scheduled reports). Anything novel escalates to Alanson.",
+        "White-label admin UI handoff — WEI branding throughout, prompt-tuning runbook, ops SLA, repo handed over to WEI ownership",
+      ],
+      milestone: "$4,800 (4 × $1,200)",
+    },
+  ],
+};
+
 export const plans: Record<PlanId, Plan> = {
   A: planA,
   AA: planAAddendum,
   B: planB,
   C: planC,
   CA: planCAddendum,
+  CA2: planCA2,
 };
 
 // Back-compat: default exports point at Plan C (the previously-active GoDaddy proposal)

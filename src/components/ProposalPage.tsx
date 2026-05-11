@@ -12,7 +12,17 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
   ssr: false,
 });
 
-const PLAN_ORDER: PlanId[] = ["A", "AA", "B", "C", "CA"];
+// Mirror of SignaturePanel's emitted shape. Local copy so we don't have to
+// export the type just for this consumer.
+interface SignedData {
+  clientName: string;
+  clientTitle: string;
+  clientSignature: string | null;
+  clientDate: string;
+  agreedToTerms: boolean;
+}
+
+const PLAN_ORDER: PlanId[] = ["A", "AA", "B", "C", "CA", "CA2"];
 
 const PLAN_TAB_LABELS: Record<PlanId, string> = {
   A: "Plan A",
@@ -20,6 +30,7 @@ const PLAN_TAB_LABELS: Record<PlanId, string> = {
   B: "Plan B",
   C: "Plan C",
   CA: "C Addendum",
+  CA2: "C Addendum 2",
 };
 
 export default function ProposalPage({
@@ -30,6 +41,7 @@ export default function ProposalPage({
   lockPlan?: boolean;
 }) {
   const [signatureComplete, setSignatureComplete] = useState(false);
+  const [signedData, setSignedData] = useState<SignedData | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [pdfDownloaded, setPdfDownloaded] = useState(false);
   const [activePlanId, setActivePlanId] = useState<PlanId>(initialPlanId);
@@ -48,7 +60,12 @@ export default function ProposalPage({
     [activePlanId]
   );
 
-  const handleSignatureComplete = useCallback(() => {
+  const handleSignatureComplete = useCallback((data: SignedData) => {
+    // Capture the signature data in component state so the PDF exporter
+    // is independent of localStorage. Safari Private Mode + storage
+    // failures must not strand the client without their own signature
+    // in the downloaded PDF.
+    setSignedData(data);
     setSignatureComplete(true);
     setTimeout(() => {
       document
@@ -300,51 +317,60 @@ export default function ProposalPage({
       doc.setTextColor(90, 90, 90);
       doc.text(activePlan.meta.preparedFor, clientX, sigTop);
 
-      // Embed signature image if present
+      // Embed signature from in-memory state (NOT localStorage — Safari
+      // Private Mode blocks storage and the client would otherwise get a
+      // PDF without their own signature). Fallback to localStorage only
+      // if state is empty (e.g. portal-side rehydration).
+      const sig: SignedData | null = (() => {
+        if (signedData) return signedData;
+        try {
+          const raw =
+            typeof window !== "undefined"
+              ? window.localStorage.getItem("wea-signature-data")
+              : null;
+          if (!raw) return null;
+          return JSON.parse(raw) as SignedData;
+        } catch {
+          return null;
+        }
+      })();
+
       try {
-        const raw = localStorage.getItem("wea-signature-data");
-        if (raw) {
-          const sig = JSON.parse(raw) as {
-            clientName?: string;
-            clientTitle?: string;
-            clientSignature?: string | null;
-            clientDate?: string;
-          };
-          if (sig.clientSignature) {
-            doc.addImage(
-              sig.clientSignature,
-              "PNG",
-              clientX,
-              sigTop + 6,
-              colW,
-              34,
-              undefined,
-              "FAST"
-            );
-          }
-          doc.setDrawColor(200, 200, 200);
-          doc.line(clientX, sigTop + 40, clientX + colW, sigTop + 40);
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(9);
-          doc.setTextColor(50, 50, 50);
-          doc.text(sig.clientName ?? "", clientX, sigTop + 55);
-          doc.setTextColor(110, 110, 110);
-          if (sig.clientTitle) {
-            doc.text(sig.clientTitle, clientX, sigTop + 68);
-          }
-          doc.text(
-            "Date: " + (sig.clientDate ?? ""),
+        if (sig?.clientSignature) {
+          doc.addImage(
+            sig.clientSignature,
+            "PNG",
             clientX,
-            sigTop + 82
+            sigTop + 6,
+            colW,
+            34,
+            undefined,
+            "FAST"
           );
+        }
+        doc.setDrawColor(200, 200, 200);
+        doc.line(clientX, sigTop + 40, clientX + colW, sigTop + 40);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(50, 50, 50);
+        if (sig?.clientName) {
+          doc.text(sig.clientName, clientX, sigTop + 55);
         } else {
-          doc.setDrawColor(200, 200, 200);
-          doc.line(clientX, sigTop + 40, clientX + colW, sigTop + 40);
           doc.setTextColor(160, 160, 160);
           doc.text("(signature pending)", clientX, sigTop + 55);
+          doc.setTextColor(50, 50, 50);
         }
+        doc.setTextColor(110, 110, 110);
+        if (sig?.clientTitle) {
+          doc.text(sig.clientTitle, clientX, sigTop + 68);
+        }
+        doc.text(
+          "Date: " + (sig?.clientDate ?? ""),
+          clientX,
+          sigTop + 82
+        );
       } catch {
-        /* ignore — render blank signature line */
+        /* image embed failed — keep the line + name we already drew */
       }
 
       y = sigTop + 96;
@@ -367,20 +393,48 @@ export default function ProposalPage({
       );
 
       // ---------- Save ----------
-      // Using a Blob + anchor is the most reliable cross-platform trigger —
-      // iOS Safari and Android Chrome both respect `download` on blob URLs.
+      // iOS Safari quirk: `<a download>` with a blob URL sometimes opens
+      // a blank tab instead of saving. The reliable cross-platform path
+      // is to detect iOS and hand the blob off via window.open with the
+      // share/save sheet; everywhere else, the anchor-click is fine.
       const filename =
         "WEI_" + activePlan.name.replace(/\s+/g, "_") + "_Signed.pdf";
       const blob = doc.output("blob") as Blob;
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      a.rel = "noopener";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 4000);
+
+      const ua =
+        typeof navigator !== "undefined" ? navigator.userAgent || "" : "";
+      const isIOS =
+        /iPad|iPhone|iPod/.test(ua) ||
+        // iPadOS 13+ reports as Mac — sniff the touch capability
+        (ua.includes("Mac") &&
+          typeof navigator !== "undefined" &&
+          (navigator as Navigator & { maxTouchPoints?: number })
+            .maxTouchPoints !== undefined &&
+          ((navigator as Navigator & { maxTouchPoints?: number })
+            .maxTouchPoints ?? 0) > 1);
+
+      if (isIOS) {
+        // Open in a new tab — Safari renders the PDF inline and surfaces
+        // the share sheet so the client can "Save to Files" or AirDrop
+        // it. Triggering this from a click handler keeps it inside the
+        // user gesture window so the popup blocker doesn't fire.
+        const win = window.open(url, "_blank", "noopener,noreferrer");
+        if (!win) {
+          // Popup blocked — fall back to navigating the current tab.
+          window.location.href = url;
+        }
+      } else {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.rel = "noopener";
+        a.target = "_blank";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
       setPdfDownloaded(true);
     } catch (err) {
       console.error("PDF export failed:", err);
@@ -388,7 +442,7 @@ export default function ProposalPage({
     } finally {
       setIsExporting(false);
     }
-  }, [activePlan]);
+  }, [activePlan, signedData]);
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
@@ -431,17 +485,27 @@ export default function ProposalPage({
             {PLAN_ORDER.filter((id) => !lockPlan || id === activePlanId).map((id) => {
               const isActive = id === activePlanId;
               const isAddendum = id === "CA" || id === "AA";
-              const activeBg = isAddendum ? "bg-yellow-400" : "bg-green-400";
+              const isLive = id === "CA2"; // CA2 = current active build, distinct color
+              const activeBg = isLive
+                ? "bg-violet-400"
+                : isAddendum
+                  ? "bg-yellow-400"
+                  : "bg-green-400";
+              const idleText = isLive
+                ? "text-violet-300 hover:text-violet-200"
+                : isAddendum
+                  ? "text-yellow-300 hover:text-yellow-200"
+                  : "text-zinc-400 hover:text-white";
+              const badgeText = isLive ? "Live" : "Today";
+              const badgeIdleBg = isLive
+                ? "bg-violet-500/25 text-violet-200"
+                : "bg-yellow-500/20 text-yellow-300";
               return (
                 <button
                   key={id}
                   onClick={() => handlePlanSwitch(id)}
                   className={`relative z-10 px-5 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
-                    isActive
-                      ? "text-black"
-                      : isAddendum
-                        ? "text-yellow-300 hover:text-yellow-200"
-                        : "text-zinc-400 hover:text-white"
+                    isActive ? "text-black" : idleText
                   }`}
                 >
                   {isActive && (
@@ -456,15 +520,13 @@ export default function ProposalPage({
                     <span className={isActive ? "font-bold" : "font-normal"}>
                       {plans[id].meta.totalValue}
                     </span>
-                    {isAddendum && (
+                    {(isAddendum || isLive) && (
                       <span
                         className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase ${
-                          isActive
-                            ? "bg-black/20 text-black"
-                            : "bg-yellow-500/20 text-yellow-300"
+                          isActive ? "bg-black/20 text-black" : badgeIdleBg
                         }`}
                       >
-                        Today
+                        {badgeText}
                       </span>
                     )}
                   </span>
