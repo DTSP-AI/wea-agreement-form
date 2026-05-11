@@ -1089,8 +1089,71 @@ export default function ClientPortal() {
   );
 
   // ---------- Payment summary ----------
+  // Parse "$1,800" / "$900" / "$1,500" amounts dynamically — the schedule
+  // mixes deposit + variable weekly amounts, so multiplying paidCount by a
+  // hardcoded number is wrong (used to read 8 × $1,800; reality is 1 × $1,800
+  // deposit + N × $900 weekly under CA, or variable under CA2).
+  const parseAmount = (s: string): number =>
+    parseInt(s.replace(/[^0-9]/g, ""), 10) || 0;
   const paidCount = schedule.filter((p) => p.paid).length;
+  const totalPaid = schedule
+    .filter((p) => p.paid)
+    .reduce((sum, p) => sum + parseAmount(p.amount), 0);
+  const totalScheduled = schedule.reduce(
+    (sum, p) => sum + parseAmount(p.amount),
+    0
+  );
   const nextPayment = schedule.find((p) => !p.paid);
+
+  // Build the plan-shape description for the "Plan Total" stat card.
+  // Counts the unique non-zero amounts so the line reads naturally for
+  // any plan (CA: "Deposit + 17 × $900 weekly", CA2: "8 × $1,500 + 4 ×
+  // $1,200 weekly", C: "Deposit + 6 × $1,800 biweekly", etc.).
+  const planShapeSummary = (() => {
+    if (schedule.length === 0) {
+      return `${plan.meta.milestoneCount} × ${plan.meta.perMilestone}`;
+    }
+    const buckets = new Map<string, number>();
+    let depositLabel = "";
+    schedule.forEach((p) => {
+      if (p.tag?.toLowerCase().includes("deposit")) {
+        depositLabel = p.amount + " deposit";
+        return;
+      }
+      buckets.set(p.amount, (buckets.get(p.amount) ?? 0) + 1);
+    });
+    const buckParts = Array.from(buckets.entries()).map(
+      ([amt, n]) => `${n} × ${amt}`
+    );
+    const cadence = plan.meta.projectTerm.toLowerCase().includes("weekly")
+      ? " weekly"
+      : " biweekly";
+    return [depositLabel, ...buckParts].filter(Boolean).join(" + ") + cadence;
+  })();
+
+  // ---------- "Due Next" surfacing -------------------------------------
+  // Pull the next open requirement so Lance has one clear "do this next"
+  // line at the top of the portal alongside the next payment date.
+  // Looks across ALL sections; uses the first requirement that's still
+  // pending (not yet approved, not yet submitted).
+  const nextOpenRequirement = (() => {
+    for (const s of sections) {
+      for (const r of s.requirements) {
+        const status = state.requirements[r.id]?.status ?? "pending";
+        if (status === "pending" || status === "rejected") {
+          return {
+            label: r.label,
+            sectionNumber: s.number,
+            sectionTitle: s.title,
+            fromPhase: r.fromPhase,
+            id: r.id,
+            status,
+          };
+        }
+      }
+    }
+    return null;
+  })();
 
   // ---------- Auth gate ----------
   // Avoid flashing either state: wait for auth hydration, then either show
@@ -1273,14 +1336,14 @@ export default function ClientPortal() {
             <StatCard
               label="Plan Total"
               value={plan.meta.totalValue}
-              sub="8 × $1,800 biweekly"
+              sub={planShapeSummary}
             />
             <StatCard
               label="Paid"
               value={`${paidCount} of ${schedule.length}`}
               sub={
                 paidCount > 0
-                  ? `$${paidCount * 1800} received`
+                  ? `$${totalPaid.toLocaleString()} of $${totalScheduled.toLocaleString()} received`
                   : "Awaiting first payment"
               }
               emphasis="green"
@@ -1294,6 +1357,68 @@ export default function ClientPortal() {
             />
           </div>
         </motion.section>
+
+        {/* Due Next — single consolidated "what Lance needs to do" surface.
+            Sits below the hero so the two action items (next payment date
+            + next open requirement) are visible above the fold without
+            scrolling through every section. Hidden once everything is
+            cleared so the portal doesn't look stuck on an empty state. */}
+        {(nextPayment || nextOpenRequirement) && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="bg-gradient-to-br from-green-950/40 via-[#0d0d0d] to-[#0d0d0d] border border-green-700/40 rounded-2xl p-6"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <div className="text-[10px] uppercase tracking-[0.25em] text-green-300 font-bold">
+                Due Next
+              </div>
+              <div className="h-px flex-1 bg-green-900/40" />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {nextPayment && (
+                <div className="bg-[#0a0a0a] border border-green-900/40 rounded-xl p-4">
+                  <div className="text-[10px] uppercase tracking-[0.2em] text-green-400 font-semibold mb-1">
+                    Next Payment
+                  </div>
+                  <div className="text-2xl font-bold text-white">
+                    {nextPayment.amount}
+                  </div>
+                  <div className="text-sm text-zinc-300 mt-1">
+                    {nextPayment.dateLabel}
+                  </div>
+                  {nextPayment.tag && (
+                    <div className="text-xs text-zinc-500 mt-1">
+                      {nextPayment.tag}
+                    </div>
+                  )}
+                </div>
+              )}
+              {nextOpenRequirement && (
+                <div className="bg-[#0a0a0a] border border-green-900/40 rounded-xl p-4 flex flex-col">
+                  <div className="text-[10px] uppercase tracking-[0.2em] text-green-400 font-semibold mb-1">
+                    Action Required
+                  </div>
+                  <div className="text-sm font-semibold text-white leading-snug">
+                    {nextOpenRequirement.label}
+                  </div>
+                  <div className="text-xs text-zinc-500 mt-2">
+                    Section {nextOpenRequirement.sectionNumber} ·{" "}
+                    {nextOpenRequirement.sectionTitle} · M
+                    {nextOpenRequirement.fromPhase}
+                  </div>
+                  <a
+                    href={`#section-${nextOpenRequirement.sectionNumber}`}
+                    className="mt-3 inline-flex items-center gap-1 text-xs text-green-300 hover:text-green-200 font-semibold"
+                  >
+                    Jump to section →
+                  </a>
+                </div>
+              )}
+            </div>
+          </motion.section>
+        )}
 
         {/* Admin: pending approvals queue */}
         {isAdmin && pendingApprovals.length > 0 && (
@@ -1924,7 +2049,8 @@ function SectionCard({
 
   return (
     <div
-      className={`bg-[#141414] border rounded-xl overflow-hidden transition-all ${
+      id={`section-${section.number}`}
+      className={`bg-[#141414] border rounded-xl overflow-hidden transition-all scroll-mt-20 ${
         complete
           ? "border-green-500/60"
           : unlocked
