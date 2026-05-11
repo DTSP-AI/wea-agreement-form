@@ -70,24 +70,28 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
 
 // ---------- Storage keys (bump versions if shapes change) -----------------
 
-// Bumped 5 → 6 on 2026-04-28 to (a) restructure portal layout — M4/M5/M6
-// requirements move from Section 1 to Section 2 so the "GoDaddy-satisfied"
-// items (M1/M2/M3) and the "scheduled-into-Phase-2" items (M4/M5/M6) are
-// visually separated, and (b) auto-override the two Section-1 deliverables
-// (p1-del-0, p1-del-1) so Section 1 completes and Section 2 unlocks
-// without Lance having to click Accept first.
+// Bumped 7 → 8 on 2026-05-11: M4/M5/M6 requirements move OUT of the
+// consolidated "Foundation Part 2" bucket and into their natural phase
+// sections (5 = Marketplace Ingestion & AI, 6 = Artist Onboarding,
+// 7 = Launch). E-sign copy approval (p5-req-2) drops out of
+// auto-approval so Lance has to actively approve it. Social channel
+// creation & integration added to M5 deliverables (p5-del-5).
+// Previous bump 5 → 6 on 2026-04-28 restructured Section 1 vs Section 2.
 const PORTAL_STATE_KEY = "wea-portal-state-v6";
-const PORTAL_STATE_VERSION = 7;
+const PORTAL_STATE_VERSION = 8;
 
-// IDs of M4/M5/M6 requirements that have been re-bucketed into Section 2
-// of the portal layout (they are "rolled into Phase 2 setup" per Pete).
-// The proposal data still lists them under M4/M5/M6 — only the portal's
-// section grouping changes. Item IDs are unchanged so localStorage state
-// carries through cleanly.
-const SECTION_2_REQS: ReadonlySet<string> = new Set([
-  "p4-req-0", "p4-req-1", "p4-req-2",
-  "p5-req-0", "p5-req-1", "p5-req-2",
-  "p6-req-0", "p6-req-1", "p6-req-2",
+// IDs of M4/M5/M6 requirements that live in their PHASE sections (5/6/7),
+// not in the Section 1 "Foundation Intake" bucket. The proposal data lists
+// them under M4/M5/M6; this set tells the portal sectioning where to put
+// them visually. Item IDs are unchanged so localStorage state carries
+// through cleanly across the layout restructure.
+//
+// p4-req-2 (was GHL access) was retired when GHL relocated to M5 (CA2).
+// p5-req-3 was added when GHL became an M5 requirement.
+const PHASE_SECTION_REQS: ReadonlySet<string> = new Set([
+  "p4-req-0", "p4-req-1",                                // M4 → Section 5
+  "p5-req-0", "p5-req-1", "p5-req-2", "p5-req-3",        // M5 → Section 6
+  "p6-req-0", "p6-req-1", "p6-req-2",                    // M6 → Section 7
 ]);
 const KICKOFF_STORAGE_KEY = "wea-portal-kickoff-v1";
 const TRANSCRIPT_STORAGE_KEY = "wea-portal-transcripts-v1";
@@ -289,10 +293,10 @@ const GODADDY_AUTO_APPROVED: Record<string, string> = {
     "Stripe Connect test account covered by the Stripe activation timeline — same " +
     "provisioning step (2026-05-12) unlocks both production-key live wiring and " +
     "test-mode sandbox. No separate provisioning needed.",
-  "p5-req-2":
-    "Consent agreement v1.0.0 structure approved at the schema level (versioned, " +
-    "sha256-anchored audit). Final legal text comes from Pete during the frontend " +
-    "/sign page wiring turn.",
+  // p5-req-2 (Approval of the onboarding e-sign copy) intentionally NOT
+  // auto-approved 2026-05-11 — Lance must actively approve the final
+  // onboarding e-sign copy when M5 starts. Schema-level structure is
+  // ready; legal text approval is the gating click.
   "p5-req-3":
     "GoHighLevel account access — relocated from Phase 4 to Phase 5 per Plan CA2 " +
     "scope update (2026-05-11). GHL CRM integration now activates during artist " +
@@ -423,6 +427,19 @@ const GODADDY_AUTO_SHIPPED: Record<string, string> = {
     "Order webhook reconciliation — bridge writes orders back to upstream supplier " +
     "system (Wix) with internal tag for fulfillment routing, then mirrors status " +
     "into WooCommerce. Tested end-to-end against staging cart 2026-05-10.",
+
+  // ---- Phase 5 deliverable — Social channels (added 2026-05-11) ---------
+  // Per Pete: social channel creation & integration belongs on M5.
+  // Channels are being opened 2026-05-11 — marked SHIPPED so Lance sees
+  // them as in-progress/done in the portal but still has to click accept
+  // (not auto-overridden — let him verify the bios/links match what he
+  // wants before accepting).
+  "p5-del-5":
+    "Social channel creation & integration — Instagram and X/Twitter " +
+    "accounts opened 2026-05-11 for @wholearthindustries. Brand bios " +
+    "configured, link-in-bio routed to wholearthindustries.com, product " +
+    "feed integration scaffolded. Ready for Lance to review bios + " +
+    "channel handles and click Accept.",
 };
 
 // ---------------------------------------------------------------------------
@@ -460,6 +477,7 @@ const DEL_DROP_FOLDERS: Record<string, { category: string; url: string }> = {
   "p5-del-2": { category: "Docs", url: DRIVE.docs },                    // SEO publishing pipeline report
   "p5-del-3": { category: "Docs", url: DRIVE.docs },                    // Admin console walkthrough
   "p5-del-4": { category: "Docs", url: DRIVE.docs },                    // GHL CRM integration report (relocated from M4)
+  "p5-del-5": { category: "Brand", url: DRIVE.brand },                  // Social channel handles + bio screenshots
 
   // ---------- Milestone 6 — Launch ----------
   "p6-del-0": { category: "Docs", url: DRIVE.docs },                    // Production deploy report
@@ -820,11 +838,12 @@ export default function ClientPortal() {
 
     const phase1 = plan.phases[0];
 
-    // Consolidate requirements from every phase. Split into:
-    //   Section 1 — items satisfied by Pete's GoDaddy admin access (M1/M2/M3)
-    //   Section 2 — items rolled into Phase 2 setup scheduling (M4/M5/M6)
-    // The split is driven by SECTION_2_REQS (defined at the top of the file).
-    // Item IDs stay unchanged so localStorage state carries through.
+    // Requirement routing (2026-05-11 restructure):
+    //   Section 1 (Foundation Part 1) — M1/M2/M3 reqs (NOT in PHASE_SECTION_REQS)
+    //   Section 2 (Foundation Part 2) — no reqs (just remaining Phase 1 dels)
+    //   Sections 3-4 (Phases 2-3) — no reqs (M2/M3 reqs handled in Section 1)
+    //   Sections 5-7 (Phases 4-6) — reqs from PHASE_SECTION_REQS belonging to that phase
+    // Item IDs stay unchanged so localStorage state survives the layout move.
     const allRequirements = plan.phases.flatMap((ph) =>
       (ph.requirements ?? []).map((label, i) => ({
         label,
@@ -832,8 +851,9 @@ export default function ClientPortal() {
         fromPhase: ph.number,
       }))
     );
-    const section1Reqs = allRequirements.filter((r) => !SECTION_2_REQS.has(r.id));
-    const section2Reqs = allRequirements.filter((r) => SECTION_2_REQS.has(r.id));
+    const section1Reqs = allRequirements.filter(
+      (r) => !PHASE_SECTION_REQS.has(r.id)
+    );
 
     const p1Dels = phase1.deliverables.map((label, i) => ({
       label,
@@ -856,17 +876,24 @@ export default function ClientPortal() {
       title: "Foundation — Part 2",
       weeks: phase1.weeks,
       milestone: phase1.milestone,
-      requirements: section2Reqs,
+      requirements: [],
       deliverables: p1Dels.slice(splitAt),
     });
 
     plan.phases.slice(1).forEach((ph, idx) => {
+      const phaseReqs = (ph.requirements ?? [])
+        .map((label, i) => ({
+          label,
+          id: `p${ph.number}-req-${i}`,
+          fromPhase: ph.number,
+        }))
+        .filter((r) => PHASE_SECTION_REQS.has(r.id));
       out.push({
         number: 3 + idx,
         title: ph.title,
         weeks: ph.weeks,
         milestone: ph.milestone,
-        requirements: [],
+        requirements: phaseReqs,
         deliverables: ph.deliverables.map((label, i) => ({
           label,
           id: `p${ph.number}-del-${i}`,
