@@ -70,29 +70,54 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
 
 // ---------- Storage keys (bump versions if shapes change) -----------------
 
-// Bumped 7 → 8 on 2026-05-11: M4/M5/M6 requirements move OUT of the
-// consolidated "Foundation Part 2" bucket and into their natural phase
-// sections (5 = Marketplace Ingestion & AI, 6 = Artist Onboarding,
-// 7 = Launch). E-sign copy approval (p5-req-2) drops out of
-// auto-approval so Lance has to actively approve it. Social channel
-// creation & integration added to M5 deliverables (p5-del-5).
-// Previous bump 5 → 6 on 2026-04-28 restructured Section 1 vs Section 2.
+// Bumped 8 → 9 on 2026-05-11 (round 2): pull upcoming requirements
+// forward into Section 5 so Lance sees ONE consolidated "what's
+// outstanding" checklist in the active build phase, not scattered
+// across M2/M5/M6 sections. Items routed to S5: Stripe business creds
+// (p2-req-0), Stripe Connect test (p5-req-1), e-sign copy approval
+// (p5-req-2), final content sign-off (p6-req-0), monitoring email
+// list (p6-req-1). All Stripe setup items grouped together. See
+// PHASE_SECTION_REQ_TARGET below for the routing override.
+//
+// Prior bump 7 → 8 on 2026-05-11 moved M4/M5/M6 reqs out of the
+// consolidated "Foundation Part 2" bucket into their natural phase
+// sections, removed p5-req-2 auto-approval, added p5-del-5 (socials).
 const PORTAL_STATE_KEY = "wea-portal-state-v6";
-const PORTAL_STATE_VERSION = 8;
+const PORTAL_STATE_VERSION = 9;
 
-// IDs of M4/M5/M6 requirements that live in their PHASE sections (5/6/7),
-// not in the Section 1 "Foundation Intake" bucket. The proposal data lists
-// them under M4/M5/M6; this set tells the portal sectioning where to put
-// them visually. Item IDs are unchanged so localStorage state carries
+// IDs of requirements that live in their PHASE sections (5/6/7) rather
+// than the Section 1 "Foundation Intake" bucket. The proposal data lists
+// them under M2/M4/M5/M6; this set tells the portal sectioning where to
+// put them visually. Item IDs are unchanged so localStorage state carries
 // through cleanly across the layout restructure.
 //
+// p2-req-0 (Stripe creds) included so it can be pulled forward into the
+// active build phase alongside the other Stripe-setup items (see TARGET
+// override below) — per Pete: "Everything with setting up Stripe needs
+// to be in Section 5."
 // p4-req-2 (was GHL access) was retired when GHL relocated to M5 (CA2).
 // p5-req-3 was added when GHL became an M5 requirement.
 const PHASE_SECTION_REQS: ReadonlySet<string> = new Set([
+  "p2-req-0",                                            // M2 Stripe creds — pulled to S5 (see TARGET)
   "p4-req-0", "p4-req-1",                                // M4 → Section 5
-  "p5-req-0", "p5-req-1", "p5-req-2", "p5-req-3",        // M5 → Section 6
-  "p6-req-0", "p6-req-1", "p6-req-2",                    // M6 → Section 7
+  "p5-req-0", "p5-req-1", "p5-req-2", "p5-req-3",        // M5 → Section 6 (overrides may pull forward)
+  "p6-req-0", "p6-req-1", "p6-req-2",                    // M6 → Section 7 (overrides may pull forward)
 ]);
+
+// Per-item section override — pulls specific reqs FORWARD into a target
+// section regardless of their phase number. Per Pete (2026-05-11): these
+// items are the next-up checklist Lance has to handle during the active
+// build phase, consolidated in Section 5 (Marketplace Ingestion & AI)
+// instead of waiting in their natural M2/M5/M6 sections. Stripe setup
+// reqs are grouped together so Lance sees the full Stripe setup picture
+// in one place.
+const PHASE_SECTION_REQ_TARGET: Record<string, number> = {
+  "p2-req-0": 5,  // Stripe business account / creds ready to connect
+  "p5-req-1": 5,  // Stripe Connect test account / sandbox
+  "p5-req-2": 5,  // Approval of onboarding e-sign copy (pending — Lance approves)
+  "p6-req-0": 5,  // Final content sign-off on public-facing copy
+  "p6-req-1": 5,  // Monitoring + alert email distribution list
+};
 const KICKOFF_STORAGE_KEY = "wea-portal-kickoff-v1";
 const TRANSCRIPT_STORAGE_KEY = "wea-portal-transcripts-v1";
 const AUTH_STORAGE_KEY = "wea-portal-auth";
@@ -880,20 +905,44 @@ export default function ClientPortal() {
       deliverables: p1Dels.slice(splitAt),
     });
 
+    // Build the universe of phase-section reqs once so each section can
+    // pull either its natural items OR overridden items targeted at it.
+    const phaseUniverse = plan.phases.flatMap((ph) =>
+      (ph.requirements ?? []).map((label, i) => ({
+        label,
+        id: `p${ph.number}-req-${i}`,
+        fromPhase: ph.number,
+      }))
+    );
+
     plan.phases.slice(1).forEach((ph, idx) => {
-      const phaseReqs = (ph.requirements ?? [])
+      const sectionNumber = 3 + idx;
+
+      // Natural reqs = reqs from THIS phase that are in PHASE_SECTION_REQS
+      // and are NOT overridden to a different section.
+      const naturalReqs = (ph.requirements ?? [])
         .map((label, i) => ({
           label,
           id: `p${ph.number}-req-${i}`,
           fromPhase: ph.number,
         }))
-        .filter((r) => PHASE_SECTION_REQS.has(r.id));
+        .filter(
+          (r) =>
+            PHASE_SECTION_REQS.has(r.id) &&
+            PHASE_SECTION_REQ_TARGET[r.id] === undefined
+        );
+
+      // Pulled reqs = reqs from ANY phase that explicitly target this section.
+      const pulledReqs = phaseUniverse.filter(
+        (r) => PHASE_SECTION_REQ_TARGET[r.id] === sectionNumber
+      );
+
       out.push({
-        number: 3 + idx,
+        number: sectionNumber,
         title: ph.title,
         weeks: ph.weeks,
         milestone: ph.milestone,
-        requirements: phaseReqs,
+        requirements: [...naturalReqs, ...pulledReqs],
         deliverables: ph.deliverables.map((label, i) => ({
           label,
           id: `p${ph.number}-del-${i}`,
