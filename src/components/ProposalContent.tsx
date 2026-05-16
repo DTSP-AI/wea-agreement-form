@@ -395,10 +395,11 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
               <div className="flex items-center justify-between flex-wrap gap-4 mb-4">
                 <div>
                   <div className="text-green-300 font-bold text-xl">
-                    {proposalMeta.milestoneCount} × {proposalMeta.perMilestone}
+                    {proposalMeta.scheduleHeadline ??
+                      `${proposalMeta.milestoneCount} × ${proposalMeta.perMilestone}`}
                   </div>
                   <div className="text-green-500 text-sm">
-                    Biweekly payments
+                    {proposalMeta.scheduleCadenceLabel ?? "Biweekly payments"}
                   </div>
                 </div>
                 <div className="text-zinc-600 text-2xl">=</div>
@@ -484,8 +485,8 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                 </table>
               </div>
               <div className="text-green-500/70 text-[11px] mt-3 text-center">
-                Same 12-week scope and deliverables as Plan C. Only the payment
-                structure differs.
+                {proposalMeta.scheduleFootnote ??
+                  "Same 12-week scope and deliverables as Plan C. Only the payment structure differs."}
               </div>
             </div>
           ) : (
@@ -580,6 +581,24 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                     </li>
                   ))}
                 </ul>
+                {phase.exclusions && phase.exclusions.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-[#262626]">
+                    <div className="text-yellow-500/90 text-[10px] font-semibold uppercase tracking-wider mb-1.5">
+                      Not included — scoped &amp; quoted separately
+                    </div>
+                    <ul className="space-y-1.5">
+                      {phase.exclusions.map((x) => (
+                        <li
+                          key={x}
+                          className="flex items-start gap-2 text-xs text-zinc-500"
+                        >
+                          <XCircle className="w-3.5 h-3.5 text-yellow-700/80 mt-0.5 flex-shrink-0" />
+                          {x}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             ))}
           </div>

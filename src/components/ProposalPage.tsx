@@ -22,7 +22,7 @@ interface SignedData {
   agreedToTerms: boolean;
 }
 
-const PLAN_ORDER: PlanId[] = ["A", "AA", "B", "C", "CA", "CA2"];
+const PLAN_ORDER: PlanId[] = ["A", "AA", "B", "C", "CA", "CA2", "A3"];
 
 const PLAN_TAB_LABELS: Record<PlanId, string> = {
   A: "Plan A",
@@ -31,6 +31,7 @@ const PLAN_TAB_LABELS: Record<PlanId, string> = {
   C: "Plan C",
   CA: "C Addendum",
   CA2: "C Addendum 2",
+  A3: "A · Addendum 3",
 };
 
 export default function ProposalPage({
@@ -484,7 +485,7 @@ export default function ProposalPage({
           <div className="relative inline-flex flex-wrap bg-[#141414] border border-[#262626] rounded-full p-1 gap-1">
             {PLAN_ORDER.filter((id) => !lockPlan || id === activePlanId).map((id) => {
               const isActive = id === activePlanId;
-              const isAddendum = id === "CA" || id === "AA";
+              const isAddendum = id === "CA" || id === "AA" || id === "A3";
               const isLive = id === "CA2"; // CA2 = current active build, distinct color
               const activeBg = isLive
                 ? "bg-violet-400"

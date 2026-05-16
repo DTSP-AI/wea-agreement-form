@@ -62,7 +62,7 @@ import {
   Mail,
   KeyRound,
 } from "lucide-react";
-import { planCAddendum } from "@/lib/proposal-data";
+import { planA3 } from "@/lib/proposal-data";
 
 const RickChat = dynamic(() => import("@/components/RickChat"), {
   ssr: false,
@@ -709,7 +709,11 @@ function isDelDone(d?: DelItem): boolean {
 // ===========================================================================
 
 export default function ClientPortal() {
-  const plan = planCAddendum;
+  // Repointed CA → A3 on 2026-05-16. M1-M6 phase bodies are unchanged
+  // (planA3 reuses planC's phases verbatim) so the p1-p6 item IDs and
+  // Lance's saved localStorage state carry through with no version bump.
+  // M7 (WholEarthRecords) auto-generates p7-* items in the pending state.
+  const plan = planA3;
   const schedule = plan.meta.paymentSchedule ?? [];
 
   const [state, setState] = useState<PortalState>({
@@ -1110,6 +1114,10 @@ export default function ClientPortal() {
   // any plan (CA: "Deposit + 17 × $900 weekly", CA2: "8 × $1,500 + 4 ×
   // $1,200 weekly", C: "Deposit + 6 × $1,800 biweekly", etc.).
   const planShapeSummary = (() => {
+    // A3 and future plans can supply a ready-made headline; prefer it.
+    if (plan.meta.scheduleHeadline) {
+      return plan.meta.scheduleHeadline;
+    }
     if (schedule.length === 0) {
       return `${plan.meta.milestoneCount} × ${plan.meta.perMilestone}`;
     }
@@ -1216,7 +1224,7 @@ export default function ClientPortal() {
                 Whole Earth Industries — Client Portal
               </div>
               <div className="text-xs text-zinc-500 truncate">
-                Artist Marketplace · Plan C Addendum · Section{" "}
+                Artist Marketplace · {plan.name} · Section{" "}
                 {phasesComplete}/{totalSections}
               </div>
             </div>
@@ -1258,7 +1266,7 @@ export default function ClientPortal() {
               <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-green-200 to-green-500 bg-clip-text text-transparent">
                 {isAdmin
                   ? "Admin View — Approvals & Overrides"
-                  : "Plan C Addendum is Active"}
+                  : `${plan.name} is Active`}
               </h1>
               <p className="text-zinc-400 text-sm mt-3 max-w-xl leading-relaxed">
                 {isAdmin
@@ -1268,7 +1276,7 @@ export default function ClientPortal() {
             </div>
             <div className="flex gap-3">
               <a
-                href="/plan_c_addendum"
+                href="/plan_a_addendum_3"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm hover:bg-white/10 transition-colors"
               >
                 <FileText className="w-4 h-4" />
@@ -1536,7 +1544,7 @@ export default function ClientPortal() {
           <SectionHeader
             icon={<DollarSign className="w-5 h-5 text-green-400" />}
             title="Payment Schedule"
-            subtitle="Full 8-payment addendum schedule."
+            subtitle={`Full ${schedule.length}-payment addendum schedule.`}
           />
           <div className="overflow-hidden rounded-xl border border-[#262626]">
             <table className="w-full text-sm">

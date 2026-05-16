@@ -367,14 +367,43 @@ export default function SignaturePanel({
             Both parties sign below to authorize the commencement of the Artist
             Marketplace Platform project.
           </p>
+          <div className="mt-4 grid sm:grid-cols-4 gap-2">
+            {[
+              "Type your full name and title",
+              "Draw your signature in the box — finger, mouse, or stylus",
+              "Tick the agreement checkbox to accept the terms",
+              "Tap Confirm, then Export your signed PDF on the next screen",
+            ].map((step, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-2 bg-[#0d0d0d] border border-[#262626] rounded-lg px-3 py-2"
+              >
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-green-900/50 text-green-300 text-[11px] font-bold flex items-center justify-center">
+                  {i + 1}
+                </span>
+                <span className="text-zinc-400 text-[11px] leading-snug">
+                  {step}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-zinc-500 text-[11px] mt-2 leading-relaxed">
+            Works on any phone, tablet, or computer — iPhone and Android,
+            Safari and Chrome. Your signed PDF downloads straight to your
+            device; nothing is emailed or routed back to us.
+          </p>
         </div>
 
         <div className="p-8">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Pete's side — pre-filled */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-green-400 uppercase tracking-wider">
+              <h3 className="text-sm font-semibold text-green-400 uppercase tracking-wider flex items-center gap-2">
                 DTSP-AI Technologies
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold normal-case tracking-normal">
+                  <Check className="w-3 h-3" />
+                  Pre-Signed
+                </span>
               </h3>
               <div className="space-y-3">
                 <div>
@@ -531,21 +560,25 @@ export default function SignaturePanel({
                 </span>
                 ,{" "}
                 {proposalMeta.paymentSchedule ? (
-                  <>
-                    including the project scope, a timeline of 12 weeks across
-                    6 milestones (one milestone meeting every 2 weeks), and{" "}
-                    {proposalMeta.milestoneCount} biweekly payments of{" "}
-                    {proposalMeta.perMilestone} ({proposalMeta.totalValue}{" "}
-                    total), with the first payment due today (
-                    {proposalMeta.paymentSchedule[0]?.dateLabel}) and remaining
-                    payments every two weeks through{" "}
-                    {
-                      proposalMeta.paymentSchedule[
-                        proposalMeta.paymentSchedule.length - 1
-                      ]?.dateLabel
-                    }
-                    .
-                  </>
+                  proposalMeta.termsSummary ? (
+                    <>{proposalMeta.termsSummary}</>
+                  ) : (
+                    <>
+                      including the project scope, a timeline of 12 weeks across
+                      6 milestones (one milestone meeting every 2 weeks), and{" "}
+                      {proposalMeta.milestoneCount} biweekly payments of{" "}
+                      {proposalMeta.perMilestone} ({proposalMeta.totalValue}{" "}
+                      total), with the first payment due today (
+                      {proposalMeta.paymentSchedule[0]?.dateLabel}) and remaining
+                      payments every two weeks through{" "}
+                      {
+                        proposalMeta.paymentSchedule[
+                          proposalMeta.paymentSchedule.length - 1
+                        ]?.dateLabel
+                      }
+                      .
+                    </>
+                  )
                 ) : (
                   <>
                     including the project scope, a timeline of 12 weeks across

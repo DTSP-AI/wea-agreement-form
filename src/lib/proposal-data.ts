@@ -18,7 +18,7 @@
 //            Plan A (just spread across the longer term). Pete pre-signed
 //            for print-to-PDF.
 
-export type PlanId = "A" | "AA" | "B" | "C" | "CA" | "CA2";
+export type PlanId = "A" | "AA" | "B" | "C" | "CA" | "CA2" | "A3";
 
 export interface ScheduledPayment {
   /** Human-readable date, e.g. "Wed, Apr 23 2026". */
@@ -54,6 +54,20 @@ export interface ProposalMeta {
   paymentSchedule?: ScheduledPayment[];
   /** Optional "valid only if paid by" banner copy. */
   conditionalBanner?: string;
+  /** Optional override for the schedule headline — the big bold value rendered
+   *  left of the "=" in the investment box. Defaults to "{count} × {perMilestone}". */
+  scheduleHeadline?: string;
+  /** Optional override for the schedule cadence sub-label under the headline.
+   *  Defaults to "Biweekly payments". */
+  scheduleCadenceLabel?: string;
+  /** Optional override for the footnote under the schedule table.
+   *  Defaults to the Plan C "Same 12-week scope" line. */
+  scheduleFootnote?: string;
+  /** Optional plain-text legal terms summary. When set, SignaturePanel renders
+   *  this in the agreement checkbox instead of the hardcoded "12 weeks / 6
+   *  milestones / biweekly payments" sentence — required for any plan whose
+   *  term, cadence, or payment structure is not the Plan C default. */
+  termsSummary?: string;
 }
 
 export interface ComparisonRow {
@@ -70,6 +84,9 @@ export interface Phase {
   deliverables: string[];
   /** What the client needs to provide for this phase to execute. */
   requirements?: string[];
+  /** Optional — work explicitly NOT included in this phase. Rendered as a
+   *  "Not included" list so scope creep is re-quoted, never absorbed. */
+  exclusions?: string[];
   milestone: string;
 }
 
@@ -821,6 +838,137 @@ export const planCA2: Plan = {
   ],
 };
 
+// ---------- PLAN A3: Plan A Addendum 3 — Full-Stack Completion + WholEarthRecords ----------
+// Restructured 2026-05-16. Supersedes the prior agreement. Original deal:
+// Plan CA at $17,100. $4,500 already paid ($1,800 deposit 2026-04-23 +
+// 3 × $900 weekly through 2026-05-13) is credited toward the project and is
+// NOT billed again — it is not included in A3's totalValue.
+//
+// Badged as PLAN A: DTSP-AI delivers the entire stack, frontend and backend.
+//
+// Math:
+//   Core completion (remaining original scope, packed into 3 months):
+//     2026-05-20 $3,600 + 2026-06-01 $4,500 + 2026-07-01 $4,500 = $12,600
+//   WholEarthRecords music site (added scope, ~1 extra month):
+//     2026-08-01 $3,750 + 2026-09-01 $2,570 = $6,320
+//   Addendum 3 new billing total: $12,600 + $6,320 = $18,920
+//   Whole-contract value (incl. $4,500 already paid): $23,420
+//
+// Cadence: PAYMENTS are monthly (5 total). REVIEWS stay biweekly — the
+// every-2-weeks meeting cadence is unchanged from the prior agreement.
+//
+// Post-launch: a $2,250/month maintenance & support retainer begins
+// 2026-10-01 (debugging, testing, dependency/security updates, routine
+// maintenance). New features / additional dev are scoped and quoted
+// separately. The retainer is recurring and is NOT part of totalValue.
+//
+// Phases: M1-M6 reuse planC's phases (requirements + deliverables
+// unchanged) so the client portal's p1-p6 item IDs and saved state carry
+// through cleanly. Only the per-phase `milestone` label and `weeks`
+// window are restated. M7 (WholEarthRecords) is new.
+const planA3Schedule: ScheduledPayment[] = [
+  { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$3,600", tag: "Core 1 of 3" },
+  { dateLabel: "Mon, Jun 01 2026", isoDate: "2026-06-01", amount: "$4,500", tag: "Core 2 of 3" },
+  { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 3 of 3" },
+  { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$3,750", tag: "WholEarthRecords 1 of 2" },
+  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$2,570", tag: "WholEarthRecords 2 of 2" },
+];
+
+// M7 — WholEarthRecords. New milestone appended after planC's M1-M6.
+// Wrapper architecture: WholEarthRecords does NOT host or stream audio —
+// it embeds SoundCloud / Bandcamp / Spotify players (audio stays on their
+// infrastructure, zero streaming cost to WEI) and monetizes music as
+// product types through the marketplace's existing Stripe Connect checkout.
+const planA3MusicPhase: Phase = {
+  number: 7,
+  title: "WholEarthRecords — Music Commerce Site",
+  weeks: "Aug–Sep 2026",
+  requirements: [
+    "WholEarthRecords brand direction — name treatment, logo, accent colors",
+    "Initial roster of 5–10 music artists (name, contact, links to existing SoundCloud / Bandcamp / Spotify)",
+    "Domain decision — wholearthrecords.com, a subdomain, or a /records path on the main site",
+    "Pricing approach for music — fixed price, name-your-price, or both",
+  ],
+  deliverables: [
+    "WholEarthRecords single-page site — label-brand front, curated artist roster, featured releases",
+    "Embedded playback — SoundCloud / Bandcamp / Spotify player widgets (audio stays on their infrastructure; zero streaming cost to WEI)",
+    "Music product schema — tracks, releases, and albums as product types in the existing marketplace database",
+    "Music commerce — buy / support / name-your-price routed through the existing Stripe Connect 80/20 checkout",
+    "Artist promotion layer — featured-artist slots and curated 'WholEarthRecords Select' drops",
+    "Music artist intake — reuses the existing consent + e-sign pipeline",
+    "SEO for music — artist and release pages feed the existing article engine",
+    "Production launch, QA, cross-device testing, documentation & handoff",
+  ],
+  // Hard scope boundary — this is what keeps $6,320 from becoming a death
+  // march. Anything below is a separate quote, never absorbed. The build
+  // is a single-page WRAPPER, not a streaming platform.
+  exclusions: [
+    "Audio hosting, transcoding, or streaming infrastructure — playback uses embedded third-party players",
+    "A custom audio player, waveform UI, or playlist engine",
+    "Social features — likes, reposts, comments, or follower feeds",
+    "Recommendation or music-discovery algorithms",
+    "A native mobile app",
+    "DRM or WEI-hosted licensed-file delivery",
+  ],
+  milestone: "New scope",
+};
+
+// A3 calendar — M1-M6 reuse planC's phase bodies, but planC's relative
+// "Weeks 1–12" labels do not match A3's compressed timeline. Restate the
+// per-phase window so the milestone timeline reads correctly.
+const planA3PhaseWeeks: Record<number, string> = {
+  1: "Apr 2026",
+  2: "Apr–May 2026",
+  3: "May 2026",
+  4: "May–Jun 2026",
+  5: "Jun–Jul 2026",
+  6: "Jul 2026",
+};
+
+export const planA3: Plan = {
+  ...planA,
+  id: "A3",
+  name: "Plan A · Addendum 3",
+  tagline: "Full-Stack Completion + WholEarthRecords Music Site",
+  heroTitle: "Artist Marketplace Platform + WholEarthRecords",
+  heroSubtitle:
+    "Plan A, delivered in full. GoDaddy is used for two things only — hosting the website and running the WooCommerce store. DTSP-AI builds everything else: the marketplace infrastructure, consent and e-sign, automated ingestion, AI listing enhancement, 80/20 split payouts, the SEO engine, admin and artist dashboards, and the agent layer. Addendum 3 completes the remaining marketplace scope, then adds WholEarthRecords — a single-page music commerce and artist-promotion site that wraps the streaming platforms rather than rebuilding them. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 remaining build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins October 1, 2026.",
+  meta: {
+    ...planA.meta,
+    date: "May 2026",
+    projectTerm: "≈4-Month Build · Biweekly Reviews · 5 Monthly Payments",
+    investmentAtSigning: "$3,600",
+    perMilestone: "$2,570–$4,500",
+    milestoneCount: 5,
+    totalValue: "$18,920",
+    paymentSchedule: planA3Schedule,
+    conditionalBanner:
+      "Addendum 3 supersedes the prior agreement. $4,500 already paid is credited toward the project. Five payments — $3,600 (May 20), $4,500 (Jun 1), $4,500 (Jul 1), $3,750 (Aug 1), $2,570 (Sep 1) — total $18,920 and cover full-stack platform completion plus the WholEarthRecords music site. Project reviews continue every two weeks. A $2,250/month maintenance retainer begins October 1, 2026.",
+    scheduleHeadline: "$12,600 build + $6,320 music site",
+    scheduleCadenceLabel: "Monthly payments — 3 core build + 2 WholEarthRecords",
+    scheduleFootnote:
+      "Full-stack Plan A delivery, frontend and backend: the remaining marketplace scope plus the WholEarthRecords music site. $4,500 already paid is credited toward the project. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Oct 1, 2026 (billed separately).",
+    termsSummary:
+      "including the full project scope — completion of the Artist Marketplace Platform (frontend and backend) and the build of the WholEarthRecords music commerce site. GoDaddy provides website hosting and the WooCommerce store engine only; DTSP-AI builds and delivers all other software under this agreement. The WholEarthRecords site is a single-page commerce-and-promotion layer that embeds third-party music players (SoundCloud, Bandcamp, Spotify); audio hosting or streaming infrastructure, a custom player, social features, recommendation systems, a mobile app, and DRM are not included and are scoped and quoted separately if requested. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on June 1, 2026; $4,500 on July 1, 2026; $3,750 on August 1, 2026; and $2,570 on September 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins October 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
+  },
+  comparisonTable: [
+    ...planA.comparisonTable,
+    {
+      capability: "Music marketplace",
+      godaddy: "No — not a music platform",
+      dtsp: "WholEarthRecords — embed-wrapped streaming, monetized via the marketplace checkout",
+    },
+  ],
+  phases: [
+    ...planC.phases.map((p) => ({
+      ...p,
+      weeks: planA3PhaseWeeks[p.number] ?? p.weeks,
+      milestone: p.number <= 3 ? "Complete" : "Remaining build",
+    })),
+    planA3MusicPhase,
+  ],
+};
+
 export const plans: Record<PlanId, Plan> = {
   A: planA,
   AA: planAAddendum,
@@ -828,6 +976,7 @@ export const plans: Record<PlanId, Plan> = {
   C: planC,
   CA: planCAddendum,
   CA2: planCA2,
+  A3: planA3,
 };
 
 // Back-compat: default exports point at Plan C (the previously-active GoDaddy proposal)

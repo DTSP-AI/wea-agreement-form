@@ -49,12 +49,18 @@ export default function PaymentPanel({
   const totalScheduled = proposalMeta.paymentSchedule?.length ?? 0;
   const remainingPayments =
     proposalMeta.paymentSchedule?.filter((p) => !p.paid).length ?? 0;
-  const cadenceWord =
-    proposalMeta.projectTerm.toLowerCase().includes("weekly")
+  const ptLower = proposalMeta.projectTerm.toLowerCase();
+  const cadenceWord = ptLower.includes("monthly")
+    ? "monthly"
+    : ptLower.includes("weekly")
       ? "weekly"
       : "biweekly";
   const cadencePhrase =
-    cadenceWord === "weekly" ? "every Wednesday" : "every two weeks";
+    cadenceWord === "monthly"
+      ? "each month"
+      : cadenceWord === "weekly"
+        ? "every Wednesday"
+        : "every two weeks";
 
   const depositLabel = isPaid
     ? `Payment Received — ${proposalMeta.investmentAtSigning}`
