@@ -584,7 +584,7 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                 {phase.exclusions && phase.exclusions.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-[#262626]">
                     <div className="text-yellow-500/90 text-[10px] font-semibold uppercase tracking-wider mb-1.5">
-                      Not included — scoped &amp; quoted separately
+                      Not included in v1 — available later as a paid upgrade
                     </div>
                     <ul className="space-y-1.5">
                       {phase.exclusions.map((x) => (

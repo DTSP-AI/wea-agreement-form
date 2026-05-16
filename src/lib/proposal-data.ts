@@ -879,6 +879,9 @@ const planA3Schedule: ScheduledPayment[] = [
 // it embeds SoundCloud / Bandcamp / Spotify players (audio stays on their
 // infrastructure, zero streaming cost to WEI) and monetizes music as
 // product types through the marketplace's existing Stripe Connect checkout.
+// Frontend: Framer Motion (2D animation), NOT a Three.js/R3F 3D build —
+// Framer Motion is already in the stack, so the animated single page is
+// fast to build and the $6,320 budget holds.
 const planA3MusicPhase: Phase = {
   number: 7,
   title: "WholEarthRecords — Music Commerce Site",
@@ -890,14 +893,15 @@ const planA3MusicPhase: Phase = {
     "Pricing approach for music — fixed price, name-your-price, or both",
   ],
   deliverables: [
-    "WholEarthRecords single-page site — label-brand front, curated artist roster, featured releases",
+    "WholEarthRecords single-page site — Framer Motion-animated label-brand experience, curated artist roster, featured releases",
     "Embedded playback — SoundCloud / Bandcamp / Spotify player widgets (audio stays on their infrastructure; zero streaming cost to WEI)",
     "Music product schema — tracks, releases, and albums as product types in the existing marketplace database",
     "Music commerce — buy / support / name-your-price routed through the existing Stripe Connect 80/20 checkout",
     "Artist promotion layer — featured-artist slots and curated 'WholEarthRecords Select' drops",
     "Music artist intake — reuses the existing consent + e-sign pipeline",
     "SEO for music — artist and release pages feed the existing article engine",
-    "Production launch, QA, cross-device testing, documentation & handoff",
+    "Production launch of the running, functional v1 — QA, cross-device testing, documentation & handoff",
+    "A defined upgrade path — every item in 'Not included' below can be added later as a separately-quoted paid upgrade",
   ],
   // Hard scope boundary — this is what keeps $6,320 from becoming a death
   // march. Anything below is a separate quote, never absorbed. The build
@@ -905,6 +909,7 @@ const planA3MusicPhase: Phase = {
   exclusions: [
     "Audio hosting, transcoding, or streaming infrastructure — playback uses embedded third-party players",
     "A custom audio player, waveform UI, or playlist engine",
+    "A Three.js / R3F 3D engine build — the WholEarthRecords frontend is Framer Motion 2D animation",
     "Social features — likes, reposts, comments, or follower feeds",
     "Recommendation or music-discovery algorithms",
     "A native mobile app",
@@ -932,7 +937,7 @@ export const planA3: Plan = {
   tagline: "Full-Stack Completion + WholEarthRecords Music Site",
   heroTitle: "Artist Marketplace Platform + WholEarthRecords",
   heroSubtitle:
-    "Plan A, delivered in full. GoDaddy is used for two things only — hosting the website and running the WooCommerce store. DTSP-AI builds everything else: the marketplace infrastructure, consent and e-sign, automated ingestion, AI listing enhancement, 80/20 split payouts, the SEO engine, admin and artist dashboards, and the agent layer. Addendum 3 completes the remaining marketplace scope, then adds WholEarthRecords — a single-page music commerce and artist-promotion site that wraps the streaming platforms rather than rebuilding them. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 remaining build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins October 1, 2026.",
+    "Plan A, delivered in full. GoDaddy is used for two things only — hosting the website and running the WooCommerce store. DTSP-AI builds everything else: the 3D interactive storefront and dashboards, the marketplace infrastructure, consent and e-sign, automated ingestion, AI listing enhancement, 80/20 split payouts, the SEO engine, and the agent layer. Addendum 3 completes the remaining marketplace scope, then adds WholEarthRecords — a Framer Motion-animated single-page music commerce and artist-promotion site that wraps the streaming platforms rather than rebuilding them. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 remaining build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins October 1, 2026.",
   meta: {
     ...planA.meta,
     date: "May 2026",
@@ -949,14 +954,14 @@ export const planA3: Plan = {
     scheduleFootnote:
       "Full-stack Plan A delivery, frontend and backend: the remaining marketplace scope plus the WholEarthRecords music site. $4,500 already paid is credited toward the project. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Oct 1, 2026 (billed separately).",
     termsSummary:
-      "including the full project scope — completion of the Artist Marketplace Platform (frontend and backend) and the build of the WholEarthRecords music commerce site. GoDaddy provides website hosting and the WooCommerce store engine only; DTSP-AI builds and delivers all other software under this agreement. The WholEarthRecords site is a single-page commerce-and-promotion layer that embeds third-party music players (SoundCloud, Bandcamp, Spotify); audio hosting or streaming infrastructure, a custom player, social features, recommendation systems, a mobile app, and DRM are not included and are scoped and quoted separately if requested. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on June 1, 2026; $4,500 on July 1, 2026; $3,750 on August 1, 2026; and $2,570 on September 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins October 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
+      "including the full project scope — completion of the Artist Marketplace Platform (frontend and backend) and the build of the WholEarthRecords music commerce site. GoDaddy provides website hosting and the WooCommerce store engine only; DTSP-AI builds and delivers all other software under this agreement. The WholEarthRecords site is a Framer Motion-animated single-page commerce-and-promotion layer that embeds third-party music players (SoundCloud, Bandcamp, Spotify); audio hosting or streaming infrastructure, a custom player, a Three.js 3D engine build, social features, recommendation systems, a mobile app, and DRM are not included in the v1 build. Each is an optional future upgrade that can be added in a later phase at additional cost, quoted separately. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on June 1, 2026; $4,500 on July 1, 2026; $3,750 on August 1, 2026; and $2,570 on September 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins October 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
   },
   comparisonTable: [
     ...planA.comparisonTable,
     {
       capability: "Music marketplace",
       godaddy: "No — not a music platform",
-      dtsp: "WholEarthRecords — embed-wrapped streaming, monetized via the marketplace checkout",
+      dtsp: "WholEarthRecords — Framer Motion-animated, embed-wrapped streaming, monetized via the marketplace checkout",
     },
   ],
   phases: [
