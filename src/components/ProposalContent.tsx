@@ -206,15 +206,21 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
             </div>
             <h2 className="text-2xl font-bold">{plan.comparisonHeading}</h2>
           </div>
-          <p className="text-zinc-400 leading-relaxed">
-            GoDaddy is genuinely good at building websites. For a business that
-            needs a clean storefront — it is hard to beat at $27 a month. That
-            is not what Whole Earth Industries is building. WEI is building a
-            <span className="text-green-400 font-medium"> marketplace</span> —
-            a system where artists consent, listings flow in automatically, AI
-            enriches every product, buyers purchase, and 80% of every sale
-            routes to the artist without a human touching a spreadsheet.
-          </p>
+          {plan.comparisonIntro ? (
+            <p className="text-zinc-400 leading-relaxed">
+              {plan.comparisonIntro}
+            </p>
+          ) : (
+            <p className="text-zinc-400 leading-relaxed">
+              GoDaddy is genuinely good at building websites. For a business that
+              needs a clean storefront — it is hard to beat at $27 a month. That
+              is not what Whole Earth Industries is building. WEI is building a
+              <span className="text-green-400 font-medium"> marketplace</span> —
+              a system where artists consent, listings flow in automatically, AI
+              enriches every product, buyers purchase, and 80% of every sale
+              routes to the artist without a human touching a spreadsheet.
+            </p>
+          )}
 
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -269,17 +275,23 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
           </div>
 
           <div className="bg-[#141414] border border-[#262626] rounded-xl p-5">
-            <p className="text-zinc-300 text-sm leading-relaxed">
-              <span className="text-green-400 font-medium">
-                Frontend flexibility
-              </span>{" "}
-              is the row that matters most. DTSP-AI&apos;s intelligence layer is
-              frontend agnostic. It connects to GoDaddy WooCommerce today via
-              REST API. If WEI outgrows GoDaddy, migrates to Shopify, or wants a
-              fully custom storefront — the agents, the payout engine, the
-              consent pipeline, the CRM sync — nothing changes. The frontend is
-              a plug. We build the engine.
-            </p>
+            {plan.comparisonNote ? (
+              <p className="text-zinc-300 text-sm leading-relaxed">
+                {plan.comparisonNote}
+              </p>
+            ) : (
+              <p className="text-zinc-300 text-sm leading-relaxed">
+                <span className="text-green-400 font-medium">
+                  Frontend flexibility
+                </span>{" "}
+                is the row that matters most. DTSP-AI&apos;s intelligence layer is
+                frontend agnostic. It connects to GoDaddy WooCommerce today via
+                REST API. If WEI outgrows GoDaddy, migrates to Shopify, or wants a
+                fully custom storefront — the agents, the payout engine, the
+                consent pipeline, the CRM sync — nothing changes. The frontend is
+                a plug. We build the engine.
+              </p>
+            )}
           </div>
           <AskRickCTA
             label="Ask Rick what this means for my business"
@@ -353,11 +365,10 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
             <h2 className="text-2xl font-bold">Architecture</h2>
           </div>
           <p className="text-zinc-400 text-sm">
-            GoDaddy sits at the top as the public face. Everything below the API
-            bridge is DTSP-AI&apos;s owned infrastructure. The SEO Engine runs
-            independently from day one — it doesn&apos;t wait for the storefront.
+            {plan.architectureNote ??
+              "GoDaddy sits at the top as the public face. Everything below the API bridge is DTSP-AI's owned infrastructure. The SEO Engine runs independently from day one — it doesn't wait for the storefront."}
           </p>
-          <ArchitectureDiagram />
+          <ArchitectureDiagram frontendBuiltByDtsp={plan.frontendBuiltByDtsp} />
           <AskRickCTA
             label="Ask Rick to break down the architecture"
             responseKey="section_architecture"

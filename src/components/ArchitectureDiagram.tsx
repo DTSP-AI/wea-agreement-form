@@ -247,7 +247,33 @@ function SectionLabel({
   );
 }
 
-export default function ArchitectureDiagram() {
+export default function ArchitectureDiagram({
+  frontendBuiltByDtsp = false,
+}: {
+  frontendBuiltByDtsp?: boolean;
+}) {
+  // The top "Public Layer" node. For full-stack plans (A3) the storefront
+  // is a DTSP-AI build and GoDaddy is shown as host only; otherwise it is
+  // the GoDaddy WooCommerce storefront.
+  const storefront = frontendBuiltByDtsp
+    ? {
+        title: "DTSP-AI 3D Storefront",
+        subtitle: "Built by DTSP-AI · Hosted on GoDaddy",
+        items: [
+          { icon: ShoppingCart, label: "3D product pages & checkout" },
+          { icon: Globe, label: "Framer Motion WholEarthRecords" },
+          { icon: FileText, label: "Custom code — WEI owns it" },
+        ],
+      }
+    : {
+        title: "GoDaddy Storefront",
+        subtitle: "WooCommerce · Public Face · $27/mo",
+        items: [
+          { icon: ShoppingCart, label: "Product pages & checkout" },
+          { icon: Shield, label: "SSL & domain config" },
+          { icon: FileText, label: "Blog & SEO articles" },
+        ],
+      };
   return (
     <div className="relative max-w-2xl mx-auto">
       {/* ---- LAYER 1: Public Storefront ---- */}
@@ -262,16 +288,12 @@ export default function ArchitectureDiagram() {
           Public Layer
         </div>
         <DiagramNode
-          title="GoDaddy Storefront"
-          subtitle="WooCommerce · Public Face · $27/mo"
+          title={storefront.title}
+          subtitle={storefront.subtitle}
           icon={Globe}
           color="blue"
           delay={0.1}
-          items={[
-            { icon: ShoppingCart, label: "Product pages & checkout" },
-            { icon: Shield, label: "SSL & domain config" },
-            { icon: FileText, label: "Blog & SEO articles" },
-          ]}
+          items={storefront.items}
           glow
         />
       </motion.div>

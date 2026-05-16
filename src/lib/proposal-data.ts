@@ -102,6 +102,16 @@ export interface Plan {
   comparisonHeading: string;
   comparisonColumnLabel: string;
   showParallelSection: boolean;
+  /** Optional override for the comparison-section intro paragraph.
+   *  Falls back to the Plan C "GoDaddy builds websites" copy. */
+  comparisonIntro?: string;
+  /** Optional override for the note box below the comparison table. */
+  comparisonNote?: string;
+  /** Optional override for the architecture-section intro paragraph. */
+  architectureNote?: string;
+  /** When true, the architecture diagram's top node renders the storefront
+   *  as a DTSP-AI build (GoDaddy shown as host only), not a GoDaddy storefront. */
+  frontendBuiltByDtsp?: boolean;
 }
 
 const sharedMeta = {
@@ -956,12 +966,32 @@ export const planA3: Plan = {
     termsSummary:
       "including the full project scope — completion of the Artist Marketplace Platform (frontend and backend) and the build of the WholEarthRecords music commerce site. GoDaddy provides website hosting and the WooCommerce store engine only; DTSP-AI builds and delivers all other software under this agreement. The WholEarthRecords site is a Framer Motion-animated single-page commerce-and-promotion layer that embeds third-party music players (SoundCloud, Bandcamp, Spotify); audio hosting or streaming infrastructure, a custom player, a Three.js 3D engine build, social features, recommendation systems, a mobile app, and DRM are not included in the v1 build. Each is an optional future upgrade that can be added in a later phase at additional cost, quoted separately. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on June 1, 2026; $4,500 on July 1, 2026; $3,750 on August 1, 2026; and $2,570 on September 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins October 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
   },
+  comparisonHeading: "DTSP-AI Builds the Platform. GoDaddy Just Hosts It.",
+  comparisonColumnLabel: "GoDaddy",
+  comparisonIntro:
+    "Whole Earth Industries is not buying a website — WEI is getting a marketplace built. Artists consent, listings flow in automatically, AI enriches every product, buyers purchase, and 80% of every sale routes to the artist with no spreadsheet in sight. DTSP-AI builds all of it, frontend and backend. GoDaddy's role is narrow and singular: it hosts the site and runs the WooCommerce store. Nothing else.",
+  comparisonNote:
+    "DTSP-AI builds and owns the entire frontend — the 3D interactive storefront, the role-based dashboards, and the Framer Motion-animated WholEarthRecords site. Every line of code is WEI's. GoDaddy is the hosting provider underneath, not the builder; swap the host later and nothing about the platform changes.",
+  architectureNote:
+    "DTSP-AI builds and owns the full stack — the 3D interactive storefront at the top and every layer of infrastructure below it. GoDaddy provides website hosting and the WooCommerce store engine only; it is the host, not the public face. The SEO Engine runs independently from day one.",
+  frontendBuiltByDtsp: true,
   comparisonTable: [
-    ...planA.comparisonTable,
+    { capability: "3D interactive storefront", godaddy: "—", dtsp: "Built by DTSP-AI — you own the code" },
+    { capability: "Checkout & cart UX", godaddy: "—", dtsp: "Built by DTSP-AI — artist-aware, end-to-end" },
+    { capability: "Multi-vendor marketplace", godaddy: "—", dtsp: "Built by DTSP-AI — the core architecture" },
+    { capability: "Artist consent + e-sign", godaddy: "—", dtsp: "Built by DTSP-AI — full pipeline" },
+    { capability: "Admin + artist dashboards", godaddy: "—", dtsp: "Built by DTSP-AI — 3D, role-based" },
+    { capability: "Etsy / Shopify ingestion", godaddy: "—", dtsp: "Built by DTSP-AI — OAuth pull, normalized" },
+    { capability: "AI listing enhancement", godaddy: "—", dtsp: "Built by DTSP-AI — Claude Sonnet agent" },
+    { capability: "80/20 split payouts", godaddy: "—", dtsp: "Built by DTSP-AI — Stripe Connect, automatic" },
+    { capability: "SEO content engine", godaddy: "—", dtsp: "Built by DTSP-AI — thousands of articles" },
+    { capability: "CRM sync", godaddy: "—", dtsp: "Built by DTSP-AI — GoHighLevel integration" },
+    { capability: "WholEarthRecords music site", godaddy: "—", dtsp: "Built by DTSP-AI — Framer Motion, embed-wrapped" },
+    { capability: "Source code, servers & data", godaddy: "—", dtsp: "Yours — every line, every record" },
     {
-      capability: "Music marketplace",
-      godaddy: "No — not a music platform",
-      dtsp: "WholEarthRecords — Framer Motion-animated, embed-wrapped streaming, monetized via the marketplace checkout",
+      capability: "Website hosting + WooCommerce",
+      godaddy: "Yes — GoDaddy's only role",
+      dtsp: "The store runs here; DTSP-AI builds everything on top",
     },
   ],
   phases: [
