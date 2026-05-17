@@ -91,9 +91,23 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-white via-green-200 to-green-500 bg-clip-text text-transparent">
             {plan.heroTitle}
           </h1>
-          <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
-            {plan.heroSubtitle}
-          </p>
+          {plan.heroBullets ? (
+            <ul className="max-w-2xl mx-auto space-y-2.5 text-left">
+              {plan.heroBullets.map((b) => (
+                <li
+                  key={b}
+                  className="flex items-start gap-2.5 text-[15px] text-zinc-400 leading-relaxed"
+                >
+                  <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+              {plan.heroSubtitle}
+            </p>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto pt-4">
             {[
               { label: "Prepared For", value: proposalMeta.preparedFor },
@@ -537,6 +551,43 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                 <div className="text-green-500/70 text-[11px] mt-1">
                   6 milestone meetings across the 12-week term — one every two weeks.
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Ongoing maintenance — defined */}
+          {proposalMeta.maintenance && (
+            <div className="bg-[#141414] border border-green-800/40 rounded-xl p-5 mb-2">
+              <div className="text-green-300 text-xs font-bold uppercase tracking-[0.18em] mb-1">
+                Ongoing Maintenance & Support
+              </div>
+              <div className="text-green-400 font-bold text-lg mb-2">
+                {proposalMeta.maintenance.headline}
+              </div>
+              <p className="text-zinc-400 text-sm leading-relaxed mb-4">
+                {proposalMeta.maintenance.intro}
+              </p>
+              <div className="text-zinc-300 text-[11px] font-semibold uppercase tracking-wider mb-1.5">
+                What maintenance covers
+              </div>
+              <ul className="space-y-1.5 mb-4">
+                {proposalMeta.maintenance.covers.map((c) => (
+                  <li
+                    key={c}
+                    className="flex items-start gap-2 text-sm text-zinc-400"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5 text-green-600 mt-0.5 flex-shrink-0" />
+                    {c}
+                  </li>
+                ))}
+              </ul>
+              <div className="bg-yellow-950/25 border border-yellow-700/40 rounded-lg p-3">
+                <div className="text-yellow-300 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  New development is separate
+                </div>
+                <p className="text-yellow-100/90 text-xs leading-relaxed">
+                  {proposalMeta.maintenance.excluded}
+                </p>
               </div>
             </div>
           )}

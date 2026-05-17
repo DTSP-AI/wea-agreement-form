@@ -75,15 +75,22 @@ export default function SignaturePanel({
     });
   }, []);
 
-  // Hydrate from localStorage once on mount (no canvas redraw here —
-  // the resize/restore effect below handles the canvas).
+  // Hydrate name/title from localStorage once on mount — but NEVER the
+  // signature or the terms checkbox. The signature field always starts
+  // blank so the client signs THIS agreement fresh; a prior signature is
+  // never carried over, and consent to terms is re-given each time.
   useEffect(() => {
     const saved = safeGetItem(STORAGE_KEY);
     if (!saved) return;
     try {
       const parsed = JSON.parse(saved) as SignatureData;
-      setFormData(parsed);
-      if (parsed.clientSignature) setHasSignature(true);
+      setFormData((prev) => ({
+        ...prev,
+        clientName: parsed.clientName || prev.clientName,
+        clientTitle: parsed.clientTitle || prev.clientTitle,
+        clientSignature: null,
+        agreedToTerms: false,
+      }));
     } catch {
       // bad data — ignore
     }

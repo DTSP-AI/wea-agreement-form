@@ -68,6 +68,15 @@ export interface ProposalMeta {
    *  milestones / biweekly payments" sentence — required for any plan whose
    *  term, cadence, or payment structure is not the Plan C default. */
   termsSummary?: string;
+  /** Optional post-launch maintenance plan. Rendered as its own defined box in
+   *  the proposal and written into the signed PDF — states what maintenance
+   *  covers and that new development is scoped + priced separately. */
+  maintenance?: {
+    headline: string;
+    intro: string;
+    covers: string[];
+    excluded: string;
+  };
 }
 
 export interface ComparisonRow {
@@ -96,6 +105,9 @@ export interface Plan {
   tagline: string;
   heroTitle: string;
   heroSubtitle: string;
+  /** Optional — when set, the hero and the PDF "Scope" section render these
+   *  as bullets instead of the heroSubtitle paragraph. */
+  heroBullets?: string[];
   meta: ProposalMeta;
   comparisonTable: ComparisonRow[];
   phases: Phase[];
@@ -881,7 +893,7 @@ const planA3Schedule: ScheduledPayment[] = [
   { dateLabel: "Mon, Jun 01 2026", isoDate: "2026-06-01", amount: "$4,500", tag: "Core 2 of 3" },
   { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 3 of 3" },
   { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$3,750", tag: "WholEarthRecords 1 of 2" },
-  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$2,570", tag: "WholEarthRecords 2 of 2" },
+  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$2,570", tag: "WholEarthRecords 2 of 2 · final project payment — ongoing monthly maintenance begins Oct 1" },
 ];
 
 // M7 — WholEarthRecords. New milestone appended after planC's M1-M6.
@@ -948,6 +960,15 @@ export const planA3: Plan = {
   heroTitle: "Artist Marketplace Platform + WholEarthRecords",
   heroSubtitle:
     "Plan A, delivered in full. GoDaddy is used for two things only — hosting the website and running the WooCommerce store. DTSP-AI builds everything else: the 3D interactive storefront and dashboards, the marketplace infrastructure, consent and e-sign, automated ingestion, AI listing enhancement, 80/20 split payouts, the SEO engine, and the agent layer. Addendum 3 completes the remaining marketplace scope, then adds WholEarthRecords — a Framer Motion-animated single-page music commerce and artist-promotion site that wraps the streaming platforms rather than rebuilding them. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 remaining build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins October 1, 2026.",
+  heroBullets: [
+    "Plan A, delivered in full — DTSP-AI builds the entire stack, frontend and backend.",
+    "GoDaddy is used for two things only: hosting the website and running the WooCommerce store.",
+    "DTSP-AI builds everything else — the 3D interactive storefront and dashboards, the marketplace infrastructure, consent and e-sign, automated ingestion, AI listing enhancement, 80/20 split payouts, the SEO engine, and the agent layer.",
+    "Addendum 3 completes the remaining marketplace scope, then adds WholEarthRecords — a Framer Motion-animated single-page music commerce and artist-promotion site that wraps the streaming platforms rather than rebuilding them.",
+    "$4,500 of the agreement is already paid and credited.",
+    "This addendum covers the $12,600 remaining build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks.",
+    "A $2,250 / month maintenance retainer begins October 1, 2026.",
+  ],
   meta: {
     ...planA.meta,
     date: "May 2026",
@@ -965,6 +986,19 @@ export const planA3: Plan = {
       "Full-stack Plan A delivery, frontend and backend: the remaining marketplace scope plus the WholEarthRecords music site. $4,500 already paid is credited toward the project. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Oct 1, 2026 (billed separately).",
     termsSummary:
       "including the full project scope — completion of the Artist Marketplace Platform (frontend and backend) and the build of the WholEarthRecords music commerce site. GoDaddy provides website hosting and the WooCommerce store engine only; DTSP-AI builds and delivers all other software under this agreement. The WholEarthRecords site is a Framer Motion-animated single-page commerce-and-promotion layer that embeds third-party music players (SoundCloud, Bandcamp, Spotify); audio hosting or streaming infrastructure, a custom player, a Three.js 3D engine build, social features, recommendation systems, a mobile app, and DRM are not included in the v1 build. Each is an optional future upgrade that can be added in a later phase at additional cost, quoted separately. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on June 1, 2026; $4,500 on July 1, 2026; $3,750 on August 1, 2026; and $2,570 on September 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins October 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
+    maintenance: {
+      headline: "$2,250 / month — begins October 1, 2026",
+      intro:
+        "After the final project payment ($2,570 on September 1, 2026), the platform moves to an ongoing monthly maintenance plan. It is month-to-month and billed separately from the $18,920 project total.",
+      covers: [
+        "Bug fixes and debugging",
+        "Testing and regression checks",
+        "Dependency and security updates",
+        "Routine monitoring, uptime checks, and upkeep",
+      ],
+      excluded:
+        "Maintenance does NOT include new features, new integrations, design changes, or any additional development. Each new piece of work is scoped, written up, and priced separately — and approved by you — before it begins.",
+    },
   },
   comparisonHeading: "DTSP-AI Builds the Platform. GoDaddy Just Hosts It.",
   comparisonColumnLabel: "GoDaddy",

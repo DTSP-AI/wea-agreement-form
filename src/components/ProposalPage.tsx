@@ -176,11 +176,22 @@ export default function ProposalPage({
 
       // ---------- Scope ----------
       writeWrapped("Scope", { size: 12, bold: true, spaceAfter: 6 });
-      writeWrapped(activePlan.heroSubtitle, {
-        size: 10,
-        color: [50, 50, 50],
-        spaceAfter: 12,
-      });
+      if (activePlan.heroBullets) {
+        activePlan.heroBullets.forEach((b) => {
+          writeWrapped("•  " + b, {
+            size: 10,
+            color: [50, 50, 50],
+            spaceAfter: 3,
+          });
+        });
+        y += 9;
+      } else {
+        writeWrapped(activePlan.heroSubtitle, {
+          size: 10,
+          color: [50, 50, 50],
+          spaceAfter: 12,
+        });
+      }
       hr();
 
       // ---------- Investment ----------
@@ -284,6 +295,28 @@ export default function ProposalPage({
         { size: 9, color: [70, 70, 70], spaceAfter: 12 }
       );
       hr();
+
+      // ---------- Maintenance & Support ----------
+      if (activePlan.meta.maintenance) {
+        const m = activePlan.meta.maintenance;
+        writeWrapped("Ongoing Maintenance & Support — " + m.headline, {
+          size: 11,
+          bold: true,
+          spaceAfter: 4,
+        });
+        writeWrapped(m.intro, { size: 9, color: [70, 70, 70], spaceAfter: 4 });
+        writeWrapped("Maintenance covers: " + m.covers.join("; ") + ".", {
+          size: 9,
+          color: [70, 70, 70],
+          spaceAfter: 4,
+        });
+        writeWrapped(m.excluded, {
+          size: 9,
+          color: [70, 70, 70],
+          spaceAfter: 12,
+        });
+        hr();
+      }
 
       // ---------- Signatures ----------
       ensureSpace(170);
