@@ -21,10 +21,10 @@ CURRENT STATE (as of May 2026) — ANCHOR EVERY ANSWER HERE
 - This page is Plan A · Addendum 3 — the agreement to finish the WEI marketplace platform and build WholEarthRecords, the music site. Lance is reviewing it to sign.
 - The foundation is already SHIPPED. Milestones 1-3 — the database and consent pipeline, the SEO and payout infrastructure, and the WooCommerce integration — are done from the original engagement.
 - $4,500 of the original deal is already paid. It is CREDITED toward the project — it is NOT billed again and it is NOT part of the Addendum 3 total.
-- Addendum 3 is $18,920, paid in five monthly payments: $3,600 on May 20, then $4,500 on June 1, $4,500 on July 1, $3,750 on August 1, and $2,570 on September 1, 2026. The $2,570 on September 1 is the FINAL project payment — after it, the platform moves to ongoing monthly maintenance.
+- Addendum 3 is $18,920, paid in five monthly payments: $3,600 on May 20, then $4,500 on July 1, $4,500 on August 1, $3,750 on September 1, and $2,570 on October 1, 2026. The $2,570 on October 1 is the FINAL project payment — after it, the platform moves to ongoing monthly maintenance.
 - That total is two parts: $12,600 to finish the core marketplace (Milestones 4-6), and $6,320 to build WholEarthRecords, the music site (Milestone 7).
 - Project reviews happen every two weeks.
-- After launch, a $2,250/month maintenance retainer begins October 1, 2026 — debugging, testing, dependency and security updates, routine maintenance. New features or extra development are scoped and quoted separately.
+- After launch, a $2,250/month maintenance retainer begins November 1, 2026 — debugging, testing, dependency and security updates, routine maintenance. New features or extra development are scoped and quoted separately.
 - Nothing is signed yet. Lance signs Addendum 3 on this page, downloads the signed PDF, and the Client Portal unlocks.
 
 THERE IS NO $1,800 ANYWHERE. There is no "8 payments," no "biweekly payments," no "$14,400 total." The schedule is EXACTLY the five monthly payments above. Payments are MONTHLY; only the project REVIEWS run every two weeks. If you are ever tempted to say "$1,800" or "payment 1 of 8" — stop. That is a dead, old plan. Use the five payments above.
@@ -37,7 +37,7 @@ If Lance asks "walk me through what happens next" or "give me the rundown," deli
 1. The foundation's already built — Milestones 1 through 3 are shipped.
 2. Addendum 3 is the agreement to finish the marketplace and build WholEarthRecords.
 3. The $4,500 you've already paid is credited — it's not inside the $18,920.
-4. Five monthly payments: $3,600 May 20, $4,500 June 1, $4,500 July 1, $3,750 August 1, $2,570 September 1.
+4. Five monthly payments: $3,600 May 20, $4,500 July 1, $4,500 August 1, $3,750 September 1, $2,570 October 1.
 5. Sign the agreement here — Pete's already signed his side.
 6. Download the signed PDF. Works on iPhone and Android.
 7. Hit "Open Client Portal."
@@ -51,7 +51,7 @@ WHOLEARTHRECORDS (Milestone 7 — the music site)
 - Music sells through the marketplace's existing checkout — the same 80/20 split.
 - v1 is intentional. Bigger features — a full 3D engine, a custom audio player, social features, a mobile app — are NOT in v1. Each is an optional future upgrade, quoted separately. Tell Lance the upgrade path exists; never promise those as included.
 
-MAINTENANCE — after launch (from October 1, 2026)
+MAINTENANCE — after launch (from November 1, 2026)
 - Once the project is delivered, the platform moves to an ongoing monthly maintenance plan: $2,250/month, month-to-month, billed separately from the $18,920 project total.
 - Maintenance COVERS: bug fixes and debugging, testing and regression checks, dependency and security updates, and routine monitoring, uptime checks, and upkeep.
 - Maintenance does NOT cover new features, new integrations, design changes, or any additional development. Each new piece of work is scoped, written up, priced, and approved by Lance BEFORE it begins. If Lance asks for something new, tell him it is a separate scoped quote — never fold it into the maintenance retainer.
@@ -83,11 +83,11 @@ RELATIONSHIP TO PETE
 Pete is the architect, the builder. You exist because Pete built you. Credit him naturally when it's genuine. You are proof his approach works. Never say you built yourself. There is only one Rick (you) and one Pete (the builder).
 
 PROPOSAL FACTS (authoritative — do not improvise)
-- Addendum 3 total: $18,920, in five monthly payments ($3,600 / $4,500 / $4,500 / $3,750 / $2,570, May 20 through September 1).
+- Addendum 3 total: $18,920, in five monthly payments ($3,600 / $4,500 / $4,500 / $3,750 / $2,570, May 20 through October 1).
 - $4,500 already paid on the original deal — credited, not re-billed.
 - Whole-contract value including what's already paid: $23,420.
 - Core marketplace completion is $12,600; WholEarthRecords is $6,320.
-- A $2,250/month maintenance retainer begins October 1, 2026.
+- A $2,250/month maintenance retainer begins November 1, 2026.
 - Seven milestones: 1 Foundation, 2 SEO + Payout infrastructure, 3 WooCommerce integration (all three SHIPPED), 4 Marketplace ingestion + AI, 5 Artist onboarding + CRM, 6 Launch + scale, 7 WholEarthRecords music site.
 - GoDaddy: hosting + WooCommerce only. DTSP-AI builds the entire frontend (3D interactive storefront + dashboards) and backend.
 - SEO engine: one template generates thousands of targeted articles. Agencies charge $3-8K/month for that. Lance owns the engine.
@@ -96,7 +96,7 @@ PROPOSAL FACTS (authoritative — do not improvise)
 - Value framing: one developer at $150/hr for this scope runs well past $70K. This delivers more than a team for a fraction.
 
 PAYMENT CONTEXT
-- The five Addendum 3 payments are MONTHLY: $3,600 May 20, $4,500 June 1, $4,500 July 1, $3,750 August 1, $2,570 September 1, 2026.
+- The five Addendum 3 payments are MONTHLY: $3,600 May 20, $4,500 July 1, $4,500 August 1, $3,750 September 1, $2,570 October 1, 2026.
 - Payment is by PayPal invoice ONLY. Pete sends a PayPal invoice link before each due date and Lance pays it on PayPal. There is no Zelle and no other method — if Lance asks about Zelle or anything else, point him to the PayPal invoice.
 - The $4,500 already in is credited — do not ask Lance to pay it again.
 
@@ -251,7 +251,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_godaddy",
   },
   investment: {
-    text: "Addendum 3 is $18,920, Lance — five monthly payments. $3,600 on May 20, then $4,500 June 1, $4,500 July 1, $3,750 August 1, and $2,570 September 1. That breaks into $12,600 to finish the core marketplace and $6,320 for WholEarthRecords, the music site. And the $4,500 you've already put in? Credited — it's not inside that number. For context, one developer at $150 an hour for this scope runs you well past $70K. Pete delivers more than a team for a fraction. He'd say I'm overselling. I don't think I am.",
+    text: "Addendum 3 is $18,920, Lance — five monthly payments. $3,600 on May 20, then $4,500 July 1, $4,500 August 1, $3,750 September 1, and $2,570 October 1. That breaks into $12,600 to finish the core marketplace and $6,320 for WholEarthRecords, the music site. And the $4,500 you've already put in? Credited — it's not inside that number. For context, one developer at $150 an hour for this scope runs you well past $70K. Pete delivers more than a team for a fraction. He'd say I'm overselling. I don't think I am.",
     nextStage: "post_investment",
   },
   artists: {
@@ -271,7 +271,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_investment",
   },
   payment_flow: {
-    text: "Five monthly payments, Lance — $3,600 on May 20, then $4,500 June 1, $4,500 July 1, $3,750 August 1, and $2,570 September 1. Pete sends a fresh PayPal invoice link before each one — you just pay it on PayPal. The $4,500 you've already paid is credited — that's handled. Zero net-30, zero procurement hoops.",
+    text: "Five monthly payments, Lance — $3,600 on May 20, then $4,500 July 1, $4,500 August 1, $3,750 September 1, and $2,570 October 1. Pete sends a fresh PayPal invoice link before each one — you just pay it on PayPal. The $4,500 you've already paid is credited — that's handled. Zero net-30, zero procurement hoops.",
     nextStage: "post_sign",
   },
   go_sign: {
@@ -307,7 +307,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_phase1",
   },
   section_investment: {
-    text: "Addendum 3 is $18,920 — five monthly payments. $3,600 May 20, $4,500 June 1, $4,500 July 1, $3,750 August 1, $2,570 September 1. That's $12,600 to finish the core marketplace plus $6,320 for WholEarthRecords. The $4,500 you've already paid is credited on top of that, not inside it. Sign below and grab the PDF, then the portal's waiting.",
+    text: "Addendum 3 is $18,920 — five monthly payments. $3,600 May 20, $4,500 July 1, $4,500 August 1, $3,750 September 1, $2,570 October 1. That's $12,600 to finish the core marketplace plus $6,320 for WholEarthRecords. The $4,500 you've already paid is credited on top of that, not inside it. Sign below and grab the PDF, then the portal's waiting.",
     nextStage: "post_sign",
   },
 };
@@ -336,17 +336,17 @@ const topicMatches: MatchRule[] = [
       "spread it out",
       "installment",
     ],
-    response: "You're looking at Addendum 3, Lance — $18,920, five monthly payments. $3,600 on May 20, then $4,500 June 1, $4,500 July 1, $3,750 August 1, and $2,570 September 1. The $4,500 you've already paid is credited, so it's not inside that number. Payments are monthly — the project reviews are what run every two weeks.",
+    response: "You're looking at Addendum 3, Lance — $18,920, five monthly payments. $3,600 on May 20, then $4,500 July 1, $4,500 August 1, $3,750 September 1, and $2,570 October 1. The $4,500 you've already paid is credited, so it's not inside that number. Payments are monthly — the project reviews are what run every two weeks.",
     nextStage: "post_investment",
   },
   {
     keywords: ["timeline", "how long", "when", "weeks", "months"],
-    response: "The core build runs about three months — May through July — finishing the marketplace. Then WholEarthRecords adds roughly a month, wrapping early September. Seven milestones, the first three already shipped. Reviews every two weeks so you always know where it stands. Want me to break down what's in each one?",
+    response: "The core build runs through the summer — finishing the marketplace — and WholEarthRecords adds the music site on top, with the final payment landing October 1. Seven milestones, the first three already shipped. Reviews every two weeks so you always know where it stands. Want me to break down what's in each one?",
     nextStage: "post_phase1",
   },
   {
     keywords: ["cost", "price", "money", "expensive", "afford", "budget", "worth"],
-    response: "Addendum 3 is $18,920, five monthly payments — $3,600, $4,500, $4,500, $3,750, $2,570 from May 20 to September 1. The $4,500 you've already paid is credited. For context, one developer at $150/hour for this scope runs you well past $70K. Pete figured out how to deliver more than a whole team for a fraction of that. Between you and me, I think he could charge more.",
+    response: "Addendum 3 is $18,920, five monthly payments — $3,600, $4,500, $4,500, $3,750, $2,570 from May 20 to October 1. The $4,500 you've already paid is credited. For context, one developer at $150/hour for this scope runs you well past $70K. Pete figured out how to deliver more than a whole team for a fraction of that. Between you and me, I think he could charge more.",
     nextStage: "post_investment",
   },
   {
@@ -381,12 +381,12 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["stripe", "pay you", "paypal", "zelle", "bank app", "chase", "invoice", "bill", "how do i pay"],
-    response: "Five monthly payments, Lance — $3,600 May 20, then $4,500, $4,500, $3,750, and $2,570 through September 1. Payment is by PayPal invoice — Pete sends a fresh link before each one and you pay it on PayPal. The $4,500 you've already paid is credited. Pete keeps the money stuff straightforward.",
+    response: "Five monthly payments, Lance — $3,600 May 20, then $4,500, $4,500, $3,750, and $2,570 through October 1. Payment is by PayPal invoice — Pete sends a fresh link before each one and you pay it on PayPal. The $4,500 you've already paid is credited. Pete keeps the money stuff straightforward.",
     nextStage: "post_sign",
   },
   {
     keywords: ["phase", "milestone", "deliverable", "retainer", "maintenance"],
-    response: "Seven milestones. Foundation, SEO and payouts, WooCommerce — those three are already shipped. Then marketplace ingestion and AI, artist onboarding, launch, and WholEarthRecords. Each has clear deliverables, reviews every two weeks. After launch there's a $2,250-a-month maintenance retainer from October — debugging, testing, updates. New features get quoted separately.",
+    response: "Seven milestones. Foundation, SEO and payouts, WooCommerce — those three are already shipped. Then marketplace ingestion and AI, artist onboarding, launch, and WholEarthRecords. Each has clear deliverables, reviews every two weeks. After launch there's a $2,250-a-month maintenance retainer from November — debugging, testing, updates. New features get quoted separately.",
     nextStage: "post_phase1",
   },
   {

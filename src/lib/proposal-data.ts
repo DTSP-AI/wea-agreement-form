@@ -869,10 +869,10 @@ export const planCA2: Plan = {
 // Badged as PLAN A: DTSP-AI delivers the entire stack, frontend and backend.
 //
 // Math:
-//   Core completion (remaining original scope, packed into 3 months):
-//     2026-05-20 $3,600 + 2026-06-01 $4,500 + 2026-07-01 $4,500 = $12,600
-//   WholEarthRecords music site (added scope, ~1 extra month):
-//     2026-08-01 $3,750 + 2026-09-01 $2,570 = $6,320
+//   Core completion (remaining original scope):
+//     2026-05-20 $3,600 + 2026-07-01 $4,500 + 2026-08-01 $4,500 = $12,600
+//   WholEarthRecords music site (added scope):
+//     2026-09-01 $3,750 + 2026-10-01 $2,570 = $6,320
 //   Addendum 3 new billing total: $12,600 + $6,320 = $18,920
 //   Whole-contract value (incl. $4,500 already paid): $23,420
 //
@@ -880,7 +880,7 @@ export const planCA2: Plan = {
 // every-2-weeks meeting cadence is unchanged from the prior agreement.
 //
 // Post-launch: a $2,250/month maintenance & support retainer begins
-// 2026-10-01 (debugging, testing, dependency/security updates, routine
+// 2026-11-01 (debugging, testing, dependency/security updates, routine
 // maintenance). New features / additional dev are scoped and quoted
 // separately. The retainer is recurring and is NOT part of totalValue.
 //
@@ -890,10 +890,10 @@ export const planCA2: Plan = {
 // window are restated. M7 (WholEarthRecords) is new.
 const planA3Schedule: ScheduledPayment[] = [
   { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$3,600", tag: "Core 1 of 3" },
-  { dateLabel: "Mon, Jun 01 2026", isoDate: "2026-06-01", amount: "$4,500", tag: "Core 2 of 3" },
-  { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 3 of 3" },
-  { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$3,750", tag: "WholEarthRecords 1 of 2" },
-  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$2,570", tag: "WholEarthRecords 2 of 2 · final project payment — ongoing monthly maintenance begins Oct 1" },
+  { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 2 of 3" },
+  { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$4,500", tag: "Core 3 of 3" },
+  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$3,750", tag: "WholEarthRecords 1 of 2" },
+  { dateLabel: "Thu, Oct 01 2026", isoDate: "2026-10-01", amount: "$2,570", tag: "WholEarthRecords 2 of 2 · final project payment — ongoing monthly maintenance begins Nov 1" },
 ];
 
 // M7 — WholEarthRecords. New milestone appended after planC's M1-M6.
@@ -959,7 +959,7 @@ export const planA3: Plan = {
   tagline: "Full-Stack Completion + WholEarthRecords Music Site",
   heroTitle: "Artist Marketplace Platform + WholEarthRecords",
   heroSubtitle:
-    "Plan A, delivered in full. GoDaddy is used for two things only — hosting the website and running the WooCommerce store. DTSP-AI builds everything else: the 3D interactive storefront and dashboards, the marketplace infrastructure, consent and e-sign, automated ingestion, AI listing enhancement, 80/20 split payouts, the SEO engine, and the agent layer. Addendum 3 completes the remaining marketplace scope, then adds WholEarthRecords — a Framer Motion-animated single-page music commerce and artist-promotion site that wraps the streaming platforms rather than rebuilding them. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 remaining build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins October 1, 2026.",
+    "Plan A, delivered in full. GoDaddy is used for two things only — hosting the website and running the WooCommerce store. DTSP-AI builds everything else: the 3D interactive storefront and dashboards, the marketplace infrastructure, consent and e-sign, automated ingestion, AI listing enhancement, 80/20 split payouts, the SEO engine, and the agent layer. Addendum 3 completes the remaining marketplace scope, then adds WholEarthRecords — a Framer Motion-animated single-page music commerce and artist-promotion site that wraps the streaming platforms rather than rebuilding them. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 remaining build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
   heroBullets: [
     "Plan A, delivered in full — DTSP-AI builds the entire stack, frontend and backend.",
     "GoDaddy is used for two things only: hosting the website and running the WooCommerce store.",
@@ -967,7 +967,7 @@ export const planA3: Plan = {
     "Addendum 3 completes the remaining marketplace scope, then adds WholEarthRecords — a Framer Motion-animated single-page music commerce and artist-promotion site that wraps the streaming platforms rather than rebuilding them.",
     "$4,500 of the agreement is already paid and credited.",
     "This addendum covers the $12,600 remaining build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks.",
-    "A $2,250 / month maintenance retainer begins October 1, 2026.",
+    "A $2,250 / month maintenance retainer begins November 1, 2026.",
   ],
   meta: {
     ...planA.meta,
@@ -980,17 +980,17 @@ export const planA3: Plan = {
     totalValue: "$18,920",
     paymentSchedule: planA3Schedule,
     conditionalBanner:
-      "Addendum 3 supersedes the prior agreement. $4,500 already paid is credited toward the project. Five payments — $3,600 (May 20), $4,500 (Jun 1), $4,500 (Jul 1), $3,750 (Aug 1), $2,570 (Sep 1) — total $18,920 and cover full-stack platform completion plus the WholEarthRecords music site. Project reviews continue every two weeks. A $2,250/month maintenance retainer begins October 1, 2026.",
+      "Addendum 3 supersedes the prior agreement. $4,500 already paid is credited toward the project. Five payments — $3,600 (May 20), $4,500 (Jul 1), $4,500 (Aug 1), $3,750 (Sep 1), $2,570 (Oct 1) — total $18,920 and cover full-stack platform completion plus the WholEarthRecords music site. Project reviews continue every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
     scheduleHeadline: "$12,600 build + $6,320 music site",
     scheduleCadenceLabel: "Monthly payments — 3 core build + 2 WholEarthRecords",
     scheduleFootnote:
-      "Full-stack Plan A delivery, frontend and backend: the remaining marketplace scope plus the WholEarthRecords music site. $4,500 already paid is credited toward the project. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Oct 1, 2026 (billed separately).",
+      "Full-stack Plan A delivery, frontend and backend: the remaining marketplace scope plus the WholEarthRecords music site. $4,500 already paid is credited toward the project. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Nov 1, 2026 (billed separately).",
     termsSummary:
-      "including the full project scope — completion of the Artist Marketplace Platform (frontend and backend) and the build of the WholEarthRecords music commerce site. GoDaddy provides website hosting and the WooCommerce store engine only; DTSP-AI builds and delivers all other software under this agreement. The WholEarthRecords site is a Framer Motion-animated single-page commerce-and-promotion layer that embeds third-party music players (SoundCloud, Bandcamp, Spotify); audio hosting or streaming infrastructure, a custom player, a Three.js 3D engine build, social features, recommendation systems, a mobile app, and DRM are not included in the v1 build. Each is an optional future upgrade that can be added in a later phase at additional cost, quoted separately. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on June 1, 2026; $4,500 on July 1, 2026; $3,750 on August 1, 2026; and $2,570 on September 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins October 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
+      "including the full project scope — completion of the Artist Marketplace Platform (frontend and backend) and the build of the WholEarthRecords music commerce site. GoDaddy provides website hosting and the WooCommerce store engine only; DTSP-AI builds and delivers all other software under this agreement. The WholEarthRecords site is a Framer Motion-animated single-page commerce-and-promotion layer that embeds third-party music players (SoundCloud, Bandcamp, Spotify); audio hosting or streaming infrastructure, a custom player, a Three.js 3D engine build, social features, recommendation systems, a mobile app, and DRM are not included in the v1 build. Each is an optional future upgrade that can be added in a later phase at additional cost, quoted separately. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on July 1, 2026; $4,500 on August 1, 2026; $3,750 on September 1, 2026; and $2,570 on October 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins November 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
     maintenance: {
-      headline: "$2,250 / month — begins October 1, 2026",
+      headline: "$2,250 / month — begins November 1, 2026",
       intro:
-        "After the final project payment ($2,570 on September 1, 2026), the platform moves to an ongoing monthly maintenance plan. It is month-to-month and billed separately from the $18,920 project total.",
+        "After the final project payment ($2,570 on October 1, 2026), the platform moves to an ongoing monthly maintenance plan. It is month-to-month and billed separately from the $18,920 project total.",
       covers: [
         "Bug fixes and debugging",
         "Testing and regression checks",
