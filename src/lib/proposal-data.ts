@@ -972,6 +972,7 @@ export const planA3: Plan = {
   meta: {
     ...planA.meta,
     date: "May 2026",
+    paypalInvoiceUrl: "https://www.paypal.com/invoice/p/#X3FCKZSDVMEZJSGV",
     projectTerm: "≈4-Month Build · Biweekly Reviews · 5 Monthly Payments",
     investmentAtSigning: "$3,600",
     perMilestone: "$2,570–$4,500",
