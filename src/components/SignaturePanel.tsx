@@ -51,7 +51,6 @@ export default function SignaturePanel({
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
   const activePointerIdRef = useRef<number | null>(null);
 
-  const [hasSignature, setHasSignature] = useState(false);
   const [formData, setFormData] = useState<SignatureData>({
     clientName: "",
     clientTitle: "",
@@ -59,6 +58,13 @@ export default function SignaturePanel({
     clientDate: "",
     agreedToTerms: false,
   });
+
+  // Whether the client has signed — DERIVED from formData, never a separate
+  // boolean. A standalone `hasSignature` state desynced from the actual
+  // captured signature: it flipped back to false while formData.clientSignature
+  // still held a valid signature, gating the form shut after the client signed.
+  // Single source of truth: formData.clientSignature.
+  const hasSignature = formData.clientSignature !== null;
 
   // Initialize date on client only (prevents SSR hydration mismatch)
   useEffect(() => {
@@ -281,7 +287,6 @@ export default function SignaturePanel({
       if (!hasMovedRef.current) return;
 
       const dataUrl = canvas.toDataURL("image/png");
-      setHasSignature(true);
       setFormData((prev) => ({ ...prev, clientSignature: dataUrl }));
     };
 
@@ -346,7 +351,6 @@ export default function SignaturePanel({
     // Clear in CSS-pixel space (the context is already DPR-scaled)
     ctx.clearRect(0, 0, rect.width, rect.height);
     restoredFromStorageRef.current = false;
-    setHasSignature(false);
     setFormData((prev) => ({ ...prev, clientSignature: null }));
   }, []);
 
