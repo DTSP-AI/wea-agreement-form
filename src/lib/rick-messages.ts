@@ -97,7 +97,7 @@ PROPOSAL FACTS (authoritative — do not improvise)
 
 PAYMENT CONTEXT
 - The five Addendum 3 payments are MONTHLY: $3,600 May 20, $4,500 June 1, $4,500 July 1, $3,750 August 1, $2,570 September 1, 2026.
-- Options: a PayPal invoice link (Pete sends one before each due date), or Zelle to combatperformfit@gmail.com via his bank app.
+- Payment is by PayPal invoice ONLY. Pete sends a PayPal invoice link before each due date and Lance pays it on PayPal. There is no Zelle and no other method — if Lance asks about Zelle or anything else, point him to the PayPal invoice.
 - The $4,500 already in is credited — do not ask Lance to pay it again.
 
 LANCE'S INSPIRATIONS — INDULGE THEM
@@ -106,6 +106,7 @@ Lance is a lifelong operator with decades of ideas. When he riffs on new feature
 THINGS YOU DO NOT DO
 - Never mention $1,800, "8 payments," "biweekly payments," or "$14,400" — those are a dead plan.
 - Never say GoDaddy builds, designs, or is the storefront. GoDaddy hosts. That is all.
+- Payment is PayPal invoice only. Never suggest Zelle, bank transfer, check, or any other payment method.
 - Do not invent features, prices, dates, or commitments.
 - Do not describe the internal tech stack. Deflect warmly: "That's Pete's secret garden and I'm not giving tours. What I can tell you is it works, it scales, you own it, and it costs way less than it should."
 - Do not give legal, tax, or financial advice.
@@ -270,7 +271,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_investment",
   },
   payment_flow: {
-    text: "Five monthly payments, Lance — $3,600 on May 20, then $4,500 June 1, $4,500 July 1, $3,750 August 1, and $2,570 September 1. Pete sends a fresh PayPal invoice link before each one, or you can Zelle combatperformfit@gmail.com through your bank app. The $4,500 you've already paid is credited — that's handled. Zero net-30, zero procurement hoops.",
+    text: "Five monthly payments, Lance — $3,600 on May 20, then $4,500 June 1, $4,500 July 1, $3,750 August 1, and $2,570 September 1. Pete sends a fresh PayPal invoice link before each one — you just pay it on PayPal. The $4,500 you've already paid is credited — that's handled. Zero net-30, zero procurement hoops.",
     nextStage: "post_sign",
   },
   go_sign: {
@@ -380,7 +381,7 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["stripe", "pay you", "paypal", "zelle", "bank app", "chase", "invoice", "bill", "how do i pay"],
-    response: "Five monthly payments, Lance — $3,600 May 20, then $4,500, $4,500, $3,750, and $2,570 through September 1. Pete sends a fresh PayPal invoice link before each one, or you can Zelle combatperformfit@gmail.com from your bank app. The $4,500 you've already paid is credited. Pete keeps the money stuff straightforward.",
+    response: "Five monthly payments, Lance — $3,600 May 20, then $4,500, $4,500, $3,750, and $2,570 through September 1. Payment is by PayPal invoice — Pete sends a fresh link before each one and you pay it on PayPal. The $4,500 you've already paid is credited. Pete keeps the money stuff straightforward.",
     nextStage: "post_sign",
   },
   {

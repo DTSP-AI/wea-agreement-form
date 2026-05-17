@@ -48,6 +48,8 @@ export default function PaymentPanel({
   const totalScheduled = proposalMeta.paymentSchedule?.length ?? 0;
   const remainingPayments =
     proposalMeta.paymentSchedule?.filter((p) => !p.paid).length ?? 0;
+  // Payments that follow AFTER the first one being paid on this screen.
+  const followingPayments = Math.max(0, remainingPayments - 1);
   const ptLower = proposalMeta.projectTerm.toLowerCase();
   const cadenceWord = ptLower.includes("monthly")
     ? "monthly"
@@ -71,7 +73,7 @@ export default function PaymentPanel({
         paidOn ? ` on ${paidOn}` : ""
       }. ${plan.name} is now active. Milestone 1 (Foundation) is underway. ${remainingPayments} ${cadenceWord} payment${remainingPayments === 1 ? "" : "s"} of ${proposalMeta.perMilestone} remain on the schedule below.`
     : isAddendum
-      ? `Pay the ${proposalMeta.investmentAtSigning} deposit via PayPal. ${remainingPayments} more ${cadenceWord} payment${remainingPayments === 1 ? "" : "s"} of ${proposalMeta.perMilestone} follow ${cadencePhrase}. Addendum terms are valid once the deposit clears.`
+      ? `Pay the ${proposalMeta.investmentAtSigning} first payment via PayPal. ${followingPayments} more ${cadenceWord} payment${followingPayments === 1 ? "" : "s"} of ${proposalMeta.perMilestone} follow ${cadencePhrase}. Addendum terms are valid once the first payment clears.`
       : `Pay your initial deposit via PayPal to lock in your project start date. Work begins the day payment is received. ${proposalMeta.milestoneCount} milestone payments of ${proposalMeta.perMilestone} follow every two weeks.`;
   const memoText = isAddendum
     ? `WEI Platform — ${plan.name}, Payment 1 of ${totalScheduled}`
