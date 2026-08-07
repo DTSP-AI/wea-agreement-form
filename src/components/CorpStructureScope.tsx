@@ -1,6 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import dynamic from "next/dynamic";
+
+const RickCorpChat = dynamic(() => import("@/components/RickCorpChat"), {
+  ssr: false,
+});
 
 // ============================================================================
 // /corp-structure-scope — WholEarth Founder Alignment review page
@@ -953,6 +958,8 @@ export default function CorpStructureScope() {
           short, paste it in. Your selections stay saved in this browser.
         </p>
       </section>
+
+      <RickCorpChat />
     </main>
   );
 }
