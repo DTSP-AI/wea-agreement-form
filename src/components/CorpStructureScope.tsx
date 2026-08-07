@@ -81,21 +81,6 @@ const INTAKE_FIELDS = [
     label: "Mailing address",
     placeholder: "Street, city, state, ZIP — used on filings",
   },
-  {
-    key: "titles",
-    label: "Title(s) you expect to hold",
-    placeholder: "Across Holdings / Industries / Records — e.g. CEO of Holdings",
-  },
-  {
-    key: "ownership",
-    label: "Expected ownership % of Holdings",
-    placeholder: "Your expectation — equity is an open question, this is your starting position",
-  },
-  {
-    key: "contribution",
-    label: "Capital contribution",
-    placeholder: "What you're contributing — cash, IP, services — and its approximate value",
-  },
 ] as const;
 
 type IntakeKey = (typeof INTAKE_FIELDS)[number]["key"];
@@ -106,9 +91,6 @@ const EMPTY_INTAKE: IntakeData = {
   email: "",
   phone: "",
   address: "",
-  titles: "",
-  ownership: "",
-  contribution: "",
 };
 
 // ---------------------------------------------------------------------------
@@ -876,7 +858,7 @@ export default function CorpStructureScope() {
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
             {INTAKE_FIELDS.map((f) => (
-              <label key={f.key} className={f.key === "address" || f.key === "contribution" ? "sm:col-span-2" : ""}>
+              <label key={f.key} className={f.key === "address" ? "sm:col-span-2" : ""}>
                 <span className="mb-1 block text-sm font-medium text-foreground/90">
                   {f.label}
                 </span>
