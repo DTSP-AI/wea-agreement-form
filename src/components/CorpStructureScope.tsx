@@ -19,7 +19,7 @@ import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 
 const RELAY_EMAIL = "dtspdigitalmedia@gmail.com";
 const STORAGE_KEY = "wea_corp_structure_scope_v1";
 
-type Stance = "aligned" | "discuss" | "change";
+type Stance = "aligned" | "discuss";
 
 interface SectionDef {
   id: string;
@@ -35,15 +35,13 @@ interface SectionResponse {
 }
 
 const STANCE_LABELS: Record<Stance, string> = {
-  aligned: "Aligned — approve as drafted",
-  discuss: "Discuss at founder meeting",
-  change: "Change requested",
+  aligned: "Approve as drafted",
+  discuss: "Needs discussion",
 };
 
 const STANCE_SHORT: Record<Stance, string> = {
-  aligned: "Aligned",
+  aligned: "Approved",
   discuss: "Discuss",
-  change: "Change requested",
 };
 
 const OPEN_QUESTION_TOPICS = [
@@ -58,6 +56,60 @@ const OPEN_QUESTION_TOPICS = [
 ];
 
 const RESPONDERS = ["Alanson", "Renée", "Pete"] as const;
+
+// Filing intake — the concrete data an attorney needs from each founder to
+// prepare and file the formation documents for the proposed structure
+// (WholEarth Holdings as parent; Industries and Records as subsidiaries).
+const INTAKE_FIELDS = [
+  {
+    key: "legalName",
+    label: "Full legal name",
+    placeholder: "Exactly as it should appear on the formation documents",
+  },
+  {
+    key: "email",
+    label: "Email",
+    placeholder: "Best email for attorney correspondence",
+  },
+  {
+    key: "phone",
+    label: "Phone",
+    placeholder: "Best number for time-sensitive filing questions",
+  },
+  {
+    key: "address",
+    label: "Mailing address",
+    placeholder: "Street, city, state, ZIP — used on filings",
+  },
+  {
+    key: "titles",
+    label: "Title(s) you expect to hold",
+    placeholder: "Across Holdings / Industries / Records — e.g. CEO of Holdings",
+  },
+  {
+    key: "ownership",
+    label: "Expected ownership % of Holdings",
+    placeholder: "Your expectation — equity is an open question, this is your starting position",
+  },
+  {
+    key: "contribution",
+    label: "Capital contribution",
+    placeholder: "What you're contributing — cash, IP, services — and its approximate value",
+  },
+] as const;
+
+type IntakeKey = (typeof INTAKE_FIELDS)[number]["key"];
+type IntakeData = Record<IntakeKey, string>;
+
+const EMPTY_INTAKE: IntakeData = {
+  legalName: "",
+  email: "",
+  phone: "",
+  address: "",
+  titles: "",
+  ownership: "",
+  contribution: "",
+};
 
 // ---------------------------------------------------------------------------
 // Small presentational helpers
@@ -476,6 +528,21 @@ interface SavedState {
   responses: Record<string, SectionResponse>;
   openQuestionFlags: Record<string, boolean>;
   openQuestionNote: string;
+  intake: IntakeData;
+}
+
+// Old saves may carry the retired "change" stance — fold it into "discuss"
+// so the intent (not approved) survives the move to binary choices.
+function sanitizeResponses(raw: unknown): Record<string, SectionResponse> {
+  if (!raw || typeof raw !== "object") return {};
+  const out: Record<string, SectionResponse> = {};
+  for (const [id, r] of Object.entries(raw as Record<string, Partial<SectionResponse>>)) {
+    if (!r || typeof r !== "object") continue;
+    const stance =
+      r.stance === "aligned" ? "aligned" : r.stance != null ? "discuss" : null;
+    out[id] = { stance, note: typeof r.note === "string" ? r.note : "" };
+  }
+  return out;
 }
 
 // Restore any in-progress review from this browser. Window-guarded so the
@@ -486,6 +553,7 @@ function loadSaved(): SavedState {
     responses: {},
     openQuestionFlags: {},
     openQuestionNote: "",
+    intake: { ...EMPTY_INTAKE },
   };
   if (typeof window === "undefined") return empty;
   try {
@@ -493,16 +561,22 @@ function loadSaved(): SavedState {
     if (!raw) return empty;
     const saved = JSON.parse(raw);
     if (!saved || typeof saved !== "object") return empty;
+    const intake = { ...EMPTY_INTAKE };
+    if (saved.intake && typeof saved.intake === "object") {
+      for (const f of INTAKE_FIELDS) {
+        if (typeof saved.intake[f.key] === "string") intake[f.key] = saved.intake[f.key];
+      }
+    }
     return {
       responder: typeof saved.responder === "string" ? saved.responder : "",
-      responses:
-        saved.responses && typeof saved.responses === "object" ? saved.responses : {},
+      responses: sanitizeResponses(saved.responses),
       openQuestionFlags:
         saved.openQuestionFlags && typeof saved.openQuestionFlags === "object"
           ? saved.openQuestionFlags
           : {},
       openQuestionNote:
         typeof saved.openQuestionNote === "string" ? saved.openQuestionNote : "",
+      intake,
     };
   } catch {
     return empty;
@@ -531,18 +605,19 @@ export default function CorpStructureScope() {
   const [openQuestionNote, setOpenQuestionNote] = useState(
     () => loadSaved().openQuestionNote,
   );
+  const [intake, setIntake] = useState<IntakeData>(() => loadSaved().intake);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     try {
       window.localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ responder, responses, openQuestionFlags, openQuestionNote }),
+        JSON.stringify({ responder, responses, openQuestionFlags, openQuestionNote, intake }),
       );
     } catch {
       // Storage full/blocked — selections still work for this visit.
     }
-  }, [responder, responses, openQuestionFlags, openQuestionNote]);
+  }, [responder, responses, openQuestionFlags, openQuestionNote, intake]);
 
   const setStance = useCallback((id: string, stance: Stance) => {
     setResponses((prev) => ({
@@ -572,6 +647,11 @@ export default function CorpStructureScope() {
     [openQuestionFlags],
   );
 
+  const intakeFilledCount = useMemo(
+    () => INTAKE_FIELDS.filter((f) => intake[f.key].trim()).length,
+    [intake],
+  );
+
   const buildSummary = useCallback(() => {
     const lines: string[] = [];
     lines.push("WholEarth Founder Alignment — Section Responses");
@@ -590,8 +670,13 @@ export default function CorpStructureScope() {
       flaggedTopics.length ? `   ${flaggedTopics.join(", ")}` : "   (none flagged)",
     );
     if (openQuestionNote.trim()) lines.push(`   Note: ${openQuestionNote.trim()}`);
+    lines.push("");
+    lines.push("13 Filing Intake:");
+    for (const f of INTAKE_FIELDS) {
+      lines.push(`   ${f.label}: ${intake[f.key].trim() || "(blank)"}`);
+    }
     return lines.join("\n");
-  }, [responder, responses, answeredCount, flaggedTopics, openQuestionNote]);
+  }, [responder, responses, answeredCount, flaggedTopics, openQuestionNote, intake]);
 
   const handleEmail = useCallback(() => {
     const subject = `Founder Alignment responses — ${responder || "unnamed responder"}`;
@@ -702,9 +787,7 @@ export default function CorpStructureScope() {
                         r?.stance === stance
                           ? stance === "aligned"
                             ? "border-accent bg-accent/15 text-accent"
-                            : stance === "discuss"
-                              ? "border-amber-500 bg-amber-500/15 text-amber-400"
-                              : "border-red-500 bg-red-500/15 text-red-400"
+                            : "border-amber-500 bg-amber-500/15 text-amber-400"
                           : "border-card-border bg-background text-foreground/75 hover:border-foreground/40"
                       }`}
                     >
@@ -712,7 +795,7 @@ export default function CorpStructureScope() {
                     </button>
                   ))}
                 </div>
-                {(r?.stance === "discuss" || r?.stance === "change" || r?.note) && (
+                {(r?.stance === "discuss" || r?.note) && (
                   <textarea
                     value={r?.note ?? ""}
                     onChange={(e) => setNote(section.id, e.target.value)}
@@ -771,17 +854,44 @@ export default function CorpStructureScope() {
           />
         </section>
 
-        {/* ------------------------------------------------ Recommendation */}
-        <section className="rounded-xl border border-accent/40 bg-accent/5 p-5 sm:p-6">
-          <h2 className="mb-2 text-xl font-semibold text-accent">One Recommendation</h2>
-          <p className="text-[15px] leading-relaxed text-foreground/85">
-            Write it like an internal operating manual for the three founders. Not a legal
-            document, and not a business plan. Attorneys use it as the source material for the
-            operating agreements — and new leaders read it later to understand not just what the
-            structure is, but why it was designed that way.{" "}
-            <strong className="text-foreground">30–50 pages, polished</strong> — given the
-            thought already put into the platform.
+        {/* ---------------------------------------------------- Filing intake */}
+        <section
+          id="filing-intake"
+          className="rounded-xl border border-accent/40 bg-accent/5 p-5 sm:p-6"
+        >
+          <div className="mb-4 flex items-baseline gap-3">
+            <span className="font-mono text-sm text-accent">13</span>
+            <div>
+              <h2 className="text-xl font-semibold">Filing Intake</h2>
+              <p className="text-sm text-muted">
+                What the attorney needs from you to prepare the formation documents
+              </p>
+            </div>
+          </div>
+          <p className="mb-5 text-[15px] leading-relaxed text-foreground/85">
+            This is the concrete information needed to file{" "}
+            <strong className="text-foreground">WholEarth Holdings</strong> and its
+            subsidiaries under the proposed structure. Fill in what you can — blanks are fine
+            and will be listed as open items.
           </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {INTAKE_FIELDS.map((f) => (
+              <label key={f.key} className={f.key === "address" || f.key === "contribution" ? "sm:col-span-2" : ""}>
+                <span className="mb-1 block text-sm font-medium text-foreground/90">
+                  {f.label}
+                </span>
+                <input
+                  type="text"
+                  value={intake[f.key]}
+                  onChange={(e) =>
+                    setIntake((prev) => ({ ...prev, [f.key]: e.target.value }))
+                  }
+                  placeholder={f.placeholder}
+                  className="w-full rounded-md border border-card-border bg-background p-3 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none"
+                />
+              </label>
+            ))}
+          </div>
         </section>
       </div>
 
@@ -807,9 +917,7 @@ export default function CorpStructureScope() {
                       ? "shrink-0 text-accent"
                       : r?.stance === "discuss"
                         ? "shrink-0 text-amber-400"
-                        : r?.stance === "change"
-                          ? "shrink-0 text-red-400"
-                          : "shrink-0 text-muted"
+                        : "shrink-0 text-muted"
                   }
                 >
                   {r?.stance ? STANCE_SHORT[r.stance] : "—"}
@@ -823,6 +931,20 @@ export default function CorpStructureScope() {
             </a>
             <span className={flaggedTopics.length ? "shrink-0 text-accent" : "shrink-0 text-muted"}>
               {flaggedTopics.length ? `${flaggedTopics.length} flagged` : "—"}
+            </span>
+          </li>
+          <li className="flex items-baseline justify-between gap-4 text-sm">
+            <a href="#filing-intake" className="text-foreground/80 hover:text-accent">
+              13 Filing Intake
+            </a>
+            <span
+              className={
+                intakeFilledCount ? "shrink-0 text-accent" : "shrink-0 text-muted"
+              }
+            >
+              {intakeFilledCount
+                ? `${intakeFilledCount} of ${INTAKE_FIELDS.length} filled`
+                : "—"}
             </span>
           </li>
         </ul>
