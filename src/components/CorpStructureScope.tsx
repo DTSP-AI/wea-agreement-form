@@ -199,10 +199,14 @@ const SECTIONS: SectionDef[] = [
     body: (
       <div className="space-y-4">
         <div className="flex flex-col items-center gap-2 rounded-lg border border-card-border bg-card-bg p-5">
-          <div className="rounded-md border border-accent/50 bg-accent/10 px-5 py-2 text-sm font-semibold text-accent">
-            WholEarth Holdings
+          <div className="flex flex-col items-center gap-1">
+            <div className="rounded-md border border-accent/50 bg-accent/10 px-5 py-2 text-sm font-semibold text-accent">
+              WholEarth Holdings
+            </div>
+            <p className="text-xs text-muted">Sole member: Alanson</p>
           </div>
           <div className="h-4 w-px bg-card-border" />
+          <p className="text-xs text-muted">majority interest in each LLC</p>
           <div className="flex flex-wrap justify-center gap-3">
             <div className="rounded-md border border-card-border bg-background px-5 py-2 text-sm font-medium">
               WholEarth Industries
@@ -211,6 +215,14 @@ const SECTIONS: SectionDef[] = [
               WholEarth Records
             </div>
           </div>
+        </div>
+        <div className="rounded-lg border border-accent/40 bg-accent/5 p-4">
+          <p className="mb-1 text-sm font-semibold text-accent">Ownership</p>
+          <p className="text-sm leading-relaxed text-foreground/85">
+            WholEarth Holdings has a single member: <strong className="text-foreground">Alanson</strong>.
+            No other founder holds an interest in Holdings. Holdings holds the majority
+            interest in every operating LLC — Industries, Records, and any future subsidiary.
+          </p>
         </div>
         <p className="text-sm font-semibold text-foreground/90">The chart has to explain:</p>
         <List
