@@ -209,13 +209,28 @@ const SECTIONS: SectionDef[] = [
           <p className="text-xs text-muted">majority interest in each LLC</p>
           <div className="flex flex-wrap justify-center gap-3">
             <div className="rounded-md border border-card-border bg-background px-5 py-2 text-sm font-medium">
-              WholEarth Industries
+              WholEarth Industries LLC
             </div>
             <div className="rounded-md border border-card-border bg-background px-5 py-2 text-sm font-medium">
-              WholEarth Records
+              WholEarth Records LLC
+            </div>
+            <div className="rounded-md border border-dashed border-card-border bg-background px-5 py-2 text-sm font-medium text-foreground/70">
+              Future Foundation
+            </div>
+            <div className="rounded-md border border-dashed border-card-border bg-background px-5 py-2 text-sm font-medium text-foreground/70">
+              Future Ventures
+            </div>
+            <div className="rounded-md border border-dashed border-card-border bg-background px-5 py-2 text-sm font-medium text-foreground/70">
+              Additional subsidiaries as needed
             </div>
           </div>
         </div>
+        <p className="text-sm leading-relaxed text-foreground/85">
+          The objective is a scalable holding-company structure that minimizes unnecessary
+          administrative overhead, recurring costs, and state tax exposure. Each subsidiary
+          keeps its own accounting, bank accounts, contracts, liabilities, and operations
+          while remaining wholly owned by the parent.
+        </p>
         <div className="rounded-lg border border-accent/40 bg-accent/5 p-4">
           <p className="mb-1 text-sm font-semibold text-accent">Ownership</p>
           <p className="text-sm leading-relaxed text-foreground/85">
@@ -224,6 +239,70 @@ const SECTIONS: SectionDef[] = [
             interest in every operating LLC — Industries, Records, and any future subsidiary.
           </p>
         </div>
+
+        <div className="rounded-lg border border-accent/40 bg-accent/5 p-4">
+          <p className="mb-1 text-sm font-semibold text-accent">
+            Filing jurisdiction — suggestion: Florida, all entities
+          </p>
+          <p className="text-sm leading-relaxed text-foreground/85">
+            The suggestion on the table is to form Holdings and every subsidiary in{" "}
+            <strong className="text-foreground">Florida</strong>, primarily for taxes: no
+            state personal income tax, low flat annual fees, light compliance, and a clean
+            single-state footprint for a business that operates nationally through
+            e-commerce and SaaS. This is a suggestion for attorney validation — not a done
+            deal.
+          </p>
+          <p className="mt-3 mb-1 text-sm font-semibold text-foreground/90">
+            Where the founders actually sit:
+          </p>
+          <ul className="space-y-1 text-sm text-foreground/85">
+            <li>Alanson — California</li>
+            <li>Renée — New York</li>
+            <li>Pete — Florida (technology; intentionally limited fiduciary and operational role)</li>
+          </ul>
+          <p className="mt-3 mb-1 text-sm font-semibold text-foreground/90">
+            Options on the table:
+          </p>
+          <ul className="space-y-1.5 text-sm leading-relaxed text-foreground/85">
+            <li>
+              <strong className="text-foreground">Florida (suggested)</strong> — best tax and
+              cost profile. Caveat: if operations are managed from California, California may
+              still require foreign qualification and its franchise tax regardless of where
+              the entities are formed.
+            </li>
+            <li>
+              <strong className="text-foreground">California</strong> — matches Alanson&apos;s
+              base and avoids foreign qualification there, but carries a minimum franchise
+              tax per LLC per year plus heavier ongoing compliance for every entity.
+            </li>
+            <li>
+              <strong className="text-foreground">New York</strong> — matches Renée&apos;s
+              base, but adds a one-time publication requirement per LLC and does not solve
+              the California question.
+            </li>
+            <li>
+              <strong className="text-foreground">Split formation</strong> — form each entity
+              where it operationally belongs. Maximum fit, maximum multi-state compliance
+              overhead.
+            </li>
+          </ul>
+          <p className="mt-3 mb-1 text-sm font-semibold text-foreground/90">
+            The analysis the attorney is asked to run:
+          </p>
+          <ul className="space-y-1 text-sm leading-relaxed text-foreground/85">
+            <li>Does a Florida Holdings meaningfully beat California on tax and admin?</li>
+            <li>Does California nexus force registrations anyway if managed from California?</li>
+            <li>Should Records be its own LLC or a DBA of another entity?</li>
+            <li>Total first-year and recurring compliance cost under each structure.</li>
+            <li>Holding LLC vs. Holding Corporation for tax, liability, governance, growth.</li>
+          </ul>
+          <p className="mt-3 text-sm text-muted">
+            No defaulting to Delaware or Wyoming because they&apos;re the conventional answer —
+            the recommendation must be justified by WholEarth&apos;s actual ownership,
+            management, footprint, and long-term goals.
+          </p>
+        </div>
+
         <p className="text-sm font-semibold text-foreground/90">The chart has to explain:</p>
         <List
           items={[
