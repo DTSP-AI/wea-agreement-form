@@ -426,7 +426,11 @@ export default function ProposalPage({
       doc.text("Peter W Davidsmeier", margin, sigTop + 55);
       doc.setTextColor(110, 110, 110);
       doc.text("Founder & Lead Architect", margin, sigTop + 68);
-      doc.text("Date: April 10, 2026", margin, sigTop + 82);
+      doc.text(
+        "Date: " + (activePlan.meta.providerSignedDate ?? "April 10, 2026"),
+        margin,
+        sigTop + 82
+      );
 
       // Client
       const clientX = margin + colW + 20;
@@ -641,7 +645,9 @@ export default function ProposalPage({
                 : isAddendum
                   ? "text-yellow-300 hover:text-yellow-200"
                   : "text-zinc-400 hover:text-white";
-              const badgeText = isLive ? "Live" : "Today";
+              // Addendum badge shows the agreement's ORIGINAL date — never
+              // "Today". The document is dated when it was drawn, period.
+              const badgeText = isLive ? "Live" : plans[id].meta.date;
               const badgeIdleBg = isLive
                 ? "bg-violet-500/25 text-violet-200"
                 : "bg-yellow-500/20 text-yellow-300";
@@ -661,10 +667,7 @@ export default function ProposalPage({
                     />
                   )}
                   <span className="relative flex items-center gap-1.5">
-                    {PLAN_TAB_LABELS[id]} —{" "}
-                    <span className={isActive ? "font-bold" : "font-normal"}>
-                      {plans[id].meta.totalValue}
-                    </span>
+                    {PLAN_TAB_LABELS[id]}
                     {(isAddendum || isLive) && (
                       <span
                         className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase ${

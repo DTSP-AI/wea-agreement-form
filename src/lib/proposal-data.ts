@@ -80,6 +80,9 @@ export interface ProposalMeta {
   /** Exact legal identity of the provider used in contract text and the
    *  signed PDF's Parties section. Defaults to "DTSP-AI Technologies". */
   providerLegalName?: string;
+  /** Date the provider pre-signed THIS plan. Defaults to the original
+   *  Plan C signing date ("April 10, 2026") for legacy plans. */
+  providerSignedDate?: string;
   /** Explicit balance reconciliation ledger — contract total, every
    *  payment/credit applied, remaining balance, and prior-plan amounts
    *  separately identified. INTERNAL: rendered only in the client portal
@@ -1172,6 +1175,9 @@ export const planA3: Plan = {
     date: "May 2026",
     preparedFor: "WholEarth-Commerce LLC d/b/a WholEarth Industries",
     providerLegalName: "DTSP-AI Technologies LLC",
+    // A3 was drawn/restructured 2026-05-16 — the provider signature is
+    // dated to THIS agreement, not the original Plan C signing.
+    providerSignedDate: "May 16, 2026",
     balanceLedger: planA3BalanceLedger,
     paymentStatusInternal: true,
     paypalInvoiceUrl: "https://www.paypal.com/invoice/p/#X3FCKZSDVMEZJSGV",
@@ -1181,8 +1187,10 @@ export const planA3: Plan = {
     milestoneCount: 5,
     totalValue: "$18,920",
     paymentSchedule: planA3Schedule,
-    conditionalBanner:
-      "Addendum 3 supersedes the prior agreement. $4,500 already paid is credited toward the project. Five payments — $3,600 (May 20), $4,500 (Jul 1), $4,500 (Aug 1), $3,750 (Sep 1), $2,570 (Oct 1) — total $18,920 and cover completion of the WholEarth Industries marketplace platform plus the WholEarth Records artist platform. Payment status and balance reconciliation are maintained in the client portal. Project reviews continue every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
+    // No conditionalBanner: A3 is the executed agreement of record — no
+    // urgency framing. Supersession, the $4,500 credit, and the retainer
+    // are stated in the schedule footnote and the signed terms.
+    conditionalBanner: undefined,
     scheduleHeadline: "$12,600 marketplace + $6,320 records platform",
     scheduleCadenceLabel: "Monthly payments — 3 marketplace + 2 WholEarthRecords",
     scheduleFootnote:

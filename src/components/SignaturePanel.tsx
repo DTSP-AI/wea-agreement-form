@@ -525,7 +525,7 @@ export default function SignaturePanel({
                   <label className="text-xs text-zinc-500">Date</label>
                   <div className="bg-[#0d0d0d] border border-[#262626] rounded-lg px-4 py-2.5 text-white text-sm flex items-center gap-2">
                     <Calendar className="w-3.5 h-3.5 text-zinc-500" />
-                    April 10, 2026
+                    {proposalMeta.providerSignedDate ?? "April 10, 2026"}
                   </div>
                 </div>
               </div>
@@ -648,7 +648,7 @@ export default function SignaturePanel({
                   )}
                 </div>
               </div>
-              <span className="text-sm text-zinc-300 leading-relaxed">
+              <span className="text-sm text-zinc-300 leading-loose">
                 I, the undersigned, agree to the terms of{" "}
                 <span className="text-green-400 font-semibold">
                   {plan.name} — {plan.tagline}

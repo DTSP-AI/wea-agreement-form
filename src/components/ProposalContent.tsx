@@ -84,7 +84,7 @@ function AskRickCTA({
 export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
   const { meta: proposalMeta, comparisonTable, phases } = plan;
   return (
-    <div className="max-w-4xl mx-auto px-6 pb-12 space-y-16" id="proposal-content">
+    <div className="max-w-4xl mx-auto px-6 pb-20 space-y-24" id="proposal-content">
       {/* Hero */}
       <Section id="hero" className="pt-8">
         <div className="text-center space-y-6">
@@ -95,11 +95,11 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
             {plan.heroTitle}
           </h1>
           {plan.heroBullets ? (
-            <ul className="max-w-2xl mx-auto space-y-2.5 text-left">
+            <ul className="max-w-2xl mx-auto space-y-4 text-left">
               {plan.heroBullets.map((b) => (
                 <li
                   key={b}
-                  className="flex items-start gap-2.5 text-[15px] text-zinc-400 leading-relaxed"
+                  className="flex items-start gap-3 text-base text-zinc-400 leading-relaxed"
                 >
                   <span className="mt-[7px] w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
                   <span>{b}</span>
@@ -243,13 +243,13 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b border-[#262626]">
-                  <th className="text-left py-3 px-4 text-xs uppercase tracking-wider text-zinc-500 font-medium">
+                  <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-zinc-500 font-medium">
                     Capability
                   </th>
-                  <th className="text-left py-3 px-4 text-xs uppercase tracking-wider text-zinc-500 font-medium">
+                  <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-zinc-500 font-medium">
                     {plan.comparisonColumnLabel}
                   </th>
-                  <th className="text-left py-3 px-4 text-xs uppercase tracking-wider text-green-600 font-medium">
+                  <th className="text-left py-4 px-4 text-xs uppercase tracking-wider text-green-600 font-medium">
                     DTSP-AI Layer
                   </th>
                 </tr>
@@ -260,10 +260,10 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                     key={row.capability}
                     className={`border-b border-[#1a1a1a] ${i % 2 === 0 ? "bg-[#111]" : ""}`}
                   >
-                    <td className="py-3 px-4 text-sm text-white font-medium">
+                    <td className="py-4 px-4 text-sm text-white font-medium">
                       {row.capability}
                     </td>
-                    <td className="py-3 px-4 text-sm">
+                    <td className="py-4 px-4 text-sm">
                       <span
                         className={`flex items-center gap-2 ${
                           row.godaddy.startsWith("No") || row.godaddy.startsWith("Locked") || row.godaddy.startsWith("Manual")
@@ -279,7 +279,7 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                         {row.godaddy}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm">
+                    <td className="py-4 px-4 text-sm">
                       <span className="flex items-center gap-2 text-green-400">
                         <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
                         {row.dtsp}
@@ -400,14 +400,14 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
       {/* Scope of Work — per-application sheets (replaces the phase grid when present) */}
       {plan.scopeSheets && (
         <Section id="scope">
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-green-900/30 flex items-center justify-center">
                 <CheckSquare className="w-5 h-5 text-green-400" />
               </div>
               <h2 className="text-2xl font-bold">Scope of Work</h2>
             </div>
-            <p className="text-zinc-400 leading-relaxed text-sm">
+            <p className="text-zinc-400 leading-relaxed text-base">
               Each application is scoped on its own sheet. Checked items are
               delivered. Unchecked items are the remaining work under this
               agreement. Anything not listed is out of scope and quoted
@@ -416,38 +416,38 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
             {plan.scopeSheets.map((sheet) => (
               <div
                 key={sheet.title}
-                className="bg-[#141414] border border-[#262626] rounded-xl p-6"
+                className="bg-[#141414] border border-[#262626] rounded-xl p-8"
               >
-                <h3 className="font-semibold text-white text-lg">
+                <h3 className="font-semibold text-white text-xl">
                   {sheet.title}
                 </h3>
                 {sheet.subtitle && (
-                  <p className="text-zinc-500 text-xs mt-1 mb-4 leading-relaxed">
+                  <p className="text-zinc-500 text-sm mt-2 mb-6 leading-relaxed">
                     {sheet.subtitle}
                   </p>
                 )}
-                <div className="text-green-400 text-[11px] font-bold uppercase tracking-wider mt-4 mb-2">
+                <div className="text-green-400 text-xs font-bold uppercase tracking-wider mt-6 mb-3">
                   Delivered
                 </div>
-                <ul className="space-y-1.5">
+                <ul className="space-y-3">
                   {sheet.done.map((item) => (
                     <li
                       key={item}
-                      className="flex items-start gap-2.5 text-sm text-zinc-300"
+                      className="flex items-start gap-3 text-sm text-zinc-300 leading-relaxed"
                     >
                       <CheckSquare className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                       {item}
                     </li>
                   ))}
                 </ul>
-                <div className="text-yellow-400 text-[11px] font-bold uppercase tracking-wider mt-5 mb-2">
+                <div className="text-yellow-400 text-xs font-bold uppercase tracking-wider mt-8 mb-3">
                   Remaining under this agreement
                 </div>
-                <ul className="space-y-1.5">
+                <ul className="space-y-3">
                   {sheet.remaining.map((item) => (
                     <li
                       key={item}
-                      className="flex items-start gap-2.5 text-sm text-zinc-400"
+                      className="flex items-start gap-3 text-sm text-zinc-400 leading-relaxed"
                     >
                       <Square className="w-4 h-4 text-zinc-600 mt-0.5 flex-shrink-0" />
                       {item}
@@ -455,8 +455,8 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                   ))}
                 </ul>
                 {sheet.boundary && (
-                  <div className="mt-5 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg p-3.5">
-                    <p className="text-zinc-400 text-xs leading-relaxed">
+                  <div className="mt-8 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg p-5">
+                    <p className="text-zinc-400 text-sm leading-relaxed">
                       {sheet.boundary}
                     </p>
                   </div>
@@ -483,7 +483,7 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
             <div className="bg-yellow-950/30 border border-yellow-600/50 rounded-xl p-4 mb-4">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 px-2 py-1 rounded bg-yellow-500 text-black text-[10px] font-bold tracking-wider uppercase flex-shrink-0">
-                  Today Only
+                  {proposalMeta.date}
                 </div>
                 <p className="text-yellow-100 text-sm leading-relaxed">
                   {proposalMeta.conditionalBanner}
@@ -551,14 +551,14 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                                 : ""
                           }`}
                         >
-                          <td className="px-4 py-2.5 text-zinc-400 font-mono text-xs">
+                          <td className="px-4 py-3.5 text-zinc-400 font-mono text-xs">
                             {i + 1}
                           </td>
-                          <td className="px-4 py-2.5 text-zinc-200 text-xs">
+                          <td className="px-4 py-3.5 text-zinc-200 text-xs">
                             {p.dateLabel}
                           </td>
                           <td
-                            className={`px-4 py-2.5 font-semibold text-xs ${
+                            className={`px-4 py-3.5 font-semibold text-xs ${
                               isPaid
                                 ? "text-green-300 line-through decoration-green-500/40"
                                 : isToday
@@ -568,7 +568,7 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                           >
                             {p.amount}
                           </td>
-                          <td className="px-4 py-2.5">
+                          <td className="px-4 py-3.5">
                             {isPaid ? (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-500 text-black text-[10px] font-bold uppercase tracking-wider">
                                 <CheckCircle className="w-3 h-3" />
@@ -757,18 +757,18 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
       {/* Fine print — Proprietary Architecture & Licensing */}
       {plan.finePrint && (
         <Section id="fine-print">
-          <div className="bg-[#101010] border border-[#262626] rounded-xl p-6">
-            <div className="flex items-center gap-2.5 mb-4">
+          <div className="bg-[#101010] border border-[#262626] rounded-xl p-8">
+            <div className="flex items-center gap-2.5 mb-6">
               <ScrollText className="w-4 h-4 text-zinc-500" />
               <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-zinc-400">
                 {plan.finePrint.title}
               </h2>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-5">
               {plan.finePrint.paragraphs.map((p) => (
                 <p
                   key={p.slice(0, 40)}
-                  className="text-zinc-500 text-[11px] leading-relaxed"
+                  className="text-zinc-400 text-xs leading-loose"
                 >
                   {p}
                 </p>
