@@ -77,6 +77,19 @@ export interface ProposalMeta {
     covers: string[];
     excluded: string;
   };
+  /** Exact legal identity of the provider used in contract text and the
+   *  signed PDF's Parties section. Defaults to "DTSP-AI Technologies". */
+  providerLegalName?: string;
+  /** Explicit balance reconciliation ledger — contract total, every
+   *  payment/credit applied, remaining balance, and prior-plan amounts
+   *  separately identified. INTERNAL: rendered only in the client portal
+   *  (behind login), never on the public proposal page or the signed PDF. */
+  balanceLedger?: LedgerRow[];
+  /** When true, payment status (PAID badges, credits, balances) is
+   *  internal-only: the public proposal page and signed PDF show the plain
+   *  contract schedule; status and the balance ledger render only in the
+   *  client portal. */
+  paymentStatusInternal?: boolean;
 }
 
 export interface ComparisonRow {
@@ -108,6 +121,19 @@ export interface ScopeSheet {
   done: string[];
   /** Line items still to deliver — rendered with unchecked boxes. */
   remaining: string[];
+  /** Explicit scope boundary — what this application owns and what it
+   *  explicitly does NOT own. Rendered as a distinct note on the sheet and
+   *  in the signed PDF so the two applications can never be conflated. */
+  boundary?: string;
+}
+
+export interface LedgerRow {
+  label: string;
+  value: string;
+  /** Secondary explanation line under the row. */
+  sub?: string;
+  /** Visually emphasized row (totals / remaining balance). */
+  emphasis?: boolean;
 }
 
 export interface Plan {
@@ -152,6 +178,12 @@ export interface Plan {
   hideSeoSection?: boolean;
   /** Hide the generic architecture diagram section. */
   hideArchitectureSection?: boolean;
+  /** Signature-section subheading generated per plan — never a hardcoded
+   *  project name. States exactly what scope the signer is accepting. */
+  signatureHeading?: string;
+  /** Version identifier for this plan's terms — embedded in the acceptance
+   *  record and the signed PDF footer alongside the document hash. */
+  termsVersion?: string;
 }
 
 const sharedMeta = {
@@ -927,7 +959,7 @@ const planA3Schedule: ScheduledPayment[] = [
   { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$3,600", tag: "Core 1 of 3", paid: true, paidOn: "Jun 1 2026 ($4,500 via Zelle)" },
   { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 2 of 3", paid: true, paidOn: "Jun 24 2026 (Zelle)" },
   { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$4,500", tag: "Core 3 of 3", paid: true, paidOn: "Jul 20 + Jul 27 2026 (2 × $2,250 Zelle)" },
-  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$3,750", tag: "WholEarthRecords 1 of 2 · $900 credit applied — $2,850 remaining due" },
+  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$3,750", tag: "WholEarthRecords 1 of 2" },
   { dateLabel: "Thu, Oct 01 2026", isoDate: "2026-10-01", amount: "$2,570", tag: "WholEarthRecords 2 of 2 · final project payment — ongoing monthly maintenance begins Nov 1" },
 ];
 
@@ -1023,6 +1055,8 @@ const planA3ScopeSheets: ScopeSheet[] = [
       "Maker imagery and affiliate attribution — real maker photography and referral tracking preserved through checkout",
       "Growth layer (activates at 4+ makers) — collab drops, email cadence from the notify-me list, community features sequenced by maker count",
     ],
+    boundary:
+      "Scope boundary — WholEarth Industries owns eco-commerce and the vendor-first professional community. The marketplace above is already built and live; nothing in this agreement re-sequences it behind WholEarth Records.",
   },
   {
     title: "WholEarthRecords — Artist Platform",
@@ -1054,20 +1088,65 @@ const planA3ScopeSheets: ScopeSheet[] = [
       "Public launch — open signup, stage ticketing, plan-tier quotas, automated storage lifecycle management",
       "Three.js experience expansion — continued 3D visual development (environments, interactive spaces, richer artist-page scenes), sequenced after the revenue lanes are live",
     ],
+    boundary:
+      "Scope boundary — WholEarth Records is music-only: music artists, releases, music videos, shows, merch, and fan support. It does not include general culture or non-music creators, vendor networking, or the Industries social platform. The revenue-first ordering applies only within the Records scope.",
   },
 ];
 
 // Fine print — architecture ownership carve-out and licensing frame.
+// Numbered clauses, exact legal identities, order-of-precedence close.
+// The signature checkbox incorporates this section by reference and never
+// independently summarizes ownership.
 const planA3FinePrint = {
   title: "Proprietary Architecture & Licensing",
   paragraphs: [
-    "Ownership of deliverables. Upon payment in full, Whole Earth Industries owns the application source code, content, and data delivered under this agreement for the WholEarth Industries marketplace platform and the WholEarthRecords artist platform.",
-    "Architecture carve-out. DTSP-AI Technologies (Peter W Davidsmeier) retains sole and exclusive ownership of its core proprietary architecture — including, without limitation, its agent-orchestration patterns, contract-first prompt systems, ontology and knowledge-graph designs, memory architectures, pipeline designs, build methodologies, internal tooling, and all generalized frameworks and know-how used to produce the deliverables. Nothing in this agreement transfers ownership of that architecture to Whole Earth Industries or to any of its subsidiaries, affiliates, brands, or successors (including WholEarthRecords).",
-    "Embedded-use license. Whole Earth Industries receives a perpetual, non-exclusive license to use DTSP-AI's proprietary architecture solely as embedded in the platforms delivered under this agreement. This license travels with the business and its subsidiaries; it does not permit extraction, resale, sublicensing, or reimplementation of the architecture outside the delivered platforms.",
-    "Separate licensing agreement. The parties may enter into a separate licensing agreement — standalone or as part of a broader business structure between them — governing any expanded, productized, or white-label use of DTSP-AI's proprietary architecture. Until such an agreement is executed, no rights beyond the embedded-use license above are granted.",
-    "Right to build. DTSP-AI retains the unrestricted right to use, reuse, extend, and license its proprietary architecture in current and future projects for any client or venture. Nothing in this agreement limits DTSP-AI's ability to build with its own architecture.",
+    "1. Ownership of deliverables. Upon payment in full, WholEarth-Commerce LLC d/b/a WholEarth Industries (“WholEarth”) owns the application source code, content, and data delivered under this agreement for the WholEarth Industries marketplace platform and the WholEarth Records artist platform.",
+    "2. Architecture carve-out. DTSP-AI Technologies LLC (“DTSP-AI”; Peter W Davidsmeier, Founder & Lead Architect) retains sole and exclusive ownership of its core proprietary architecture — including, without limitation, its agent-orchestration patterns, contract-first prompt systems, ontology and knowledge-graph designs, memory architectures, pipeline designs, build methodologies, internal tooling, and all generalized frameworks and know-how used to produce the deliverables. Nothing in this agreement transfers ownership of that architecture to WholEarth or to any of its subsidiaries, affiliates, brands, or successors (including WholEarth Records LLC).",
+    "3. Embedded-use license. WholEarth receives a perpetual, non-exclusive license to use DTSP-AI's proprietary architecture solely as embedded in the platforms delivered under this agreement. This license travels with the business and its subsidiaries; it does not permit extraction, resale, sublicensing, or reimplementation of the architecture outside the delivered platforms.",
+    "4. Separate licensing agreement. The parties may enter into a separate licensing agreement — standalone or as part of a broader business structure between them — governing any expanded, productized, or white-label use of DTSP-AI's proprietary architecture. Until such an agreement is executed, no rights beyond the embedded-use license above are granted.",
+    "5. Right to build. DTSP-AI retains the unrestricted right to use, reuse, extend, and license its proprietary architecture in current and future projects for any client or venture. Nothing in this agreement limits DTSP-AI's ability to build with its own architecture.",
+    "6. Order of precedence. If any other statement in this agreement — including the signature acknowledgment, scope summaries, or marketing copy — conflicts with this section, this section controls as to ownership and licensing.",
   ],
 };
+
+// Explicit balance reconciliation — contract total, every payment applied,
+// remaining balance, prior-plan amounts separately identified. The Jul 20 +
+// Jul 27 split is one $4,500 application (never counted twice).
+const planA3BalanceLedger: LedgerRow[] = [
+  { label: "Addendum 3 contract total", value: "$18,920", emphasis: true },
+  {
+    label: "Received & applied — Jun 1, 2026 (Zelle)",
+    value: "$4,500",
+    sub: "Covers the May 20 payment ($3,600); the $900 excess is carried as a credit",
+  },
+  {
+    label: "Received & applied — Jun 24, 2026 (Zelle)",
+    value: "$4,500",
+    sub: "Covers the Jul 1 payment in full",
+  },
+  {
+    label: "Received & applied — Jul 20 + Jul 27, 2026 (Zelle, 2 × $2,250)",
+    value: "$4,500",
+    sub: "The two transfers together cover the Aug 1 payment in full — applied once, never double-counted",
+  },
+  { label: "Total applied to Addendum 3", value: "$13,500", emphasis: true },
+  {
+    label: "Credit carried to the Sep 1 payment",
+    value: "$900",
+    sub: "$3,750 scheduled − $900 credit = $2,850 due Sep 1, 2026",
+  },
+  {
+    label: "Remaining Addendum 3 balance",
+    value: "$5,420",
+    sub: "$2,850 due Sep 1, 2026 · $2,570 due Oct 1, 2026",
+    emphasis: true,
+  },
+  {
+    label: "Prior agreement (superseded) — paid Apr 23 – May 13, 2026",
+    value: "$4,500",
+    sub: "Credited to the project as prior-plan value. NOT part of the $18,920 Addendum 3 total and not owed against it.",
+  },
+];
 
 export const planA3: Plan = {
   ...planA,
@@ -1091,6 +1170,10 @@ export const planA3: Plan = {
   meta: {
     ...planA.meta,
     date: "May 2026",
+    preparedFor: "WholEarth-Commerce LLC d/b/a WholEarth Industries",
+    providerLegalName: "DTSP-AI Technologies LLC",
+    balanceLedger: planA3BalanceLedger,
+    paymentStatusInternal: true,
     paypalInvoiceUrl: "https://www.paypal.com/invoice/p/#X3FCKZSDVMEZJSGV",
     projectTerm: "≈4-Month Build · Biweekly Reviews · 5 Monthly Payments",
     investmentAtSigning: "$3,600",
@@ -1099,13 +1182,13 @@ export const planA3: Plan = {
     totalValue: "$18,920",
     paymentSchedule: planA3Schedule,
     conditionalBanner:
-      "Addendum 3 supersedes the prior agreement. $4,500 already paid is credited toward the project. Five payments — $3,600 (May 20), $4,500 (Jul 1), $4,500 (Aug 1), $3,750 (Sep 1), $2,570 (Oct 1) — total $18,920 and cover completion of the WholEarth Industries marketplace platform plus the WholEarthRecords artist platform. All three core-build payments are received in full — $13,500 via Zelle through Jul 27, 2026 — with the $900 overpayment credited toward the Sep 1 payment ($2,850 remaining due Sep 1). Project reviews continue every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
+      "Addendum 3 supersedes the prior agreement. $4,500 already paid is credited toward the project. Five payments — $3,600 (May 20), $4,500 (Jul 1), $4,500 (Aug 1), $3,750 (Sep 1), $2,570 (Oct 1) — total $18,920 and cover completion of the WholEarth Industries marketplace platform plus the WholEarth Records artist platform. Payment status and balance reconciliation are maintained in the client portal. Project reviews continue every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
     scheduleHeadline: "$12,600 marketplace + $6,320 records platform",
     scheduleCadenceLabel: "Monthly payments — 3 marketplace + 2 WholEarthRecords",
     scheduleFootnote:
-      "Full-stack delivery, frontend and backend: the WholEarth Industries marketplace scope plus the WholEarthRecords artist platform. Each application's delivered and remaining work is listed in its own Scope of Work sheet above. $4,500 already paid under the prior agreement is credited toward the project. The three core-build payments ($12,600) are received in full — $13,500 via Zelle through Jul 27, 2026; the $900 overpayment is credited toward the Sep 1 payment, leaving $2,850 due Sep 1 and $2,570 due Oct 1. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Nov 1, 2026 (billed separately).",
+      "Full-stack delivery, frontend and backend: the WholEarth Industries marketplace scope plus the WholEarth Records artist platform. Each application's delivered and remaining work is listed in its own Scope of Work sheet above. $4,500 already paid under the prior agreement is credited toward the project. Payment status and the full balance reconciliation live in the client portal. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Nov 1, 2026 (billed separately).",
     termsSummary:
-      "including the full project scope — the WholEarth Industries marketplace platform (the Next.js storefront on the apex domain, the WordPress/WooCommerce store engine at store.wholearthindustries.com, the automated supplier catalog pipeline, on-site product pages, the makers layer, the partner vetting funnel, and the Rick AI copilot) and the WholEarthRecords artist platform (Three.js-powered artist pages, the AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, analytics, and the commerce layer, with the commerce lanes as the top build priority and further 3D experience work sequenced after revenue is live). The work of each application is enumerated in its own Scope of Work sheet in this agreement — checked items are delivered; unchecked items are the remaining work under this agreement, and anything not listed is out of scope and quoted separately. Whole Earth Industries owns the delivered application code, content, and data; DTSP-AI Technologies retains sole ownership of its core proprietary architecture, methods, and tooling under the Proprietary Architecture & Licensing terms of this agreement, which grant an embedded-use license and contemplate a separate licensing agreement for any broader use. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on July 1, 2026; $4,500 on August 1, 2026; $3,750 on September 1, 2026; and $2,570 on October 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins November 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
+      "including the full project scope — the WholEarth Industries marketplace platform (the Next.js storefront on the apex domain, the WordPress/WooCommerce store engine at store.wholearthindustries.com, the automated supplier catalog pipeline, on-site product pages, the makers layer, the partner vetting funnel, and the Rick AI copilot) and the WholEarth Records artist platform (Three.js-powered artist pages, the AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, analytics, and the commerce layer, with the commerce lanes as the top build priority within the Records scope). The work of each application is enumerated in its own Scope of Work sheet in this agreement, including each application's stated scope boundary — checked items are delivered; unchecked items are the remaining work under this agreement, and anything not listed is out of scope and quoted separately. Ownership and licensing of all deliverables and of DTSP-AI Technologies LLC's proprietary architecture are governed exclusively by the Proprietary Architecture & Licensing section of this agreement (clauses 1–6), which is incorporated by reference and controls over any other statement in this agreement. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on July 1, 2026; $4,500 on August 1, 2026; $3,750 on September 1, 2026; and $2,570 on October 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins November 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
     maintenance: {
       headline: "$2,250 / month — begins November 1, 2026",
       intro:
@@ -1123,7 +1206,7 @@ export const planA3: Plan = {
   comparisonHeading: "DTSP-AI Builds the Platforms. GoDaddy Just Hosts the Store.",
   comparisonColumnLabel: "GoDaddy",
   comparisonIntro:
-    "Whole Earth Industries is not buying a website — it is getting two platforms built. On the marketplace, the storefront lives on the apex domain, products flow in automatically from the supplier pipeline, and partners are vetted through an automated scoring funnel. On WholEarthRecords, artists get a full platform with an AI manager behind every page. DTSP-AI builds all of it, frontend and backend. GoDaddy's role is narrow and singular: it hosts the WooCommerce store at store.wholearthindustries.com. Nothing else.",
+    "WholEarth is not buying a website — it is getting two platforms built. On the marketplace, the storefront lives on the apex domain, products flow in automatically from the supplier pipeline, and partners are vetted through an automated scoring funnel. On WholEarthRecords, artists get a full platform with an AI manager behind every page. DTSP-AI builds all of it, frontend and backend. GoDaddy's role is narrow and singular: it hosts the WooCommerce store at store.wholearthindustries.com. Nothing else.",
   comparisonNote:
     "DTSP-AI builds and owns the entire frontend — the Next.js storefront on the apex domain, the makers and partner surfaces, and the WholEarthRecords artist platform on its own stack. Every line of delivered application code is WEI's. GoDaddy is the store host underneath, not the builder; swap the host later and nothing about the platforms changes.",
   frontendBuiltByDtsp: true,
@@ -1131,6 +1214,9 @@ export const planA3: Plan = {
   finePrint: planA3FinePrint,
   hideSeoSection: true,
   hideArchitectureSection: true,
+  signatureHeading:
+    "Scope Acceptance — Plan A Addendum 3: WholEarth Industries and WholEarth Records",
+  termsVersion: "A3-2026-08-18",
   comparisonTable: [
     { capability: "Next.js storefront (apex domain)", godaddy: "—", dtsp: "Built by DTSP-AI on Vercel — you own the code" },
     { capability: "On-site product pages", godaddy: "—", dtsp: "Built by DTSP-AI — gallery, pricing, structured data" },

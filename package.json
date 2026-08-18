@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "qa:a3": "node scripts/qa-a3.mjs"
   },
   "dependencies": {
     "@openai/agents": "^0.8.5",

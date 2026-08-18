@@ -454,6 +454,13 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                     </li>
                   ))}
                 </ul>
+                {sheet.boundary && (
+                  <div className="mt-5 bg-[#0d0d0d] border border-[#2a2a2a] rounded-lg p-3.5">
+                    <p className="text-zinc-400 text-xs leading-relaxed">
+                      {sheet.boundary}
+                    </p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -527,7 +534,11 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                   </thead>
                   <tbody>
                     {proposalMeta.paymentSchedule.map((p, i) => {
-                      const isPaid = p.paid === true;
+                      // Payment status is internal-only for some plans — the
+                      // public proposal shows the plain contract schedule;
+                      // PAID badges and balances live in the client portal.
+                      const isPaid =
+                        p.paid === true && !proposalMeta.paymentStatusInternal;
                       const isToday = !isPaid && p.tag === "Today";
                       return (
                         <tr

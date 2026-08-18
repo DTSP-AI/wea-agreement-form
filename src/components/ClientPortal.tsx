@@ -68,6 +68,15 @@ const RickChat = dynamic(() => import("@/components/RickChat"), {
   ssr: false,
 });
 
+// The portal's requirements/deliverables checklist (and everything derived
+// from it: XP bar, Due Next requirement, approval/acceptance queues) is
+// built from the superseded M1–M7 phase structure. Suppressed until the
+// Addendum 3 per-application Scope of Work version ships — a signed A3 and
+// a live M1–M7 checklist would be two contradictory client-facing
+// definitions of the work. Saved checklist state is preserved; flip this
+// flag when the A3 checklist is built.
+const LEGACY_CHECKLIST_VISIBLE = false;
+
 // ---------- Storage keys (bump versions if shapes change) -----------------
 
 // Bumped 8 → 9 on 2026-05-11 (round 2): pull upcoming requirements
@@ -1285,7 +1294,8 @@ export default function ClientPortal() {
             </div>
           </div>
 
-          {/* XP bar */}
+          {/* XP bar — derived from the legacy phase checklist */}
+          {LEGACY_CHECKLIST_VISIBLE && (
           <div className="mt-8 bg-[#0d0d0d] border border-[#262626] rounded-xl p-5">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-2">
@@ -1339,6 +1349,7 @@ export default function ClientPortal() {
               ))}
             </div>
           </div>
+          )}
 
           <div className="grid sm:grid-cols-3 gap-4 mt-6">
             <StatCard
@@ -1371,7 +1382,7 @@ export default function ClientPortal() {
             + next open requirement) are visible above the fold without
             scrolling through every section. Hidden once everything is
             cleared so the portal doesn't look stuck on an empty state. */}
-        {(nextPayment || nextOpenRequirement) && (
+        {(nextPayment || (LEGACY_CHECKLIST_VISIBLE && nextOpenRequirement)) && (
           <motion.section
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1403,7 +1414,7 @@ export default function ClientPortal() {
                   )}
                 </div>
               )}
-              {nextOpenRequirement && (
+              {LEGACY_CHECKLIST_VISIBLE && nextOpenRequirement && (
                 <div className="bg-[#0a0a0a] border border-green-900/40 rounded-xl p-4 flex flex-col">
                   <div className="text-[10px] uppercase tracking-[0.2em] text-green-400 font-semibold mb-1">
                     Action Required
@@ -1428,8 +1439,72 @@ export default function ClientPortal() {
           </motion.section>
         )}
 
+        {/* Balance reconciliation — internal/portal-only. The public
+            proposal shows the plain contract schedule; the full payment
+            status, credits, and remaining balance live here for Pete to
+            walk through with Lance. */}
+        {plan.meta.balanceLedger && (
+          <motion.section
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="bg-[#0d0d0d] border border-[#262626] rounded-2xl p-6"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <div className="text-[10px] uppercase tracking-[0.25em] text-green-300 font-bold">
+                Balance Reconciliation
+              </div>
+              <div className="h-px flex-1 bg-[#262626]" />
+            </div>
+            <p className="text-xs text-zinc-500 mb-4">
+              Payment status for {plan.name}. Every received payment, what it
+              covers, and the remaining balance — prior-plan amounts are
+              identified separately and never mixed into this addendum&apos;s
+              total.
+            </p>
+            <div className="space-y-2">
+              {plan.meta.balanceLedger.map((row) => (
+                <div
+                  key={row.label}
+                  className={`flex items-start justify-between gap-4 rounded-lg px-4 py-2.5 border ${
+                    row.emphasis
+                      ? "bg-green-950/25 border-green-800/40"
+                      : "bg-[#0a0a0a] border-[#1f1f1f]"
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <div
+                      className={`text-sm ${
+                        row.emphasis
+                          ? "text-green-200 font-semibold"
+                          : "text-zinc-300"
+                      }`}
+                    >
+                      {row.label}
+                    </div>
+                    {row.sub && (
+                      <div className="text-xs text-zinc-500 mt-0.5">
+                        {row.sub}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className={`text-sm font-mono flex-shrink-0 ${
+                      row.emphasis
+                        ? "text-green-300 font-bold"
+                        : "text-zinc-300"
+                    }`}
+                  >
+                    {row.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
         {/* Admin: pending approvals queue */}
-        {isAdmin && pendingApprovals.length > 0 && (
+        {LEGACY_CHECKLIST_VISIBLE && isAdmin && pendingApprovals.length > 0 && (
           <section className="bg-yellow-950/30 border border-yellow-600/50 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-3">
               <AlertCircle className="w-5 h-5 text-yellow-300" />
@@ -1492,7 +1567,7 @@ export default function ClientPortal() {
 
         {/* Pending acceptance queue — shown to both roles. Client reviews
             his own deliverables; admin can sign off on Lance's behalf. */}
-        {pendingAcceptance.length > 0 && (
+        {LEGACY_CHECKLIST_VISIBLE && pendingAcceptance.length > 0 && (
           <section className="bg-green-950/30 border border-green-600/50 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-3">
               <Truck className="w-5 h-5 text-green-300" />
@@ -1628,7 +1703,34 @@ export default function ClientPortal() {
           </div>
         </section>
 
-        {/* Section gates (7 sections derived from the 6 phases) */}
+        {/* Section gates (7 sections derived from the 6 phases) —
+            suppressed until the Addendum 3 checklist ships. */}
+        {!LEGACY_CHECKLIST_VISIBLE && (
+          <section>
+            <SectionHeader
+              icon={<Trophy className="w-5 h-5 text-yellow-300" />}
+              title="Scope of Work"
+              subtitle="The authoritative statement of delivered and remaining work."
+            />
+            <div className="bg-[#141414] border border-[#262626] rounded-xl p-6">
+              <p className="text-sm text-zinc-300 leading-relaxed">
+                The project checklist is being rebuilt to match Addendum 3
+                — one sheet per application, WholEarth Industries and
+                WholEarth Records. Until it ships, the signed agreement&apos;s
+                Scope of Work sheets are the single source of truth for what
+                is delivered and what remains.
+              </p>
+              <a
+                href="/plan_a_addendum_3#scope"
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-sm font-semibold transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                Open the Scope of Work sheets
+              </a>
+            </div>
+          </section>
+        )}
+        {LEGACY_CHECKLIST_VISIBLE && (
         <section>
           <SectionHeader
             icon={<Trophy className="w-5 h-5 text-yellow-300" />}
@@ -1665,6 +1767,7 @@ export default function ClientPortal() {
             })}
           </div>
         </section>
+        )}
 
         {/* Drive folders */}
         <section>

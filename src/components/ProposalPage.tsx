@@ -20,6 +20,12 @@ interface SignedData {
   clientSignature: string | null;
   clientDate: string;
   agreedToTerms: boolean;
+  planId?: string;
+  planName?: string;
+  termsVersion?: string;
+  docHash?: string;
+  signedAtIso?: string;
+  representedEntity?: string;
 }
 
 const PLAN_ORDER: PlanId[] = ["A", "AA", "B", "C", "CA", "CA2", "A3"];
@@ -161,7 +167,9 @@ export default function ProposalPage({
       // ---------- Parties ----------
       writeWrapped("Parties", { size: 12, bold: true, spaceAfter: 6 });
       writeWrapped(
-        "Provider: DTSP-AI Technologies (Peter W Davidsmeier, Founder & Lead Architect)",
+        "Provider: " +
+          (activePlan.meta.providerLegalName ?? "DTSP-AI Technologies") +
+          " (Peter W Davidsmeier, Founder & Lead Architect)",
         { size: 10, color: [50, 50, 50], spaceAfter: 2 }
       );
       writeWrapped(
@@ -230,7 +238,7 @@ export default function ProposalPage({
           doc.text(String(i + 1), margin, y);
           doc.text(p.dateLabel, margin + 24, y);
           doc.text(p.amount, margin + 200, y);
-          if (p.paid) {
+          if (p.paid && !activePlan.meta.paymentStatusInternal) {
             doc.setTextColor(21, 128, 61);
             doc.setFont("helvetica", "bold");
             doc.text(
@@ -306,6 +314,14 @@ export default function ProposalPage({
               spaceAfter: 1,
             });
           });
+          if (sheet.boundary) {
+            y += 4;
+            writeWrapped(sheet.boundary, {
+              size: 8.5,
+              color: [100, 100, 100],
+              spaceAfter: 2,
+            });
+          }
           y += 10;
         });
       } else {
@@ -385,7 +401,10 @@ export default function ProposalPage({
 
       // ---------- Signatures ----------
       ensureSpace(170);
-      writeWrapped("Signatures", { size: 12, bold: true, spaceAfter: 10 });
+      writeWrapped(
+        activePlan.signatureHeading ?? "Signatures",
+        { size: 12, bold: true, spaceAfter: 10 }
+      );
 
       const colW = contentW / 2 - 10;
       const sigTop = y;
@@ -483,13 +502,35 @@ export default function ProposalPage({
       doc.setFontSize(8);
       doc.setTextColor(140, 140, 140);
       doc.text(
-        "Confidential — DTSP-AI Technologies · " +
+        "Confidential — " +
+          (activePlan.meta.providerLegalName ?? "DTSP-AI Technologies") +
+          " · " +
           activePlan.meta.date +
           " · " +
           activePlan.meta.contact,
         margin,
         y
       );
+      // Acceptance-record provenance line — ties this PDF to the exact
+      // document version the signer accepted.
+      y += 12;
+      ensureSpace(12);
+      doc.setFontSize(7);
+      doc.setTextColor(160, 160, 160);
+      const provenance = [
+        "Plan: plan_" + activePlan.id.toLowerCase(),
+        activePlan.termsVersion ? "Terms: " + activePlan.termsVersion : null,
+        sig?.signedAtIso ? "Signed: " + sig.signedAtIso : null,
+        sig?.docHash ? "Document SHA-256: " + sig.docHash : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      const provLines = doc.splitTextToSize(provenance, contentW);
+      for (const line of provLines) {
+        ensureSpace(9);
+        doc.text(line, margin, y);
+        y += 9;
+      }
 
       // ---------- Save ----------
       // iOS Safari quirk: `<a download>` with a blob URL sometimes opens

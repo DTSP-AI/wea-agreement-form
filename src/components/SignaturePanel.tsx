@@ -11,6 +11,13 @@ interface SignatureData {
   clientSignature: string | null;
   clientDate: string;
   agreedToTerms: boolean;
+  // Acceptance-record fields — stamped at submit, never user-editable.
+  planId?: string;
+  planName?: string;
+  termsVersion?: string;
+  docHash?: string;
+  signedAtIso?: string;
+  representedEntity?: string;
 }
 
 interface SignaturePanelProps {
@@ -19,6 +26,35 @@ interface SignaturePanelProps {
 }
 
 const STORAGE_KEY = "wea-signature-data";
+const ACCEPTANCE_KEY = "wea-acceptance-record";
+
+/** Canonical serialization of everything the signer was shown — hashed so
+ *  the signed PDF and the acceptance record are tied to this exact document
+ *  version. Any change to scope, terms, fine print, or the payment schedule
+ *  produces a different hash. */
+function canonicalDocument(plan: Plan): string {
+  return JSON.stringify({
+    planId: plan.id,
+    planName: plan.name,
+    termsVersion: plan.termsVersion ?? null,
+    heroBullets: plan.heroBullets ?? null,
+    scopeSheets: plan.scopeSheets ?? null,
+    finePrint: plan.finePrint ?? null,
+    termsSummary: plan.meta.termsSummary ?? null,
+    paymentSchedule: plan.meta.paymentSchedule ?? null,
+    totalValue: plan.meta.totalValue,
+    preparedFor: plan.meta.preparedFor,
+    providerLegalName: plan.meta.providerLegalName ?? null,
+  });
+}
+
+async function sha256Hex(text: string): Promise<string> {
+  const data = new TextEncoder().encode(text);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 // Safe localStorage helpers — Safari Private Mode + quota throws.
 function safeGetItem(key: string): string | null {
@@ -359,6 +395,54 @@ export default function SignaturePanel({
     hasSignature &&
     formData.agreedToTerms;
 
+  // Idempotency guard — a double-click must never emit two acceptance
+  // records or fire onSignatureComplete twice.
+  const submittedRef = useRef(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = useCallback(async () => {
+    if (!isComplete || submittedRef.current) return;
+    submittedRef.current = true;
+    setSubmitting(true);
+    try {
+      const docText = canonicalDocument(plan);
+      const docHash = await sha256Hex(docText);
+      const record: SignatureData = {
+        ...formData,
+        planId: plan.id,
+        planName: plan.name,
+        termsVersion: plan.termsVersion,
+        docHash,
+        signedAtIso: new Date().toISOString(),
+        representedEntity: plan.meta.preparedFor,
+      };
+      // Freeze the full acceptance record: who signed, what entity they
+      // represent, the exact terms presented (canonical document), the
+      // hash, and the timestamp. Survives refresh; the PDF is the
+      // client-retained copy per E-SIGN retainability.
+      safeSetItem(
+        `${ACCEPTANCE_KEY}-${plan.id}`,
+        JSON.stringify({ ...record, canonicalDocument: docText })
+      );
+      onSignatureComplete(record);
+    } catch {
+      // Hashing failed (ancient browser without WebCrypto) — the signature
+      // itself must still go through; record carries no hash.
+      const record: SignatureData = {
+        ...formData,
+        planId: plan.id,
+        planName: plan.name,
+        termsVersion: plan.termsVersion,
+        signedAtIso: new Date().toISOString(),
+        representedEntity: plan.meta.preparedFor,
+      };
+      safeSetItem(`${ACCEPTANCE_KEY}-${plan.id}`, JSON.stringify(record));
+      onSignatureComplete(record);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [isComplete, formData, plan, onSignatureComplete]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -375,8 +459,8 @@ export default function SignaturePanel({
             Agreement & Signatures
           </h2>
           <p className="text-zinc-400 text-sm mt-2">
-            Both parties sign below to authorize the commencement of the Artist
-            Marketplace Platform project.
+            {plan.signatureHeading ??
+              `Both parties sign below to accept the scope and terms of ${plan.name} — ${plan.tagline}.`}
           </p>
           <div className="mt-4 grid sm:grid-cols-4 gap-2">
             {[
@@ -607,12 +691,15 @@ export default function SignaturePanel({
                 payment and that{" "}
                 {plan.finePrint ? (
                   <>
-                    ownership of the deliverables and of DTSP-AI&apos;s
-                    proprietary architecture is governed by the{" "}
-                    {plan.finePrint.title + " "}terms of this agreement — the
-                    delivered application code, content, and data belong to
-                    Whole Earth Industries upon payment; the core proprietary
-                    architecture remains DTSP-AI&apos;s.
+                    ownership and licensing of all deliverables and of DTSP-AI
+                    Technologies LLC&apos;s proprietary architecture are
+                    governed exclusively by the{" "}
+                    {plan.finePrint.title + " "}section of this agreement
+                    (clauses 1–6: ownership of deliverables; architecture
+                    carve-out; embedded-use license; separate licensing
+                    agreement; right to build; order of precedence), which is
+                    incorporated by reference and controls over any
+                    conflicting statement in this agreement.
                   </>
                 ) : (
                   <>
@@ -628,8 +715,8 @@ export default function SignaturePanel({
           <div className="mt-6 flex justify-end">
             <button
               type="button"
-              onClick={() => isComplete && onSignatureComplete(formData)}
-              disabled={!isComplete}
+              onClick={handleSubmit}
+              disabled={!isComplete || submitting}
               className={`px-8 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 cursor-pointer ${
                 isComplete
                   ? "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/30"

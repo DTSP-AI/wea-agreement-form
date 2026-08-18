@@ -128,7 +128,7 @@ export interface RickMessage {
 export const rickOpening: RickMessage[] = [
   {
     id: "open-1",
-    text: "Hey Lance — Rick here. Pete built me to walk you through this. This is Addendum 3 — the agreement to finish the platform and build WholEarthRecords, your music site. The foundation's already shipped, and the $4,500 you've already put in is credited toward the project. Give it a read, and when you're ready, sign below, grab the PDF, and the portal opens up. Any questions, just ask, man.",
+    text: "Hey Lance — Rick here. Pete built me to walk you through this. This is Addendum 3 — the agreement to finish the WholEarth Industries marketplace and build the WholEarth Records artist platform. The foundation's already shipped, and the $4,500 you've already put in is credited toward the project. Give it a read, and when you're ready, sign below, grab the PDF, and the portal opens up. Any questions, just ask, man.",
     delay: 800,
   },
 ];
