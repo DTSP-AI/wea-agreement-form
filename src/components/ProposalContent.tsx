@@ -112,12 +112,22 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
             </p>
           )}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto pt-4">
-            {[
-              { label: "Prepared For", value: proposalMeta.preparedFor },
-              { label: "Project Term", value: proposalMeta.projectTerm },
-              { label: "At Signing", value: proposalMeta.investmentAtSigning },
-              { label: "Total Value", value: proposalMeta.totalValue },
-            ].map((item) => (
+            {(proposalMeta.paymentStatusInternal
+              ? // No dollar figures in the hero — money lives in the
+                // Investment section and the portal ledger only.
+                [
+                  { label: "Prepared For", value: proposalMeta.preparedFor },
+                  { label: "Prepared By", value: proposalMeta.preparedBy },
+                  { label: "Project Term", value: proposalMeta.projectTerm },
+                  { label: "Agreement Date", value: proposalMeta.date },
+                ]
+              : [
+                  { label: "Prepared For", value: proposalMeta.preparedFor },
+                  { label: "Project Term", value: proposalMeta.projectTerm },
+                  { label: "At Signing", value: proposalMeta.investmentAtSigning },
+                  { label: "Total Value", value: proposalMeta.totalValue },
+                ]
+            ).map((item) => (
               <div
                 key={item.label}
                 className="bg-[#141414] border border-[#262626] rounded-xl p-4"
