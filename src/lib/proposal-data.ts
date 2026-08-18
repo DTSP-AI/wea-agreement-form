@@ -99,6 +99,17 @@ export interface Phase {
   milestone: string;
 }
 
+export interface ScopeSheet {
+  /** Application name, e.g. "WholEarth Industries — Marketplace Platform". */
+  title: string;
+  /** One-line stack/topology descriptor under the title. */
+  subtitle?: string;
+  /** Line items delivered — rendered with checked boxes. */
+  done: string[];
+  /** Line items still to deliver — rendered with unchecked boxes. */
+  remaining: string[];
+}
+
 export interface Plan {
   id: PlanId;
   name: string;
@@ -124,6 +135,23 @@ export interface Plan {
   /** When true, the architecture diagram's top node renders the storefront
    *  as a DTSP-AI build (GoDaddy shown as host only), not a GoDaddy storefront. */
   frontendBuiltByDtsp?: boolean;
+  /** Optional per-application scope-of-work sheets. When present, the
+   *  proposal page and the signed PDF render these (one card per
+   *  application, done items checked / remaining items unchecked) INSTEAD
+   *  of the milestone phase grid. `phases` stays as data for the client
+   *  portal checklist. */
+  scopeSheets?: ScopeSheet[];
+  /** Optional fine-print legal section rendered above the signature panel
+   *  and written into the signed PDF. */
+  finePrint?: {
+    title: string;
+    paragraphs: string[];
+  };
+  /** Hide the generic SEO Engine section (plans whose scope sheets already
+   *  state the real search/AEO work). */
+  hideSeoSection?: boolean;
+  /** Hide the generic architecture diagram section. */
+  hideArchitectureSection?: boolean;
 }
 
 const sharedMeta = {
@@ -888,11 +916,18 @@ export const planCA2: Plan = {
 // unchanged) so the client portal's p1-p6 item IDs and saved state carry
 // through cleanly. Only the per-phase `milestone` label and `weeks`
 // window are restated. M7 (WholEarthRecords) is new.
+// Received-payment reconciliation (Zelle, Alanson Charles) — $13,500 total:
+//   2026-06-01 $4,500  → covers Core 1 (May 20, $3,600) — $900 over
+//   2026-06-24 $4,500  → covers Core 2 (Jul 1, $4,500)
+//   2026-07-20 $2,250 + 2026-07-27 $2,250 → covers Core 3 (Aug 1, $4,500) as a split
+//   Net: all three core-build payments settled; $900 overpayment carried as
+//   a credit toward the Sep 1 payment ($3,750 − $900 = $2,850 remaining due).
+//   Scheduled dates and amounts are unchanged — the credit rides the tag.
 const planA3Schedule: ScheduledPayment[] = [
-  { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$3,600", tag: "Core 1 of 3" },
-  { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 2 of 3" },
-  { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$4,500", tag: "Core 3 of 3" },
-  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$3,750", tag: "WholEarthRecords 1 of 2" },
+  { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$3,600", tag: "Core 1 of 3", paid: true, paidOn: "Jun 1 2026 ($4,500 via Zelle)" },
+  { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 2 of 3", paid: true, paidOn: "Jun 24 2026 (Zelle)" },
+  { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$4,500", tag: "Core 3 of 3", paid: true, paidOn: "Jul 20 + Jul 27 2026 (2 × $2,250 Zelle)" },
+  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$3,750", tag: "WholEarthRecords 1 of 2 · $900 credit applied — $2,850 remaining due" },
   { dateLabel: "Thu, Oct 01 2026", isoDate: "2026-10-01", amount: "$2,570", tag: "WholEarthRecords 2 of 2 · final project payment — ongoing monthly maintenance begins Nov 1" },
 ];
 
@@ -952,22 +987,106 @@ const planA3PhaseWeeks: Record<number, string> = {
   6: "Jul 2026",
 };
 
+// Per-application scope-of-work sheets. One sheet per application — the two
+// builds are never mixed. Checked = delivered. Unchecked = remaining work
+// under this agreement. Sourced from the standing engineering scope for
+// each application.
+const planA3ScopeSheets: ScopeSheet[] = [
+  {
+    title: "WholEarth Industries — Marketplace Platform",
+    subtitle:
+      "wholearthindustries.com on Vercel (Next.js storefront) · store.wholearthindustries.com on WordPress/WooCommerce (GoDaddy) · automated supplier catalog pipeline between them",
+    done: [
+      "Domain architecture live — wholearthindustries.com (apex + www) served from the Next.js storefront on Vercel; the WooCommerce store runs at store.wholearthindustries.com",
+      "Supplier catalog pipeline live end-to-end — supplier feed → pricing/markup engine → automated WooCommerce import",
+      "Custom Supplier Sync WordPress plugin — automated import engine with run locking, resume cursors, and image handling",
+      "48 products published; 133 more staged as drafts, ready to publish",
+      "Conversion-first homepage — live products above the fold, 'Shop' as the primary call to action sitewide",
+      "On-site product detail pages — image gallery, pricing, urgency indicators, structured data for search, related products, maker attribution",
+      "Shop experience — sorting, hide-sold-out filtering, sold-out items sink, real scarcity indicators",
+      "Makers layer — /makers hub, individual maker profiles, featured-makers module",
+      "Partner vetting funnel — 'Sell with us' intake, 100-point Eco-First scoring engine (unit-tested), AI-generated vetting brief, verified live forms",
+      "Lead capture live on the store — contact, newsletter, notify-me, and partner application forms with REST integration",
+      "Rick copilot — streaming AI assistant live on the site",
+      "42 automated unit tests passing + CI gate on the deployment branches",
+    ],
+    remaining: [
+      "Commerce activation — payment gateway live, storefront purchasing enabled, verified end-to-end test order including a refund",
+      "Full catalog rollout — publish the staged products, taking the shop from 48 to 181 live products",
+      "Production resilience layer — request timeouts, graceful fallbacks, and on-demand product-data refresh across every store connection",
+      "Traffic protection layer — rate limiting and spam protection on AI and form endpoints, credential lifecycle management",
+      "Search optimization — canonical tags and duplicate-content control across the storefront and the store",
+      "Hands-free catalog sync — 15-minute automated incremental sync running unattended",
+      "Inventory integrity engine — real-time sold and stock accuracy, supplier catalog reconciliation, sync health alerting",
+      "Revenue-path test suite — automated end-to-end purchase-flow testing plus unit coverage across the revenue boundary",
+      "Multi-supplier expansion — parameterized catalog feed and plugin support for additional makers, each with their own markup and SKU space",
+      "Maker imagery and affiliate attribution — real maker photography and referral tracking preserved through checkout",
+      "Growth layer (activates at 4+ makers) — collab drops, email cadence from the notify-me list, community features sequenced by maker count",
+    ],
+  },
+  {
+    title: "WholEarthRecords — Artist Platform",
+    subtitle:
+      "Standalone artist platform on Vercel + Supabase + LiveKit Cloud — Three.js visual layer, AI artist manager, community, and commerce, sequenced revenue-first",
+    done: [
+      "Three.js visual foundation — audio-reactive lighting driven by a live audio analyser, real-time presence, and a full play-queue transport with waveform scrubbing",
+      "Artist pages — handle-addressed and publish-gated, Three.js themed hero (artist backdrop and accent-colored character), orderable block hub (player, bio, tracks, shows, gallery, collabs, merch slot), persistent site-wide player",
+      "Accounts — full lifecycle: pause, delete with 30-day grace, restore, GDPR export and purge",
+      "Security posture — row-level security on every table, owner-gated writes, publish-gated reads, full audit trail of every agent action",
+      "AI artist manager — one-brain agent with 28 scope-gated tools, versioned prompt contracts, named and briefed per artist from a 9-field owner-private brief",
+      "Brand director — AI art generation in 8 structured formats with a persistent brand kit, reference-image edit mode, and automatic archiving of every generation",
+      "PR/social strategist, press-kit builder (live EPK pages), and industry advisor with 7 knowledge packs",
+      "Ontology-driven platform brain — one graph drives navigation, model routing, knowledge injection, and AI-search surfaces at zero LLM cost",
+      "Gallery with per-album privacy (public / link-only / private)",
+      "Collab Rooms — realtime chat and presence, member-gated file share with playable audio, task board, target drop dates",
+      "The Wall — public per-artist feed with AI moderation screening",
+      "Native calendar — shows and drops with public .ics feeds and Google Calendar export",
+      "Live voice sessions — deployable voice copilot (LiveKit + Deepgram) with daily minute caps",
+      "Economics instrumentation — per-artist AI-spend ledger, owner analytics (The Overlook), operator console with per-artist cost tracking",
+      "AI-search optimization — llms.txt, ai-manifest, schema.org structured data, robots directives",
+    ],
+    remaining: [
+      "Commerce launch preparation — production-tier infrastructure upgrade, transactional email, and payment-grade access-control certification across every write path (clears the platform to take payments)",
+      "Commerce phase 1 (first revenue — top build priority) — Stripe Connect artist onboarding, tips and paid downloads, secure masters storage with entitlement-signed delivery, commerce agent tools, revenue reporting in the operator console",
+      "Commerce phase 2 (merch) — print-quality AI-art upscaling, platform print-on-demand store integration, Market zone UI, live merch blocks on artist pages",
+      "Scale layer — caching and static regeneration, high-volume reporting queries, durable background processing, platform-wide rate limiting with AI spend budgets, realtime subscription efficiency",
+      "Production verification — end-to-end voice session and moderation sign-off on production",
+      "Public launch — open signup, stage ticketing, plan-tier quotas, automated storage lifecycle management",
+      "Three.js experience expansion — continued 3D visual development (environments, interactive spaces, richer artist-page scenes), sequenced after the revenue lanes are live",
+    ],
+  },
+];
+
+// Fine print — architecture ownership carve-out and licensing frame.
+const planA3FinePrint = {
+  title: "Proprietary Architecture & Licensing",
+  paragraphs: [
+    "Ownership of deliverables. Upon payment in full, Whole Earth Industries owns the application source code, content, and data delivered under this agreement for the WholEarth Industries marketplace platform and the WholEarthRecords artist platform.",
+    "Architecture carve-out. DTSP-AI Technologies (Peter W Davidsmeier) retains sole and exclusive ownership of its core proprietary architecture — including, without limitation, its agent-orchestration patterns, contract-first prompt systems, ontology and knowledge-graph designs, memory architectures, pipeline designs, build methodologies, internal tooling, and all generalized frameworks and know-how used to produce the deliverables. Nothing in this agreement transfers ownership of that architecture to Whole Earth Industries or to any of its subsidiaries, affiliates, brands, or successors (including WholEarthRecords).",
+    "Embedded-use license. Whole Earth Industries receives a perpetual, non-exclusive license to use DTSP-AI's proprietary architecture solely as embedded in the platforms delivered under this agreement. This license travels with the business and its subsidiaries; it does not permit extraction, resale, sublicensing, or reimplementation of the architecture outside the delivered platforms.",
+    "Separate licensing agreement. The parties may enter into a separate licensing agreement — standalone or as part of a broader business structure between them — governing any expanded, productized, or white-label use of DTSP-AI's proprietary architecture. Until such an agreement is executed, no rights beyond the embedded-use license above are granted.",
+    "Right to build. DTSP-AI retains the unrestricted right to use, reuse, extend, and license its proprietary architecture in current and future projects for any client or venture. Nothing in this agreement limits DTSP-AI's ability to build with its own architecture.",
+  ],
+};
+
 export const planA3: Plan = {
   ...planA,
   id: "A3",
   name: "Plan A · Addendum 3",
-  tagline: "Full-Stack Completion + WholEarthRecords Music Site",
-  heroTitle: "Artist Marketplace Platform + WholEarthRecords",
+  tagline: "Marketplace Completion + WholEarthRecords Artist Platform",
+  heroTitle: "WholEarth Industries Marketplace + WholEarthRecords",
   heroSubtitle:
-    "Plan A, delivered in full. GoDaddy is used for two things only — hosting the website and running the WooCommerce store. DTSP-AI builds everything else: the 3D interactive storefront and dashboards, the marketplace infrastructure, consent and e-sign, automated ingestion, AI listing enhancement, 80/20 split payouts, the SEO engine, and the agent layer. Addendum 3 completes the remaining marketplace scope, then adds WholEarthRecords — a Framer Motion-animated single-page music commerce and artist-promotion site that wraps the streaming platforms rather than rebuilding them. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 remaining build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
+    "Two platforms under one agreement, both built end-to-end by DTSP-AI. WholEarth Industries: a conversion-first Next.js storefront on the apex domain, the WordPress/WooCommerce store engine at store.wholearthindustries.com, and an automated supplier catalog pipeline feeding the shop — GoDaddy's role is hosting the store, nothing more. WholEarthRecords: a standalone artist platform — Three.js-powered artist pages, an AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, and owner analytics — sequenced revenue-first, with the commerce lanes as the top build priority. The two Scope of Work sheets below list, per application, exactly what has been delivered and what remains. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 marketplace build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
   heroBullets: [
-    "Plan A, delivered in full — DTSP-AI builds the entire stack, frontend and backend.",
-    "GoDaddy is used for two things only: hosting the website and running the WooCommerce store.",
-    "DTSP-AI builds everything else — the 3D interactive storefront and dashboards, the marketplace infrastructure, consent and e-sign, automated ingestion, AI listing enhancement, 80/20 split payouts, the SEO engine, and the agent layer.",
-    "Addendum 3 completes the remaining marketplace scope, then adds WholEarthRecords — a Framer Motion-animated single-page music commerce and artist-promotion site that wraps the streaming platforms rather than rebuilding them.",
+    "Two platforms under one agreement — the WholEarth Industries marketplace and the WholEarthRecords artist platform. DTSP-AI builds both, frontend and backend.",
+    "WholEarth Industries — conversion-first Next.js storefront on wholearthindustries.com, the WordPress/WooCommerce store engine at store.wholearthindustries.com, and an automated supplier catalog pipeline between them. GoDaddy hosts the store; DTSP-AI builds everything else.",
+    "Marketplace surfaces delivered — on-site product pages, makers hub and profiles, a partner vetting funnel with automated Eco-First scoring, and the Rick AI copilot.",
+    "WholEarthRecords — a standalone artist platform: Three.js-powered artist pages, AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, and owner analytics. Build priority is revenue-first: the commerce lanes ship ahead of further 3D experience work.",
+    "The two Scope of Work sheets in this agreement list, per application, what has been delivered (checked) and what remains (unchecked). The applications are scoped separately and never mixed.",
     "$4,500 of the agreement is already paid and credited.",
-    "This addendum covers the $12,600 remaining build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks.",
+    "This addendum covers the $12,600 marketplace scope plus the $6,320 WholEarthRecords scope, with project reviews every two weeks.",
     "A $2,250 / month maintenance retainer begins November 1, 2026.",
+    "DTSP-AI retains ownership of its core proprietary architecture — see Proprietary Architecture & Licensing below.",
   ],
   meta: {
     ...planA.meta,
@@ -980,13 +1099,13 @@ export const planA3: Plan = {
     totalValue: "$18,920",
     paymentSchedule: planA3Schedule,
     conditionalBanner:
-      "Addendum 3 supersedes the prior agreement. $4,500 already paid is credited toward the project. Five payments — $3,600 (May 20), $4,500 (Jul 1), $4,500 (Aug 1), $3,750 (Sep 1), $2,570 (Oct 1) — total $18,920 and cover full-stack platform completion plus the WholEarthRecords music site. Project reviews continue every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
-    scheduleHeadline: "$12,600 build + $6,320 music site",
-    scheduleCadenceLabel: "Monthly payments — 3 core build + 2 WholEarthRecords",
+      "Addendum 3 supersedes the prior agreement. $4,500 already paid is credited toward the project. Five payments — $3,600 (May 20), $4,500 (Jul 1), $4,500 (Aug 1), $3,750 (Sep 1), $2,570 (Oct 1) — total $18,920 and cover completion of the WholEarth Industries marketplace platform plus the WholEarthRecords artist platform. All three core-build payments are received in full — $13,500 via Zelle through Jul 27, 2026 — with the $900 overpayment credited toward the Sep 1 payment ($2,850 remaining due Sep 1). Project reviews continue every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
+    scheduleHeadline: "$12,600 marketplace + $6,320 records platform",
+    scheduleCadenceLabel: "Monthly payments — 3 marketplace + 2 WholEarthRecords",
     scheduleFootnote:
-      "Full-stack Plan A delivery, frontend and backend: the remaining marketplace scope plus the WholEarthRecords music site. $4,500 already paid is credited toward the project. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Nov 1, 2026 (billed separately).",
+      "Full-stack delivery, frontend and backend: the WholEarth Industries marketplace scope plus the WholEarthRecords artist platform. Each application's delivered and remaining work is listed in its own Scope of Work sheet above. $4,500 already paid under the prior agreement is credited toward the project. The three core-build payments ($12,600) are received in full — $13,500 via Zelle through Jul 27, 2026; the $900 overpayment is credited toward the Sep 1 payment, leaving $2,850 due Sep 1 and $2,570 due Oct 1. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Nov 1, 2026 (billed separately).",
     termsSummary:
-      "including the full project scope — completion of the Artist Marketplace Platform (frontend and backend) and the build of the WholEarthRecords music commerce site. GoDaddy provides website hosting and the WooCommerce store engine only; DTSP-AI builds and delivers all other software under this agreement. The WholEarthRecords site is a Framer Motion-animated single-page commerce-and-promotion layer that embeds third-party music players (SoundCloud, Bandcamp, Spotify); audio hosting or streaming infrastructure, a custom player, a Three.js 3D engine build, social features, recommendation systems, a mobile app, and DRM are not included in the v1 build. Each is an optional future upgrade that can be added in a later phase at additional cost, quoted separately. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on July 1, 2026; $4,500 on August 1, 2026; $3,750 on September 1, 2026; and $2,570 on October 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins November 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
+      "including the full project scope — the WholEarth Industries marketplace platform (the Next.js storefront on the apex domain, the WordPress/WooCommerce store engine at store.wholearthindustries.com, the automated supplier catalog pipeline, on-site product pages, the makers layer, the partner vetting funnel, and the Rick AI copilot) and the WholEarthRecords artist platform (Three.js-powered artist pages, the AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, analytics, and the commerce layer, with the commerce lanes as the top build priority and further 3D experience work sequenced after revenue is live). The work of each application is enumerated in its own Scope of Work sheet in this agreement — checked items are delivered; unchecked items are the remaining work under this agreement, and anything not listed is out of scope and quoted separately. Whole Earth Industries owns the delivered application code, content, and data; DTSP-AI Technologies retains sole ownership of its core proprietary architecture, methods, and tooling under the Proprietary Architecture & Licensing terms of this agreement, which grant an embedded-use license and contemplate a separate licensing agreement for any broader use. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on July 1, 2026; $4,500 on August 1, 2026; $3,750 on September 1, 2026; and $2,570 on October 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins November 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
     maintenance: {
       headline: "$2,250 / month — begins November 1, 2026",
       intro:
@@ -1001,30 +1120,29 @@ export const planA3: Plan = {
         "Maintenance does NOT include new features, new integrations, design changes, or any additional development. Each new piece of work is scoped, written up, and priced separately — and approved by you — before it begins.",
     },
   },
-  comparisonHeading: "DTSP-AI Builds the Platform. GoDaddy Just Hosts It.",
+  comparisonHeading: "DTSP-AI Builds the Platforms. GoDaddy Just Hosts the Store.",
   comparisonColumnLabel: "GoDaddy",
   comparisonIntro:
-    "Whole Earth Industries is not buying a website — WEI is getting a marketplace built. Artists consent, listings flow in automatically, AI enriches every product, buyers purchase, and 80% of every sale routes to the artist with no spreadsheet in sight. DTSP-AI builds all of it, frontend and backend. GoDaddy's role is narrow and singular: it hosts the site and runs the WooCommerce store. Nothing else.",
+    "Whole Earth Industries is not buying a website — it is getting two platforms built. On the marketplace, the storefront lives on the apex domain, products flow in automatically from the supplier pipeline, and partners are vetted through an automated scoring funnel. On WholEarthRecords, artists get a full platform with an AI manager behind every page. DTSP-AI builds all of it, frontend and backend. GoDaddy's role is narrow and singular: it hosts the WooCommerce store at store.wholearthindustries.com. Nothing else.",
   comparisonNote:
-    "DTSP-AI builds and owns the entire frontend — the 3D interactive storefront, the role-based dashboards, and the Framer Motion-animated WholEarthRecords site. Every line of code is WEI's. GoDaddy is the hosting provider underneath, not the builder; swap the host later and nothing about the platform changes.",
-  architectureNote:
-    "DTSP-AI builds and owns the full stack — the 3D interactive storefront at the top and every layer of infrastructure below it. GoDaddy provides website hosting and the WooCommerce store engine only; it is the host, not the public face. The SEO Engine runs independently from day one.",
+    "DTSP-AI builds and owns the entire frontend — the Next.js storefront on the apex domain, the makers and partner surfaces, and the WholEarthRecords artist platform on its own stack. Every line of delivered application code is WEI's. GoDaddy is the store host underneath, not the builder; swap the host later and nothing about the platforms changes.",
   frontendBuiltByDtsp: true,
+  scopeSheets: planA3ScopeSheets,
+  finePrint: planA3FinePrint,
+  hideSeoSection: true,
+  hideArchitectureSection: true,
   comparisonTable: [
-    { capability: "3D interactive storefront", godaddy: "—", dtsp: "Built by DTSP-AI — you own the code" },
-    { capability: "Checkout & cart UX", godaddy: "—", dtsp: "Built by DTSP-AI — artist-aware, end-to-end" },
-    { capability: "Multi-vendor marketplace", godaddy: "—", dtsp: "Built by DTSP-AI — the core architecture" },
-    { capability: "Artist consent + e-sign", godaddy: "—", dtsp: "Built by DTSP-AI — full pipeline" },
-    { capability: "Admin + artist dashboards", godaddy: "—", dtsp: "Built by DTSP-AI — 3D, role-based" },
-    { capability: "Etsy / Shopify ingestion", godaddy: "—", dtsp: "Built by DTSP-AI — OAuth pull, normalized" },
-    { capability: "AI listing enhancement", godaddy: "—", dtsp: "Built by DTSP-AI — Claude Sonnet agent" },
-    { capability: "80/20 split payouts", godaddy: "—", dtsp: "Built by DTSP-AI — Stripe Connect, automatic" },
-    { capability: "SEO content engine", godaddy: "—", dtsp: "Built by DTSP-AI — thousands of articles" },
-    { capability: "CRM sync", godaddy: "—", dtsp: "Built by DTSP-AI — GoHighLevel integration" },
-    { capability: "WholEarthRecords music site", godaddy: "—", dtsp: "Built by DTSP-AI — Framer Motion, embed-wrapped" },
+    { capability: "Next.js storefront (apex domain)", godaddy: "—", dtsp: "Built by DTSP-AI on Vercel — you own the code" },
+    { capability: "On-site product pages", godaddy: "—", dtsp: "Built by DTSP-AI — gallery, pricing, structured data" },
+    { capability: "Supplier catalog pipeline", godaddy: "—", dtsp: "Built by DTSP-AI — automated feed → WooCommerce" },
+    { capability: "Supplier Sync plugin", godaddy: "—", dtsp: "Built by DTSP-AI — custom WordPress import engine" },
+    { capability: "Makers hub & profiles", godaddy: "—", dtsp: "Built by DTSP-AI — maker attribution throughout" },
+    { capability: "Partner vetting funnel", godaddy: "—", dtsp: "Built by DTSP-AI — 100-pt Eco-First scorer + AI brief" },
+    { capability: "Rick AI copilot", godaddy: "—", dtsp: "Built by DTSP-AI — streaming AI assistant" },
+    { capability: "WholEarthRecords artist platform", godaddy: "—", dtsp: "Built by DTSP-AI — Three.js frontend + AI artist manager" },
     { capability: "Source code, servers & data", godaddy: "—", dtsp: "Yours — every line, every record" },
     {
-      capability: "Website hosting + WooCommerce",
+      capability: "WooCommerce store hosting",
       godaddy: "Yes — GoDaddy's only role",
       dtsp: "The store runs here; DTSP-AI builds everything on top",
     },

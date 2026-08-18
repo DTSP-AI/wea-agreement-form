@@ -15,6 +15,9 @@ import {
   Globe,
   Database,
   MessageCircle,
+  Square,
+  CheckSquare,
+  ScrollText,
 } from "lucide-react";
 import {
   planC,
@@ -314,7 +317,8 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
         </div>
       </Section>
 
-      {/* SEO Engine */}
+      {/* SEO Engine — hidden for plans whose scope sheets state the real search/AEO work */}
+      {!plan.hideSeoSection && (
       <Section id="seo">
         <div className="space-y-6">
           <div className="flex items-center gap-3">
@@ -368,8 +372,10 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
           />
         </div>
       </Section>
+      )}
 
       {/* Architecture */}
+      {!plan.hideArchitectureSection && (
       <Section id="architecture">
         <div className="space-y-6">
           <div className="flex items-center gap-3">
@@ -389,6 +395,70 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
           />
         </div>
       </Section>
+      )}
+
+      {/* Scope of Work — per-application sheets (replaces the phase grid when present) */}
+      {plan.scopeSheets && (
+        <Section id="scope">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-green-900/30 flex items-center justify-center">
+                <CheckSquare className="w-5 h-5 text-green-400" />
+              </div>
+              <h2 className="text-2xl font-bold">Scope of Work</h2>
+            </div>
+            <p className="text-zinc-400 leading-relaxed text-sm">
+              Each application is scoped on its own sheet. Checked items are
+              delivered. Unchecked items are the remaining work under this
+              agreement. Anything not listed is out of scope and quoted
+              separately.
+            </p>
+            {plan.scopeSheets.map((sheet) => (
+              <div
+                key={sheet.title}
+                className="bg-[#141414] border border-[#262626] rounded-xl p-6"
+              >
+                <h3 className="font-semibold text-white text-lg">
+                  {sheet.title}
+                </h3>
+                {sheet.subtitle && (
+                  <p className="text-zinc-500 text-xs mt-1 mb-4 leading-relaxed">
+                    {sheet.subtitle}
+                  </p>
+                )}
+                <div className="text-green-400 text-[11px] font-bold uppercase tracking-wider mt-4 mb-2">
+                  Delivered
+                </div>
+                <ul className="space-y-1.5">
+                  {sheet.done.map((item) => (
+                    <li
+                      key={item}
+                      className="flex items-start gap-2.5 text-sm text-zinc-300"
+                    >
+                      <CheckSquare className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="text-yellow-400 text-[11px] font-bold uppercase tracking-wider mt-5 mb-2">
+                  Remaining under this agreement
+                </div>
+                <ul className="space-y-1.5">
+                  {sheet.remaining.map((item) => (
+                    <li
+                      key={item}
+                      className="flex items-start gap-2.5 text-sm text-zinc-400"
+                    >
+                      <Square className="w-4 h-4 text-zinc-600 mt-0.5 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* Phases */}
       <Section id="investment">
@@ -607,6 +677,7 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
             </p>
           </div>
 
+          {!plan.scopeSheets && (
           <div className="grid md:grid-cols-2 gap-4">
             {phases.map((phase) => (
               <div
@@ -664,12 +735,37 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
               </div>
             ))}
           </div>
+          )}
           <AskRickCTA
             label="Ask Rick about the investment"
             responseKey="section_investment"
           />
         </div>
       </Section>
+
+      {/* Fine print — Proprietary Architecture & Licensing */}
+      {plan.finePrint && (
+        <Section id="fine-print">
+          <div className="bg-[#101010] border border-[#262626] rounded-xl p-6">
+            <div className="flex items-center gap-2.5 mb-4">
+              <ScrollText className="w-4 h-4 text-zinc-500" />
+              <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-zinc-400">
+                {plan.finePrint.title}
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {plan.finePrint.paragraphs.map((p) => (
+                <p
+                  key={p.slice(0, 40)}
+                  className="text-zinc-500 text-[11px] leading-relaxed"
+                >
+                  {p}
+                </p>
+              ))}
+            </div>
+          </div>
+        </Section>
+      )}
     </div>
   );
 }

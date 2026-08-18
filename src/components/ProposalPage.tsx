@@ -258,30 +258,81 @@ export default function ProposalPage({
       }
       hr();
 
-      // ---------- Milestones ----------
-      writeWrapped("Milestones", { size: 12, bold: true, spaceAfter: 6 });
-      activePlan.phases.forEach((phase) => {
+      // ---------- Scope of Work (per-application sheets) or Milestones ----------
+      if (activePlan.scopeSheets) {
+        writeWrapped("Scope of Work", { size: 12, bold: true, spaceAfter: 4 });
         writeWrapped(
-          "Milestone " +
-            phase.number +
-            " — " +
-            phase.title +
-            "  (" +
-            phase.weeks +
-            ", " +
-            phase.milestone +
-            ")",
-          { size: 10.5, bold: true, color: [20, 20, 20], spaceAfter: 2 }
+          "Each application is scoped on its own sheet. Checked items are delivered. Unchecked items are the remaining work under this agreement. Anything not listed is out of scope and quoted separately.",
+          { size: 9, color: [90, 90, 90], spaceAfter: 10 }
         );
-        phase.deliverables.forEach((d) => {
-          writeWrapped("• " + d, {
-            size: 9.5,
-            color: [70, 70, 70],
-            spaceAfter: 0,
+        activePlan.scopeSheets.forEach((sheet) => {
+          writeWrapped(sheet.title, {
+            size: 11,
+            bold: true,
+            color: [20, 20, 20],
+            spaceAfter: 2,
           });
+          if (sheet.subtitle) {
+            writeWrapped(sheet.subtitle, {
+              size: 8.5,
+              color: [110, 110, 110],
+              spaceAfter: 6,
+            });
+          }
+          writeWrapped("Delivered", {
+            size: 9,
+            bold: true,
+            color: [21, 128, 61],
+            spaceAfter: 2,
+          });
+          sheet.done.forEach((item) => {
+            writeWrapped("[X]  " + item, {
+              size: 9,
+              color: [60, 60, 60],
+              spaceAfter: 1,
+            });
+          });
+          y += 4;
+          writeWrapped("Remaining under this agreement", {
+            size: 9,
+            bold: true,
+            color: [161, 98, 7],
+            spaceAfter: 2,
+          });
+          sheet.remaining.forEach((item) => {
+            writeWrapped("[  ]  " + item, {
+              size: 9,
+              color: [90, 90, 90],
+              spaceAfter: 1,
+            });
+          });
+          y += 10;
         });
-        y += 6;
-      });
+      } else {
+        writeWrapped("Milestones", { size: 12, bold: true, spaceAfter: 6 });
+        activePlan.phases.forEach((phase) => {
+          writeWrapped(
+            "Milestone " +
+              phase.number +
+              " — " +
+              phase.title +
+              "  (" +
+              phase.weeks +
+              ", " +
+              phase.milestone +
+              ")",
+            { size: 10.5, bold: true, color: [20, 20, 20], spaceAfter: 2 }
+          );
+          phase.deliverables.forEach((d) => {
+            writeWrapped("• " + d, {
+              size: 9.5,
+              color: [70, 70, 70],
+              spaceAfter: 0,
+            });
+          });
+          y += 6;
+        });
+      }
       hr();
 
       // ---------- Pass-through costs ----------
@@ -315,6 +366,20 @@ export default function ProposalPage({
           color: [70, 70, 70],
           spaceAfter: 12,
         });
+        hr();
+      }
+
+      // ---------- Fine print: Proprietary Architecture & Licensing ----------
+      if (activePlan.finePrint) {
+        writeWrapped(activePlan.finePrint.title, {
+          size: 11,
+          bold: true,
+          spaceAfter: 4,
+        });
+        activePlan.finePrint.paragraphs.forEach((p) => {
+          writeWrapped(p, { size: 8, color: [80, 80, 80], spaceAfter: 4 });
+        });
+        y += 4;
         hr();
       }
 
@@ -499,7 +564,12 @@ export default function ProposalPage({
             {[
               { label: "Proposal", href: "#hero" },
               { label: "Comparison", href: "#comparison" },
-              { label: "SEO", href: "#seo" },
+              ...(activePlan.hideSeoSection
+                ? []
+                : [{ label: "SEO", href: "#seo" }]),
+              ...(activePlan.scopeSheets
+                ? [{ label: "Scope", href: "#scope" }]
+                : []),
               { label: "Investment", href: "#investment" },
               { label: "Sign", href: "#signature-section" },
             ].map((link) => (
