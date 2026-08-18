@@ -604,8 +604,22 @@ export default function SignaturePanel({
                 GoHighLevel, etc.) are pass-through at cost and billed
                 separately from this total. I understand that DTSP-AI
                 Technologies will begin work upon receipt of the first
-                payment and that all deliverables remain the property of Whole
-                Earth Industries upon payment.
+                payment and that{" "}
+                {plan.finePrint ? (
+                  <>
+                    ownership of the deliverables and of DTSP-AI&apos;s
+                    proprietary architecture is governed by the{" "}
+                    {plan.finePrint.title + " "}terms of this agreement — the
+                    delivered application code, content, and data belong to
+                    Whole Earth Industries upon payment; the core proprietary
+                    architecture remains DTSP-AI&apos;s.
+                  </>
+                ) : (
+                  <>
+                    all deliverables remain the property of Whole Earth
+                    Industries upon payment.
+                  </>
+                )}
               </span>
             </label>
           </div>
