@@ -98,7 +98,18 @@ assert(!/\$18,920/.test(rick) && !/\$18,920/.test(a3), "No stale $18,920 total a
 assert(!/\$6,320/.test(rick) && !/\$6,320/.test(a3), "No stale $6,320 records figure remains");
 assert(!/\$3,750/.test(rick) && !/\$3,750/.test(a3), "No stale $3,750 payment remains");
 assert(rick.includes("$19,670"), "Rick quotes the current $19,670 total");
-assert(!/October 1, 2026/.test(a3.slice(a3.indexOf("termsSummary"))) , "termsSummary carries no October 1 project payment");
+assert(!/November 1|Nov 1/.test(a3) && !/November 1|Nov 1/.test(rick), "No stale Nov 1 retainer start remains");
+assert(a3.includes('headline: "$2,250 / month — begins October 1, 2026"'), "Retainer starts Oct 1, 2026 — the month after the final project payment");
+assert(rick.includes("maintenance retainer begins October 1, 2026"), "Rick quotes the Oct 1 retainer start");
+const terms = a3.slice(a3.indexOf("termsSummary:"), a3.indexOf("maintenance: {"));
+assert(
+  terms.includes("$2,570 on September 1, 2026") && !terms.includes("$2,570 on October 1"),
+  "termsSummary ends the project payments on Sep 1, not October 1"
+);
+assert(
+  terms.includes("$2,250 per month begins October 1, 2026"),
+  "termsSummary states the Oct 1 retainer start"
+);
 
 console.log("\n== playthewholearthgame.org scope ==");
 const gameSheet = a3.slice(a3.indexOf("playthewholearthgame.org — Revamp for Live Feeds"), sheetsEnd);
