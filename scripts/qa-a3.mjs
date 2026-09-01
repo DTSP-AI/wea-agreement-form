@@ -66,19 +66,48 @@ const sched = a3.slice(schedStart, schedEnd);
 const amounts = [...sched.matchAll(/amount: "\$([\d,]+)"/g)].map((m) => Number(m[1].replace(/,/g, "")));
 const total = amounts.reduce((a, b) => a + b, 0);
 assert(amounts.length === 5, "Exactly five scheduled payments");
-assert(total === 18920, `Scheduled payments sum to $18,920 (got $${total.toLocaleString()})`);
+assert(total === 19670, `Scheduled payments sum to $19,670 (got $${total.toLocaleString()})`);
+const isoDates = [...sched.matchAll(/isoDate: "([\d-]+)"/g)].map((m) => m[1]);
+assert(
+  isoDates.join(",") === "2026-05-20,2026-06-01,2026-07-01,2026-08-01,2026-09-01",
+  "Schedule runs May 20, Jun 1, Jul 1, Aug 1, Sep 1 2026"
+);
+assert(
+  amounts.join(",") === "3600,4500,4500,4500,2570",
+  "Amounts are $3,600 / $4,500 / $4,500 / $4,500 / $2,570 in order"
+);
 const paidRows = [...sched.matchAll(/paid: true/g)].length;
 assert(paidRows === 3, "Exactly three payments marked paid (core build)");
 const paidSum = amounts.slice(0, 3).reduce((a, b) => a + b, 0);
 assert(paidSum === 12600, "Paid core-build rows sum to $12,600");
 assert(13500 - paidSum === 900, "Received $13,500 − $12,600 applied = $900 credit");
-assert(3750 - 900 === 2850, "Sep 1: $3,750 − $900 credit = $2,850 due");
-assert(2850 + 2570 === 5420, "Remaining balance $5,420 = $2,850 + $2,570");
-const aug1Rows = [...sched.matchAll(/2026-08-01/g)].length;
-assert(aug1Rows === 1, "Jul 20 + Jul 27 split maps to ONE Aug 1 row (never double-counted)");
+assert(4500 - 900 === 3600, "Aug 1: $4,500 − $900 credit = $3,600 due");
+assert(3600 + 2570 === 6170, "Remaining balance $6,170 = $3,600 + $2,570");
+assert(13500 + 6170 === total, "Applied $13,500 + remaining $6,170 = the contract total");
+assert(12600 + 7070 === total, "Split reconciles: $12,600 marketplace + $7,070 records & game");
+const jul1Rows = [...sched.matchAll(/2026-07-01/g)].length;
+assert(jul1Rows === 1, "Jul 20 + Jul 27 split maps to ONE Jul 1 row (never double-counted)");
 const ledger = a3.slice(a3.indexOf("planA3BalanceLedger"), a3.indexOf("export const planA3"));
-assert(ledger.includes('"$13,500"') && ledger.includes('"$5,420"') && ledger.includes('"$900"'), "Ledger states applied total, credit, and remaining balance explicitly");
-assert(ledger.includes("NOT part of the $18,920"), "Prior-plan $4,500 separately identified and excluded from the A3 total");
+assert(ledger.includes('"$13,500"') && ledger.includes('"$6,170"') && ledger.includes('"$900"'), "Ledger states applied total, credit, and remaining balance explicitly");
+assert(ledger.includes("NOT part of the $19,670"), "Prior-plan $4,500 separately identified and excluded from the A3 total");
+assert(a3.includes('totalValue: "$19,670"'), "totalValue matches the scheduled sum");
+
+console.log("\n== Cross-document number consistency ==");
+const rick = read("src/lib/rick-messages.ts");
+assert(!/\$18,920/.test(rick) && !/\$18,920/.test(a3), "No stale $18,920 total anywhere in A3 or Rick's contract facts");
+assert(!/\$6,320/.test(rick) && !/\$6,320/.test(a3), "No stale $6,320 records figure remains");
+assert(!/\$3,750/.test(rick) && !/\$3,750/.test(a3), "No stale $3,750 payment remains");
+assert(rick.includes("$19,670"), "Rick quotes the current $19,670 total");
+assert(!/October 1, 2026/.test(a3.slice(a3.indexOf("termsSummary"))) , "termsSummary carries no October 1 project payment");
+
+console.log("\n== playthewholearthgame.org scope ==");
+const gameSheet = a3.slice(a3.indexOf("playthewholearthgame.org — Revamp for Live Feeds"), sheetsEnd);
+assert(gameSheet.length > 0, "playthewholearthgame.org sheet present in the scope sheets");
+assert(a3.indexOf("playthewholearthgame.org — Revamp for Live Feeds") > recordsStart, "Game sheet sits at the tail end, after the two platform sheets");
+assert(/done: \[\]/.test(gameSheet), "Game sheet claims nothing delivered");
+assert(gameSheet.includes("revamp for live feeds") && gameSheet.includes("boundary"), "Game sheet states the remaining work and its scope boundary");
+assert(content.includes("sheet.done.length > 0"), "Proposal page skips the Delivered block when a sheet has nothing delivered");
+assert(read("src/components/ProposalPage.tsx").includes("sheet.done.length > 0"), "Signed PDF skips the Delivered block when a sheet has nothing delivered");
 
 console.log("\n== Payment status is internal-only ==");
 assert(a3.includes("paymentStatusInternal: true"), "A3 flags payment status as internal");

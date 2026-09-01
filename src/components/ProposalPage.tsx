@@ -287,19 +287,21 @@ export default function ProposalPage({
               spaceAfter: 6,
             });
           }
-          writeWrapped("Delivered", {
-            size: 9,
-            bold: true,
-            color: [21, 128, 61],
-            spaceAfter: 2,
-          });
-          sheet.done.forEach((item) => {
-            writeWrapped("[X]  " + item, {
+          if (sheet.done.length > 0) {
+            writeWrapped("Delivered", {
               size: 9,
-              color: [60, 60, 60],
-              spaceAfter: 1,
+              bold: true,
+              color: [21, 128, 61],
+              spaceAfter: 2,
             });
-          });
+            sheet.done.forEach((item) => {
+              writeWrapped("[X]  " + item, {
+                size: 9,
+                color: [60, 60, 60],
+                spaceAfter: 1,
+              });
+            });
+          }
           y += 4;
           writeWrapped("Remaining under this agreement", {
             size: 9,

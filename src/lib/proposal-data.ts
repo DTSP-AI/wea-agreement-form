@@ -933,11 +933,11 @@ export const planCA2: Plan = {
 //
 // Math:
 //   Core completion (remaining original scope):
-//     2026-05-20 $3,600 + 2026-07-01 $4,500 + 2026-08-01 $4,500 = $12,600
-//   WholEarthRecords music site (added scope):
-//     2026-09-01 $3,750 + 2026-10-01 $2,570 = $6,320
-//   Addendum 3 new billing total: $12,600 + $6,320 = $18,920
-//   Whole-contract value (incl. $4,500 already paid): $23,420
+//     2026-05-20 $3,600 + 2026-06-01 $4,500 + 2026-07-01 $4,500 = $12,600
+//   WholEarthRecords + playthewholearthgame.org (added scope):
+//     2026-08-01 $4,500 + 2026-09-01 $2,570 = $7,070
+//   Addendum 3 new billing total: $12,600 + $7,070 = $19,670
+//   Whole-contract value (incl. $4,500 already paid): $24,170
 //
 // Cadence: PAYMENTS are monthly (5 total). REVIEWS stay biweekly — the
 // every-2-weeks meeting cadence is unchanged from the prior agreement.
@@ -953,17 +953,17 @@ export const planCA2: Plan = {
 // window are restated. M7 (WholEarthRecords) is new.
 // Received-payment reconciliation (Zelle, Alanson Charles) — $13,500 total:
 //   2026-06-01 $4,500  → covers Core 1 (May 20, $3,600) — $900 over
-//   2026-06-24 $4,500  → covers Core 2 (Jul 1, $4,500)
-//   2026-07-20 $2,250 + 2026-07-27 $2,250 → covers Core 3 (Aug 1, $4,500) as a split
+//   2026-06-24 $4,500  → covers Core 2 (Jun 1, $4,500)
+//   2026-07-20 $2,250 + 2026-07-27 $2,250 → covers Core 3 (Jul 1, $4,500) as a split
 //   Net: all three core-build payments settled; $900 overpayment carried as
-//   a credit toward the Sep 1 payment ($3,750 − $900 = $2,850 remaining due).
+//   a credit toward the Aug 1 payment ($4,500 − $900 = $3,600 remaining due).
 //   Scheduled dates and amounts are unchanged — the credit rides the tag.
 const planA3Schedule: ScheduledPayment[] = [
   { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$3,600", tag: "Core 1 of 3", paid: true, paidOn: "Jun 1 2026 ($4,500 via Zelle)" },
-  { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 2 of 3", paid: true, paidOn: "Jun 24 2026 (Zelle)" },
-  { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$4,500", tag: "Core 3 of 3", paid: true, paidOn: "Jul 20 + Jul 27 2026 (2 × $2,250 Zelle)" },
-  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$3,750", tag: "WholEarthRecords 1 of 2" },
-  { dateLabel: "Thu, Oct 01 2026", isoDate: "2026-10-01", amount: "$2,570", tag: "WholEarthRecords 2 of 2 · final project payment — ongoing monthly maintenance begins Nov 1" },
+  { dateLabel: "Mon, Jun 01 2026", isoDate: "2026-06-01", amount: "$4,500", tag: "Core 2 of 3", paid: true, paidOn: "Jun 24 2026 (Zelle)" },
+  { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 3 of 3", paid: true, paidOn: "Jul 20 + Jul 27 2026 (2 × $2,250 Zelle)" },
+  { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$4,500", tag: "Records & Game 1 of 2" },
+  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$2,570", tag: "Records & Game 2 of 2 · final project payment — ongoing monthly maintenance begins Nov 1" },
 ];
 
 // M7 — WholEarthRecords. New milestone appended after planC's M1-M6.
@@ -973,7 +973,7 @@ const planA3Schedule: ScheduledPayment[] = [
 // product types through the marketplace's existing Stripe Connect checkout.
 // Frontend: Framer Motion (2D animation), NOT a Three.js/R3F 3D build —
 // Framer Motion is already in the stack, so the animated single page is
-// fast to build and the $6,320 budget holds.
+// fast to build and the $7,070 budget holds.
 const planA3MusicPhase: Phase = {
   number: 7,
   title: "WholEarthRecords — Music Commerce Site",
@@ -995,7 +995,7 @@ const planA3MusicPhase: Phase = {
     "Production launch of the running, functional v1 — QA, cross-device testing, documentation & handoff",
     "A defined upgrade path — every item in 'Not included' below can be added later as a separately-quoted paid upgrade",
   ],
-  // Hard scope boundary — this is what keeps $6,320 from becoming a death
+  // Hard scope boundary — this is what keeps $7,070 from becoming a death
   // march. Anything below is a separate quote, never absorbed. The build
   // is a single-page WRAPPER, not a streaming platform.
   exclusions: [
@@ -1094,6 +1094,17 @@ const planA3ScopeSheets: ScopeSheet[] = [
     boundary:
       "Scope boundary — WholEarth Records is music-only: music artists, releases, music videos, shows, merch, and fan support. It does not include general culture or non-music creators, vendor networking, or the Industries social platform. The revenue-first ordering applies only within the Records scope.",
   },
+  {
+    title: "playthewholearthgame.org — Revamp for Live Feeds",
+    subtitle:
+      "Revamp of the existing playthewholearthgame.org site to carry live feeds",
+    done: [],
+    remaining: [
+      "playthewholearthgame.org revamp for live feeds — site revamp with live feeds running on it",
+    ],
+    boundary:
+      "Scope boundary — this sheet covers the playthewholearthgame.org revamp for live feeds and nothing else. Any other work on that site is out of scope and quoted separately.",
+  },
 ];
 
 // Fine print — architecture ownership carve-out and licensing frame.
@@ -1116,7 +1127,7 @@ const planA3FinePrint = {
 // remaining balance, prior-plan amounts separately identified. The Jul 20 +
 // Jul 27 split is one $4,500 application (never counted twice).
 const planA3BalanceLedger: LedgerRow[] = [
-  { label: "Addendum 3 contract total", value: "$18,920", emphasis: true },
+  { label: "Addendum 3 contract total", value: "$19,670", emphasis: true },
   {
     label: "Received & applied — Jun 1, 2026 (Zelle)",
     value: "$4,500",
@@ -1125,29 +1136,29 @@ const planA3BalanceLedger: LedgerRow[] = [
   {
     label: "Received & applied — Jun 24, 2026 (Zelle)",
     value: "$4,500",
-    sub: "Covers the Jul 1 payment in full",
+    sub: "Covers the Jun 1 payment in full",
   },
   {
     label: "Received & applied — Jul 20 + Jul 27, 2026 (Zelle, 2 × $2,250)",
     value: "$4,500",
-    sub: "The two transfers together cover the Aug 1 payment in full — applied once, never double-counted",
+    sub: "The two transfers together cover the Jul 1 payment in full — applied once, never double-counted",
   },
   { label: "Total applied to Addendum 3", value: "$13,500", emphasis: true },
   {
-    label: "Credit carried to the Sep 1 payment",
+    label: "Credit carried to the Aug 1 payment",
     value: "$900",
-    sub: "$3,750 scheduled − $900 credit = $2,850 due Sep 1, 2026",
+    sub: "$4,500 scheduled − $900 credit = $3,600 due Aug 1, 2026",
   },
   {
     label: "Remaining Addendum 3 balance",
-    value: "$5,420",
-    sub: "$2,850 due Sep 1, 2026 · $2,570 due Oct 1, 2026",
+    value: "$6,170",
+    sub: "$3,600 due Aug 1, 2026 · $2,570 due Sep 1, 2026",
     emphasis: true,
   },
   {
     label: "Prior agreement (superseded) — paid Apr 23 – May 13, 2026",
     value: "$4,500",
-    sub: "Credited to the project as prior-plan value. NOT part of the $18,920 Addendum 3 total and not owed against it.",
+    sub: "Credited to the project as prior-plan value. NOT part of the $19,670 Addendum 3 total and not owed against it.",
   },
 ];
 
@@ -1158,15 +1169,16 @@ export const planA3: Plan = {
   tagline: "Marketplace Completion + WholEarthRecords Artist Platform",
   heroTitle: "WholEarth Industries Marketplace + WholEarthRecords",
   heroSubtitle:
-    "Two platforms under one agreement, both built end-to-end by DTSP-AI. WholEarth Industries: a conversion-first Next.js storefront on the apex domain, the WordPress/WooCommerce store engine at store.wholearthindustries.com, and an automated supplier catalog pipeline feeding the shop — GoDaddy's role is hosting the store, nothing more. WholEarthRecords: a standalone artist platform — Three.js-powered artist pages, an AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, and owner analytics — sequenced revenue-first, with the commerce lanes as the top build priority. The two Scope of Work sheets below list, per application, exactly what has been delivered and what remains. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 marketplace build plus the $6,320 WholEarthRecords scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
+    "Two platforms under one agreement, both built end-to-end by DTSP-AI. WholEarth Industries: a conversion-first Next.js storefront on the apex domain, the WordPress/WooCommerce store engine at store.wholearthindustries.com, and an automated supplier catalog pipeline feeding the shop — GoDaddy's role is hosting the store, nothing more. WholEarthRecords: a standalone artist platform — Three.js-powered artist pages, an AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, and owner analytics — sequenced revenue-first, with the commerce lanes as the top build priority. The Scope of Work sheets below list, per application, exactly what has been delivered and what remains — including the playthewholearthgame.org revamp for live feeds. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 marketplace build plus the $7,070 WholEarthRecords and playthewholearthgame.org scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins November 1, 2026.",
   heroBullets: [
     "Two platforms under one agreement — the WholEarth Industries marketplace and the WholEarthRecords artist platform. DTSP-AI builds both, frontend and backend.",
     "WholEarth Industries — conversion-first Next.js storefront on wholearthindustries.com, the WordPress/WooCommerce store engine at store.wholearthindustries.com, and an automated supplier catalog pipeline between them. GoDaddy hosts the store; DTSP-AI builds everything else.",
     "Marketplace surfaces delivered — on-site product pages, makers hub and profiles, a partner vetting funnel with automated Eco-First scoring, and the Rick AI copilot.",
     "WholEarthRecords — a standalone artist platform: Three.js-powered artist pages, AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, and owner analytics. Build priority is revenue-first: the commerce lanes ship ahead of further 3D experience work.",
-    "The two Scope of Work sheets in this agreement list, per application, what has been delivered (checked) and what remains (unchecked). The applications are scoped separately and never mixed.",
+    "The Scope of Work sheets in this agreement list, per application, what has been delivered (checked) and what remains (unchecked). The applications are scoped separately and never mixed.",
+    "playthewholearthgame.org — revamp of the existing site for live feeds, scoped on its own sheet at the end of the Scope of Work.",
     "$4,500 of the agreement is already paid and credited.",
-    "This addendum covers the $12,600 marketplace scope plus the $6,320 WholEarthRecords scope, with project reviews every two weeks.",
+    "This addendum covers the $12,600 marketplace scope plus the $7,070 WholEarthRecords and playthewholearthgame.org scope, with project reviews every two weeks.",
     "A $2,250 / month maintenance retainer begins November 1, 2026.",
     "DTSP-AI retains ownership of its core proprietary architecture — see Proprietary Architecture & Licensing below.",
   ],
@@ -1185,22 +1197,22 @@ export const planA3: Plan = {
     investmentAtSigning: "$3,600",
     perMilestone: "$2,570–$4,500",
     milestoneCount: 5,
-    totalValue: "$18,920",
+    totalValue: "$19,670",
     paymentSchedule: planA3Schedule,
     // No conditionalBanner: A3 is the executed agreement of record — no
     // urgency framing. Supersession, the $4,500 credit, and the retainer
     // are stated in the schedule footnote and the signed terms.
     conditionalBanner: undefined,
-    scheduleHeadline: "$12,600 marketplace + $6,320 records platform",
-    scheduleCadenceLabel: "Monthly payments — 3 marketplace + 2 WholEarthRecords",
+    scheduleHeadline: "$12,600 marketplace + $7,070 records & game",
+    scheduleCadenceLabel: "Monthly payments — 3 marketplace + 2 records & game",
     scheduleFootnote:
-      "Full-stack delivery, frontend and backend: the WholEarth Industries marketplace scope plus the WholEarth Records artist platform. Each application's delivered and remaining work is listed in its own Scope of Work sheet above. $4,500 already paid under the prior agreement is credited toward the project. Payment status and the full balance reconciliation live in the client portal. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Nov 1, 2026 (billed separately).",
+      "Full-stack delivery, frontend and backend: the WholEarth Industries marketplace scope, the WholEarth Records artist platform, and the playthewholearthgame.org revamp for live feeds. Each application's delivered and remaining work is listed in its own Scope of Work sheet above. $4,500 already paid under the prior agreement is credited toward the project. Payment status and the full balance reconciliation live in the client portal. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Nov 1, 2026 (billed separately).",
     termsSummary:
-      "including the full project scope — the WholEarth Industries marketplace platform (the Next.js storefront on the apex domain, the WordPress/WooCommerce store engine at store.wholearthindustries.com, the automated supplier catalog pipeline, on-site product pages, the makers layer, the partner vetting funnel, and the Rick AI copilot) and the WholEarth Records artist platform (Three.js-powered artist pages, the AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, analytics, and the commerce layer, with the commerce lanes as the top build priority within the Records scope). The work of each application is enumerated in its own Scope of Work sheet in this agreement, including each application's stated scope boundary — checked items are delivered; unchecked items are the remaining work under this agreement, and anything not listed is out of scope and quoted separately. Ownership and licensing of all deliverables and of DTSP-AI Technologies LLC's proprietary architecture are governed exclusively by the Proprietary Architecture & Licensing section of this agreement (clauses 1–6), which is incorporated by reference and controls over any other statement in this agreement. Project reviews are held every two weeks. The work is delivered against five payments totaling $18,920: $3,600 on May 20, 2026; $4,500 on July 1, 2026; $4,500 on August 1, 2026; $3,750 on September 1, 2026; and $2,570 on October 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project. A maintenance and support retainer of $2,250 per month begins November 1, 2026 and continues until cancelled — covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
+      "including the full project scope as set out in the Scope of Work sheets in this agreement — the WholEarth Industries marketplace platform, the WholEarth Records artist platform, and the playthewholearthgame.org revamp for live feeds. On each sheet, checked items are delivered, unchecked items are the remaining work under this agreement, and anything not listed is out of scope and quoted separately. Ownership and licensing of all deliverables and of DTSP-AI Technologies LLC's proprietary architecture are governed exclusively by the Proprietary Architecture & Licensing section of this agreement (clauses 1–6), which is incorporated by reference and controls over any other statement in this agreement. Project reviews are held every two weeks. The total is $19,670, payable in five monthly payments: $3,600 on May 20, 2026; $4,500 on June 1, 2026; $4,500 on July 1, 2026; $4,500 on August 1, 2026; and $2,570 on September 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project and is not part of the $19,670. A maintenance and support retainer of $2,250 per month begins November 1, 2026 and continues until cancelled, covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
     maintenance: {
       headline: "$2,250 / month — begins November 1, 2026",
       intro:
-        "After the final project payment ($2,570 on October 1, 2026), the platform moves to an ongoing monthly maintenance plan. It is month-to-month and billed separately from the $18,920 project total.",
+        "After the final project payment ($2,570 on September 1, 2026), the platform moves to an ongoing monthly maintenance plan. It is month-to-month and billed separately from the $19,670 project total.",
       covers: [
         "Bug fixes and debugging",
         "Testing and regression checks",

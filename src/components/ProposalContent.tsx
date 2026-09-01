@@ -436,20 +436,24 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                     {sheet.subtitle}
                   </p>
                 )}
-                <div className="text-green-400 text-xs font-bold uppercase tracking-wider mt-6 mb-3">
-                  Delivered
-                </div>
-                <ul className="space-y-3">
-                  {sheet.done.map((item) => (
-                    <li
-                      key={item}
-                      className="flex items-start gap-3 text-sm text-zinc-300 leading-relaxed"
-                    >
-                      <CheckSquare className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+                {sheet.done.length > 0 && (
+                  <>
+                    <div className="text-green-400 text-xs font-bold uppercase tracking-wider mt-6 mb-3">
+                      Delivered
+                    </div>
+                    <ul className="space-y-3">
+                      {sheet.done.map((item) => (
+                        <li
+                          key={item}
+                          className="flex items-start gap-3 text-sm text-zinc-300 leading-relaxed"
+                        >
+                          <CheckSquare className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
                 <div className="text-yellow-400 text-xs font-bold uppercase tracking-wider mt-8 mb-3">
                   Remaining under this agreement
                 </div>
