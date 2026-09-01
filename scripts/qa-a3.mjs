@@ -77,18 +77,17 @@ assert(
   "Amounts are $3,600 / $4,500 / $4,500 / $4,500 / $2,570 in order"
 );
 const paidRows = [...sched.matchAll(/paid: true/g)].length;
-assert(paidRows === 3, "Exactly three payments marked paid (core build)");
-const paidSum = amounts.slice(0, 3).reduce((a, b) => a + b, 0);
-assert(paidSum === 12600, "Paid core-build rows sum to $12,600");
-assert(13500 - paidSum === 900, "Received $13,500 − $12,600 applied = $900 credit");
-assert(4500 - 900 === 3600, "Aug 1: $4,500 − $900 credit = $3,600 due");
-assert(3600 + 2570 === 6170, "Remaining balance $6,170 = $3,600 + $2,570");
-assert(13500 + 6170 === total, "Applied $13,500 + remaining $6,170 = the contract total");
+assert(paidRows === 4, "Exactly four payments marked paid (through Aug 1)");
+const paidSum = amounts.slice(0, 4).reduce((a, b) => a + b, 0);
+assert(paidSum === 17100, "Paid rows sum to $17,100");
+assert(13500 + 3600 === paidSum, "Cash received $13,500 + $3,600 = $17,100 applied");
+assert(4500 - 900 === 3600, "Aug 1: $3,600 cash + the $900 June credit = the $4,500 payment");
+assert(total - paidSum === 2570, "Only the Sep 1 payment ($2,570) is open");
 assert(12600 + 7070 === total, "Split reconciles: $12,600 marketplace + $7,070 records & game");
 const jul1Rows = [...sched.matchAll(/2026-07-01/g)].length;
 assert(jul1Rows === 1, "Jul 20 + Jul 27 split maps to ONE Jul 1 row (never double-counted)");
 const ledger = a3.slice(a3.indexOf("planA3BalanceLedger"), a3.indexOf("export const planA3"));
-assert(ledger.includes('"$13,500"') && ledger.includes('"$6,170"') && ledger.includes('"$900"'), "Ledger states applied total, credit, and remaining balance explicitly");
+assert(ledger.includes('"$17,100"') && ledger.includes('"$2,570"') && ledger.includes('"$3,600"'), "Ledger states applied total, the Aug payment, and the remaining balance explicitly");
 assert(ledger.includes("NOT part of the $19,670"), "Prior-plan $4,500 separately identified and excluded from the A3 total");
 assert(a3.includes('totalValue: "$19,670"'), "totalValue matches the scheduled sum");
 

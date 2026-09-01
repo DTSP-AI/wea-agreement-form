@@ -951,18 +951,19 @@ export const planCA2: Plan = {
 // unchanged) so the client portal's p1-p6 item IDs and saved state carry
 // through cleanly. Only the per-phase `milestone` label and `weeks`
 // window are restated. M7 (WholEarthRecords) is new.
-// Received-payment reconciliation (Zelle, Alanson Charles) — $13,500 total:
-//   2026-06-01 $4,500  → covers Core 1 (May 20, $3,600) — $900 over
-//   2026-06-24 $4,500  → covers Core 2 (Jun 1, $4,500)
-//   2026-07-20 $2,250 + 2026-07-27 $2,250 → covers Core 3 (Jul 1, $4,500) as a split
-//   Net: all three core-build payments settled; $900 overpayment carried as
-//   a credit toward the Aug 1 payment ($4,500 − $900 = $3,600 remaining due).
-//   Scheduled dates and amounts are unchanged — the credit rides the tag.
+// Received-payment reconciliation (Zelle, Alanson Charles) — $17,100 total:
+//   2026-06-01 $4,500  → covers May 20 ($3,600) — $900 over
+//   2026-06-24 $4,500  → covers Jun 1 ($4,500)
+//   2026-07-20 $2,250 + 2026-07-27 $2,250 → covers Jul 1 ($4,500) as a split
+//   Aug 2026 $3,600 → with the $900 credit, covers Aug 1 ($4,500) in full
+//   Net: the first four payments are settled and the $900 credit is consumed.
+//   $17,100 received against $19,670; only the Sep 1 payment ($2,570) is open.
+//   Scheduled dates and amounts are unchanged — status rides the tag.
 const planA3Schedule: ScheduledPayment[] = [
   { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$3,600", tag: "Core 1 of 3", paid: true, paidOn: "Jun 1 2026 ($4,500 via Zelle)" },
   { dateLabel: "Mon, Jun 01 2026", isoDate: "2026-06-01", amount: "$4,500", tag: "Core 2 of 3", paid: true, paidOn: "Jun 24 2026 (Zelle)" },
   { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 3 of 3", paid: true, paidOn: "Jul 20 + Jul 27 2026 (2 × $2,250 Zelle)" },
-  { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$4,500", tag: "Records & Game 1 of 2" },
+  { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$4,500", tag: "Records & Game 1 of 2", paid: true, paidOn: "Aug 2026 ($3,600 + $900 credit)" },
   { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$2,570", tag: "Records & Game 2 of 2 · final project payment — ongoing monthly maintenance begins Oct 1" },
 ];
 
@@ -1143,16 +1144,16 @@ const planA3BalanceLedger: LedgerRow[] = [
     value: "$4,500",
     sub: "The two transfers together cover the Jul 1 payment in full — applied once, never double-counted",
   },
-  { label: "Total applied to Addendum 3", value: "$13,500", emphasis: true },
   {
-    label: "Credit carried to the Aug 1 payment",
-    value: "$900",
-    sub: "$4,500 scheduled − $900 credit = $3,600 due Aug 1, 2026",
+    label: "Received & applied — August 2026",
+    value: "$3,600",
+    sub: "With the $900 credit carried from June, this covers the Aug 1 payment ($4,500) in full — the credit is now consumed",
   },
+  { label: "Total applied to Addendum 3", value: "$17,100", emphasis: true },
   {
     label: "Remaining Addendum 3 balance",
-    value: "$6,170",
-    sub: "$3,600 due Aug 1, 2026 · $2,570 due Sep 1, 2026",
+    value: "$2,570",
+    sub: "Due Sep 1, 2026 — the final project payment. Monthly maintenance begins Oct 1, 2026.",
     emphasis: true,
   },
   {
