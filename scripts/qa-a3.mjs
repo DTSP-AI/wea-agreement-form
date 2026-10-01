@@ -127,6 +127,14 @@ assert(a3.includes('id: "stripe-tax-id"') && rick.includes("Tax ID"), "Tax ID re
 assert(portal.includes("nextPaymentDue(plan.meta)") && portal.includes("<PortalToasts"), "Portal derives next payment from the shared helper and mounts the toasts");
 assert(notices.includes("meta.retainer") && notices.includes("clientActions"), "Notices derive from retainer + client-action data");
 
+console.log("\n== Future scope ==");
+const future = a3.slice(a3.indexOf("const planA3FutureScope"), a3.indexOf("const planA3FinePrint"));
+assert(future.includes('title: "Bicycle Advertising"') && future.includes('stage: "Research phase"'), "Future Scope lists Bicycle Advertising in the research phase");
+assert(future.includes("Not part of this agreement's scope or price"), "Future Scope item is explicitly outside the agreement");
+assert(!a3.slice(sheetsStart, a3.indexOf("const planA3FutureScope")).includes("Bicycle"), "Bicycle Advertising never appears on a Scope of Work sheet");
+assert(content.includes("plan.futureScope") && read("src/components/ProposalPage.tsx").includes("activePlan.futureScope") && sigPanel.includes("futureScope: plan.futureScope"), "Future Scope renders on the page, in the PDF, and is covered by the document hash");
+assert(rick.includes("Bicycle Advertising") && rick.includes("do not invent a plan, a price, or a timeline"), "Rick knows the future-scope item and cannot invent terms for it");
+
 console.log("\n== playthewholearthgame.org scope ==");
 const gameSheet = a3.slice(a3.indexOf("playthewholearthgame.org — Revamp for Live Feeds"), sheetsEnd);
 assert(gameSheet.length > 0, "playthewholearthgame.org sheet present in the scope sheets");

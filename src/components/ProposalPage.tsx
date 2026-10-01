@@ -326,6 +326,22 @@ export default function ProposalPage({
           }
           y += 10;
         });
+        if (activePlan.futureScope && activePlan.futureScope.length > 0) {
+          writeWrapped("Future Scope — not part of this agreement", {
+            size: 11,
+            bold: true,
+            color: [20, 20, 20],
+            spaceAfter: 2,
+          });
+          activePlan.futureScope.forEach((item) => {
+            writeWrapped(item.title + " (" + item.stage + ") — " + item.detail, {
+              size: 9,
+              color: [90, 90, 90],
+              spaceAfter: 1,
+            });
+          });
+          y += 10;
+        }
       } else {
         writeWrapped("Milestones", { size: 12, bold: true, spaceAfter: 6 });
         activePlan.phases.forEach((phase) => {

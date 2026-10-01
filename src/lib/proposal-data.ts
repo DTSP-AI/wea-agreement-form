@@ -164,6 +164,13 @@ export interface ScopeSheet {
   boundary?: string;
 }
 
+export interface FutureScopeItem {
+  title: string;
+  /** Where the idea stands, e.g. "Research phase". */
+  stage: string;
+  detail: string;
+}
+
 export interface LedgerRow {
   label: string;
   value: string;
@@ -204,6 +211,10 @@ export interface Plan {
    *  of the milestone phase grid. `phases` stays as data for the client
    *  portal checklist. */
   scopeSheets?: ScopeSheet[];
+  /** Optional future-scope items — ideas being explored that are NOT part
+   *  of this agreement's scope or price. Rendered under the scope sheets
+   *  and written into the signed PDF. */
+  futureScope?: FutureScopeItem[];
   /** Optional fine-print legal section rendered above the signature panel
    *  and written into the signed PDF. */
   finePrint?: {
@@ -1152,6 +1163,17 @@ const planA3ScopeSheets: ScopeSheet[] = [
   },
 ];
 
+// Future scope — explored, not contracted. Nothing here is inside the
+// $19,670 or the retainer.
+const planA3FutureScope: FutureScopeItem[] = [
+  {
+    title: "Bicycle Advertising",
+    stage: "Research phase",
+    detail:
+      "Under research. Not part of this agreement's scope or price — if it moves forward it is scoped, quoted, and approved separately before any work begins.",
+  },
+];
+
 // Fine print — architecture ownership carve-out and licensing frame.
 // Numbered clauses, exact legal identities, order-of-precedence close.
 // The signature checkbox incorporates this section by reference and never
@@ -1311,6 +1333,7 @@ export const planA3: Plan = {
     "DTSP-AI builds and owns the entire frontend — the Next.js storefront on the apex domain, the makers and partner surfaces, and the WholEarthRecords artist platform on its own stack. Every line of delivered application code is WEI's. GoDaddy is the store host underneath, not the builder; swap the host later and nothing about the platforms changes.",
   frontendBuiltByDtsp: true,
   scopeSheets: planA3ScopeSheets,
+  futureScope: planA3FutureScope,
   finePrint: planA3FinePrint,
   hideSeoSection: true,
   hideArchitectureSection: true,

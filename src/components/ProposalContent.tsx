@@ -477,6 +477,29 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
                 )}
               </div>
             ))}
+            {plan.futureScope && plan.futureScope.length > 0 && (
+              <div className="bg-[#141414] border border-dashed border-[#333] rounded-xl p-8">
+                <h3 className="font-semibold text-white text-xl">Future Scope</h3>
+                <p className="text-zinc-500 text-sm mt-2 mb-6 leading-relaxed">
+                  Ideas being explored. Not part of this agreement.
+                </p>
+                <ul className="space-y-4">
+                  {plan.futureScope.map((item) => (
+                    <li key={item.title} className="text-sm leading-relaxed">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-zinc-200 font-semibold">
+                          {item.title}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-yellow-950/40 border border-yellow-700/40 text-yellow-300 text-[10px] font-bold uppercase tracking-wider">
+                          {item.stage}
+                        </span>
+                      </div>
+                      <p className="text-zinc-400 mt-1">{item.detail}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </Section>
       )}

@@ -39,6 +39,7 @@ function canonicalDocument(plan: Plan): string {
     termsVersion: plan.termsVersion ?? null,
     heroBullets: plan.heroBullets ?? null,
     scopeSheets: plan.scopeSheets ?? null,
+    futureScope: plan.futureScope ?? null,
     finePrint: plan.finePrint ?? null,
     termsSummary: plan.meta.termsSummary ?? null,
     maintenance: plan.meta.maintenance ?? null,
