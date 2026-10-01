@@ -41,6 +41,8 @@ function canonicalDocument(plan: Plan): string {
     scopeSheets: plan.scopeSheets ?? null,
     finePrint: plan.finePrint ?? null,
     termsSummary: plan.meta.termsSummary ?? null,
+    maintenance: plan.meta.maintenance ?? null,
+    infraTerms: plan.meta.infraTerms ?? null,
     paymentSchedule: plan.meta.paymentSchedule ?? null,
     totalValue: plan.meta.totalValue,
     preparedFor: plan.meta.preparedFor,
@@ -683,10 +685,17 @@ export default function SignaturePanel({
                     6 milestones ({proposalMeta.totalValue} total).
                   </>
                 )}{" "}
-                Infrastructure costs (AWS hosting, database, bandwidth) and
-                third-party API / LLM token usage (Claude, OpenAI, Stripe,
-                GoHighLevel, etc.) are pass-through at cost and billed
-                separately from this total. I understand that DTSP-AI
+                {proposalMeta.infraTerms ? (
+                  proposalMeta.infraTerms.termsSentence
+                ) : (
+                  <>
+                    Infrastructure costs (AWS hosting, database, bandwidth) and
+                    third-party API / LLM token usage (Claude, OpenAI, Stripe,
+                    GoHighLevel, etc.) are pass-through at cost and billed
+                    separately from this total.
+                  </>
+                )}{" "}
+                I understand that DTSP-AI
                 Technologies will begin work upon receipt of the first
                 payment and that{" "}
                 {plan.finePrint ? (

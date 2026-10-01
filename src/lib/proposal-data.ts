@@ -93,6 +93,40 @@ export interface ProposalMeta {
    *  contract schedule; status and the balance ledger render only in the
    *  client portal. */
   paymentStatusInternal?: boolean;
+  /** Recurring monthly retainer that follows the project schedule. The
+   *  portal derives the next payment due from it once every scheduled
+   *  payment is received. */
+  retainer?: {
+    /** Display amount, e.g. "$2,250". */
+    amount: string;
+    /** Short label for notices, e.g. "Monthly maintenance retainer". */
+    label: string;
+    /** ISO date the first retainer payment is due. */
+    firstDueIso: string;
+    /** ISO due date of the last retainer payment RECEIVED. Unset = none yet. */
+    paidThroughIso?: string;
+  };
+  /** Optional override for the infrastructure-cost clause. When unset the
+   *  renderers keep the legacy "pass-through at cost" text. */
+  infraTerms?: {
+    /** Heading on the proposal page and in the signed PDF. */
+    heading: string;
+    /** Body paragraph on the proposal page and in the signed PDF. */
+    body: string;
+    /** Sentence carried in the signature checkbox. */
+    termsSentence: string;
+  };
+  /** Open items the client owes the project. INTERNAL: rendered only in
+   *  the client portal (Due Next card + toasts). */
+  clientActions?: ClientAction[];
+}
+
+export interface ClientAction {
+  id: string;
+  title: string;
+  detail: string;
+  /** Set true once the client has delivered it — the notice stops showing. */
+  resolved?: boolean;
 }
 
 export interface ComparisonRow {
@@ -946,6 +980,10 @@ export const planCA2: Plan = {
 // 2026-10-01, the month after the final project payment (debugging, testing, dependency/security updates, routine
 // maintenance). New features / additional dev are scoped and quoted
 // separately. The retainer is recurring and is NOT part of totalValue.
+// Amended 2026-10-01: the retainer also covers platform infrastructure
+// (hosting, databases, voice infra, AI/API usage at normal operating
+// levels) for all three applications — see planA3InfraTerms. Stripe fees
+// and accounts in WholEarth's own name (GoDaddy, domains) stay with WholEarth.
 //
 // Phases: M1-M6 reuse planC's phases (requirements + deliverables
 // unchanged) so the client portal's p1-p6 item IDs and saved state carry
@@ -956,15 +994,16 @@ export const planCA2: Plan = {
 //   2026-06-24 $4,500  → covers Jun 1 ($4,500)
 //   2026-07-20 $2,250 + 2026-07-27 $2,250 → covers Jul 1 ($4,500) as a split
 //   Aug 2026 $3,600 → with the $900 credit, covers Aug 1 ($4,500) in full
-//   Net: the first four payments are settled and the $900 credit is consumed.
-//   $17,100 received against $19,670; only the Sep 1 payment ($2,570) is open.
+//   Sep 2026 $2,570 (Zelle) → covers Sep 1 ($2,570), the final project payment
+//   Net: all five payments are settled and the $900 credit is consumed.
+//   $19,670 received against $19,670; the Addendum 3 balance is $0.
 //   Scheduled dates and amounts are unchanged — status rides the tag.
 const planA3Schedule: ScheduledPayment[] = [
   { dateLabel: "Wed, May 20 2026", isoDate: "2026-05-20", amount: "$3,600", tag: "Core 1 of 3", paid: true, paidOn: "Jun 1 2026 ($4,500 via Zelle)" },
   { dateLabel: "Mon, Jun 01 2026", isoDate: "2026-06-01", amount: "$4,500", tag: "Core 2 of 3", paid: true, paidOn: "Jun 24 2026 (Zelle)" },
   { dateLabel: "Wed, Jul 01 2026", isoDate: "2026-07-01", amount: "$4,500", tag: "Core 3 of 3", paid: true, paidOn: "Jul 20 + Jul 27 2026 (2 × $2,250 Zelle)" },
   { dateLabel: "Sat, Aug 01 2026", isoDate: "2026-08-01", amount: "$4,500", tag: "Records & Game 1 of 2", paid: true, paidOn: "Aug 2026 ($3,600 + $900 credit)" },
-  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$2,570", tag: "Records & Game 2 of 2 · final project payment — ongoing monthly maintenance begins Oct 1" },
+  { dateLabel: "Tue, Sep 01 2026", isoDate: "2026-09-01", amount: "$2,570", tag: "Records & Game 2 of 2 · final project payment — ongoing monthly maintenance begins Oct 1", paid: true, paidOn: "Sep 2026 (Zelle)" },
 ];
 
 // M7 — WholEarthRecords. New milestone appended after planC's M1-M6.
@@ -1047,7 +1086,7 @@ const planA3ScopeSheets: ScopeSheet[] = [
       "42 automated unit tests passing + CI gate on the deployment branches",
     ],
     remaining: [
-      "Commerce activation — payment gateway live, storefront purchasing enabled, verified end-to-end test order including a refund",
+      "Commerce activation — Stripe payment gateway live on the store, storefront purchasing enabled, verified end-to-end test order including a refund. Stripe account setup is waiting on WholEarth's business Tax ID",
       "Full catalog rollout — publish the staged products, taking the shop from 48 to 181 live products",
       "Production resilience layer — request timeouts, graceful fallbacks, and on-demand product-data refresh across every store connection",
       "Traffic protection layer — rate limiting and spam protection on AI and form endpoints, credential lifecycle management",
@@ -1085,7 +1124,7 @@ const planA3ScopeSheets: ScopeSheet[] = [
     ],
     remaining: [
       "Commerce launch preparation — production-tier infrastructure upgrade, transactional email, and payment-grade access-control certification across every write path (clears the platform to take payments)",
-      "Commerce phase 1 (first revenue — top build priority) — Stripe Connect artist onboarding, tips and paid downloads, secure masters storage with entitlement-signed delivery, commerce agent tools, revenue reporting in the operator console",
+      "Commerce phase 1 (first revenue — top build priority) — Stripe Connect artist onboarding, tips and paid downloads, secure masters storage with entitlement-signed delivery, commerce agent tools, revenue reporting in the operator console. Stripe account setup is waiting on WholEarth's business Tax ID",
       "Commerce phase 2 (merch) — print-quality AI-art upscaling, platform print-on-demand store integration, Market zone UI, live merch blocks on artist pages",
       "Scale layer — caching and static regeneration, high-volume reporting queries, durable background processing, platform-wide rate limiting with AI spend budgets, realtime subscription efficiency",
       "Production verification — end-to-end voice session and moderation sign-off on production",
@@ -1099,7 +1138,12 @@ const planA3ScopeSheets: ScopeSheet[] = [
     title: "playthewholearthgame.org — Revamp for Live Feeds",
     subtitle:
       "Revamp of the existing playthewholearthgame.org site to carry live feeds",
-    done: [],
+    done: [
+      "Development build live on a preview address ahead of the domain switch — rebuilt from the ground up around the five elements",
+      "The Wall — social feed with member posts, generated imagery, member roster, and member pages",
+      "Video hero on the home page",
+      "The board — six historical-figure AI members that post daily with their own images, under a fixed monthly spend cap",
+    ],
     remaining: [
       "playthewholearthgame.org revamp for live feeds — site revamp with live feeds running on it",
     ],
@@ -1149,17 +1193,42 @@ const planA3BalanceLedger: LedgerRow[] = [
     value: "$3,600",
     sub: "With the $900 credit carried from June, this covers the Aug 1 payment ($4,500) in full — the credit is now consumed",
   },
-  { label: "Total applied to Addendum 3", value: "$17,100", emphasis: true },
+  {
+    label: "Received & applied — September 2026 (Zelle)",
+    value: "$2,570",
+    sub: "Covers the Sep 1 payment in full — the final project payment",
+  },
+  { label: "Total applied to Addendum 3", value: "$19,670", emphasis: true },
   {
     label: "Remaining Addendum 3 balance",
-    value: "$2,570",
-    sub: "Due Sep 1, 2026 — the final project payment. Monthly maintenance begins Oct 1, 2026.",
+    value: "$0",
+    sub: "Addendum 3 is paid in full. The $2,250 monthly maintenance retainer began Oct 1, 2026 and is billed separately.",
     emphasis: true,
   },
   {
     label: "Prior agreement (superseded) — paid Apr 23 – May 13, 2026",
     value: "$4,500",
     sub: "Credited to the project as prior-plan value. NOT part of the $19,670 Addendum 3 total and not owed against it.",
+  },
+];
+
+// Infrastructure clause — amended 2026-10-01. Replaces the legacy
+// "pass-through at cost" text for A3: from the retainer start, platform
+// infrastructure rides inside the $2,250/month.
+const planA3InfraTerms = {
+  heading: "Infrastructure — included in the maintenance retainer",
+  body: "From October 1, 2026, platform infrastructure is included in the $2,250 monthly maintenance retainer and is not billed separately — application hosting, databases and storage, voice infrastructure, and AI / API usage at normal operating levels across the WholEarth Industries marketplace, WholEarth Records, and playthewholearthgame.org. Not included: payment-processor fees (Stripe) and accounts held in WholEarth's own name — the GoDaddy store hosting and domain registrations — which remain with WholEarth.",
+  termsSentence:
+    "From October 1, 2026, platform infrastructure (application hosting, databases and storage, voice infrastructure, and AI / API usage at normal operating levels) is included in the monthly maintenance retainer and is not billed separately; payment-processor fees and accounts held in WholEarth's own name (GoDaddy store hosting, domain registrations) remain with WholEarth.",
+};
+
+// Open items Lance owes the project — portal-only (Due Next + toasts).
+const planA3ClientActions: ClientAction[] = [
+  {
+    id: "stripe-tax-id",
+    title: "Tax ID needed for Stripe",
+    detail:
+      "Send Pete the business Tax ID (EIN) so Stripe can be set up — it is the point of sale for both WholEarth Industries and WholEarth Records, and neither can take a payment without it.",
   },
 ];
 
@@ -1170,7 +1239,7 @@ export const planA3: Plan = {
   tagline: "Marketplace Completion + WholEarthRecords Artist Platform",
   heroTitle: "WholEarth Industries Marketplace + WholEarthRecords",
   heroSubtitle:
-    "Two platforms under one agreement, both built end-to-end by DTSP-AI. WholEarth Industries: a conversion-first Next.js storefront on the apex domain, the WordPress/WooCommerce store engine at store.wholearthindustries.com, and an automated supplier catalog pipeline feeding the shop — GoDaddy's role is hosting the store, nothing more. WholEarthRecords: a standalone artist platform — Three.js-powered artist pages, an AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, and owner analytics — sequenced revenue-first, with the commerce lanes as the top build priority. The Scope of Work sheets below list, per application, exactly what has been delivered and what remains — including the playthewholearthgame.org revamp for live feeds. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 marketplace build plus the $7,070 WholEarthRecords and playthewholearthgame.org scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins October 1, 2026.",
+    "Two platforms under one agreement, both built end-to-end by DTSP-AI. WholEarth Industries: a conversion-first Next.js storefront on the apex domain, the WordPress/WooCommerce store engine at store.wholearthindustries.com, and an automated supplier catalog pipeline feeding the shop — GoDaddy's role is hosting the store, nothing more. WholEarthRecords: a standalone artist platform — Three.js-powered artist pages, an AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, and owner analytics — sequenced revenue-first, with the commerce lanes as the top build priority. The Scope of Work sheets below list, per application, exactly what has been delivered and what remains — including the playthewholearthgame.org revamp for live feeds. $4,500 of the agreement is already paid and credited; this addendum covers the $12,600 marketplace build plus the $7,070 WholEarthRecords and playthewholearthgame.org scope, with project reviews every two weeks. A $2,250/month maintenance retainer begins October 1, 2026, covering continued maintenance and the platform infrastructure.",
   heroBullets: [
     "Two platforms under one agreement — the WholEarth Industries marketplace and the WholEarthRecords artist platform. DTSP-AI builds both, frontend and backend.",
     "WholEarth Industries — conversion-first Next.js storefront on wholearthindustries.com, the WordPress/WooCommerce store engine at store.wholearthindustries.com, and an automated supplier catalog pipeline between them. GoDaddy hosts the store; DTSP-AI builds everything else.",
@@ -1178,9 +1247,10 @@ export const planA3: Plan = {
     "WholEarthRecords — a standalone artist platform: Three.js-powered artist pages, AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, and owner analytics. Build priority is revenue-first: the commerce lanes ship ahead of further 3D experience work.",
     "The Scope of Work sheets in this agreement list, per application, what has been delivered (checked) and what remains (unchecked). The applications are scoped separately and never mixed.",
     "playthewholearthgame.org — revamp of the existing site for live feeds, scoped on its own sheet at the end of the Scope of Work.",
+    "Both platforms take payments through Stripe — commerce activation on each is the next build step and is waiting on WholEarth's business Tax ID.",
     "$4,500 of the agreement is already paid and credited.",
     "This addendum covers the $12,600 marketplace scope plus the $7,070 WholEarthRecords and playthewholearthgame.org scope, with project reviews every two weeks.",
-    "A $2,250 / month maintenance retainer begins October 1, 2026.",
+    "A $2,250 / month maintenance retainer begins October 1, 2026. It covers DTSP-AI's continued maintenance of all three applications and the platform infrastructure they run on.",
     "DTSP-AI retains ownership of its core proprietary architecture — see Proprietary Architecture & Licensing below.",
   ],
   meta: {
@@ -1193,6 +1263,14 @@ export const planA3: Plan = {
     providerSignedDate: "May 16, 2026",
     balanceLedger: planA3BalanceLedger,
     paymentStatusInternal: true,
+    // paidThroughIso unset: the Oct 1 retainer payment is not yet received.
+    retainer: {
+      amount: "$2,250",
+      label: "Monthly maintenance retainer",
+      firstDueIso: "2026-10-01",
+    },
+    infraTerms: planA3InfraTerms,
+    clientActions: planA3ClientActions,
     paypalInvoiceUrl: "https://www.paypal.com/invoice/p/#X3FCKZSDVMEZJSGV",
     projectTerm: "≈4-Month Build · Biweekly Reviews · 5 Monthly Payments",
     investmentAtSigning: "$3,600",
@@ -1207,18 +1285,19 @@ export const planA3: Plan = {
     scheduleHeadline: "$12,600 marketplace + $7,070 records & game",
     scheduleCadenceLabel: "Monthly payments — 3 marketplace + 2 records & game",
     scheduleFootnote:
-      "Full-stack delivery, frontend and backend: the WholEarth Industries marketplace scope, the WholEarth Records artist platform, and the playthewholearthgame.org revamp for live feeds. Each application's delivered and remaining work is listed in its own Scope of Work sheet above. $4,500 already paid under the prior agreement is credited toward the project. Payment status and the full balance reconciliation live in the client portal. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Oct 1, 2026 (billed separately).",
+      "Full-stack delivery, frontend and backend: the WholEarth Industries marketplace scope, the WholEarth Records artist platform, and the playthewholearthgame.org revamp for live feeds. Each application's delivered and remaining work is listed in its own Scope of Work sheet above. $4,500 already paid under the prior agreement is credited toward the project. Payment status and the full balance reconciliation live in the client portal. Project reviews continue every 2 weeks. A $2,250/month maintenance retainer begins Oct 1, 2026 (billed separately) and covers continued maintenance plus the platform infrastructure.",
     termsSummary:
-      "including the full project scope as set out in the Scope of Work sheets in this agreement — the WholEarth Industries marketplace platform, the WholEarth Records artist platform, and the playthewholearthgame.org revamp for live feeds. On each sheet, checked items are delivered, unchecked items are the remaining work under this agreement, and anything not listed is out of scope and quoted separately. Ownership and licensing of all deliverables and of DTSP-AI Technologies LLC's proprietary architecture are governed exclusively by the Proprietary Architecture & Licensing section of this agreement (clauses 1–6), which is incorporated by reference and controls over any other statement in this agreement. Project reviews are held every two weeks. The total is $19,670, payable in five monthly payments: $3,600 on May 20, 2026; $4,500 on June 1, 2026; $4,500 on July 1, 2026; $4,500 on August 1, 2026; and $2,570 on September 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project and is not part of the $19,670. A maintenance and support retainer of $2,250 per month begins October 1, 2026 and continues until cancelled, covering debugging, testing, dependency and security updates, and routine maintenance; new features or additional development are scoped and quoted separately.",
+      "including the full project scope as set out in the Scope of Work sheets in this agreement — the WholEarth Industries marketplace platform, the WholEarth Records artist platform, and the playthewholearthgame.org revamp for live feeds. On each sheet, checked items are delivered, unchecked items are the remaining work under this agreement, and anything not listed is out of scope and quoted separately. Ownership and licensing of all deliverables and of DTSP-AI Technologies LLC's proprietary architecture are governed exclusively by the Proprietary Architecture & Licensing section of this agreement (clauses 1–6), which is incorporated by reference and controls over any other statement in this agreement. Project reviews are held every two weeks. The total is $19,670, payable in five monthly payments: $3,600 on May 20, 2026; $4,500 on June 1, 2026; $4,500 on July 1, 2026; $4,500 on August 1, 2026; and $2,570 on September 1, 2026. The $4,500 already paid under the prior agreement is credited toward the project and is not part of the $19,670. A maintenance and support retainer of $2,250 per month begins October 1, 2026 and continues until cancelled, covering debugging, testing, dependency and security updates, routine maintenance, and the platform infrastructure the applications run on (application hosting, databases and storage, voice infrastructure, and AI / API usage at normal operating levels); payment-processor fees and accounts held in WholEarth's own name are not included; new features or additional development are scoped and quoted separately.",
     maintenance: {
       headline: "$2,250 / month — begins October 1, 2026",
       intro:
-        "After the final project payment ($2,570 on September 1, 2026), the platform moves to an ongoing monthly maintenance plan. It is month-to-month and billed separately from the $19,670 project total.",
+        "After the final project payment ($2,570 on September 1, 2026), the platforms move to an ongoing monthly plan that covers two things: DTSP-AI's continued maintenance of all three applications, and the infrastructure they run on. It is month-to-month and billed separately from the $19,670 project total.",
       covers: [
         "Bug fixes and debugging",
         "Testing and regression checks",
         "Dependency and security updates",
         "Routine monitoring, uptime checks, and upkeep",
+        "Platform infrastructure — application hosting, databases and storage, voice infrastructure, and AI / API usage at normal operating levels",
       ],
       excluded:
         "Maintenance does NOT include new features, new integrations, design changes, or any additional development. Each new piece of work is scoped, written up, and priced separately — and approved by you — before it begins.",
@@ -1237,7 +1316,7 @@ export const planA3: Plan = {
   hideArchitectureSection: true,
   signatureHeading:
     "Scope Acceptance — Plan A Addendum 3: WholEarth Industries and WholEarth Records",
-  termsVersion: "A3-2026-08-18",
+  termsVersion: "A3-2026-10-01",
   comparisonTable: [
     { capability: "Next.js storefront (apex domain)", godaddy: "—", dtsp: "Built by DTSP-AI on Vercel — you own the code" },
     { capability: "On-site product pages", godaddy: "—", dtsp: "Built by DTSP-AI — gallery, pricing, structured data" },

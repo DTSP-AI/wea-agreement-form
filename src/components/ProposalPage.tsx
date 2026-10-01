@@ -354,13 +354,16 @@ export default function ProposalPage({
       hr();
 
       // ---------- Pass-through costs ----------
-      writeWrapped("Pass-through costs (not included)", {
+      const infra = activePlan.meta.infraTerms;
+      writeWrapped(infra ? infra.heading : "Pass-through costs (not included)", {
         size: 11,
         bold: true,
         spaceAfter: 4,
       });
       writeWrapped(
-        "Infrastructure (AWS hosting, database, object storage, bandwidth) and third-party API/LLM token usage (Claude, OpenAI, Stripe, GoHighLevel, etc.) are pass-through at cost with no markup. Billed monthly once production traffic begins.",
+        infra
+          ? infra.body
+          : "Infrastructure (AWS hosting, database, object storage, bandwidth) and third-party API/LLM token usage (Claude, OpenAI, Stripe, GoHighLevel, etc.) are pass-through at cost with no markup. Billed monthly once production traffic begins.",
         { size: 9, color: [70, 70, 70], spaceAfter: 12 }
       );
       hr();

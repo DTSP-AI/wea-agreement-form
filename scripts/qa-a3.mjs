@@ -77,17 +77,18 @@ assert(
   "Amounts are $3,600 / $4,500 / $4,500 / $4,500 / $2,570 in order"
 );
 const paidRows = [...sched.matchAll(/paid: true/g)].length;
-assert(paidRows === 4, "Exactly four payments marked paid (through Aug 1)");
-const paidSum = amounts.slice(0, 4).reduce((a, b) => a + b, 0);
-assert(paidSum === 17100, "Paid rows sum to $17,100");
-assert(13500 + 3600 === paidSum, "Cash received $13,500 + $3,600 = $17,100 applied");
+assert(paidRows === 5, "All five payments marked paid (through Sep 1)");
+const paidSum = amounts.slice(0, paidRows).reduce((a, b) => a + b, 0);
+assert(paidSum === 19670, "Paid rows sum to $19,670");
+assert(13500 + 3600 + 2570 === paidSum, "Cash received $13,500 + $3,600 + $2,570 = $19,670 applied");
 assert(4500 - 900 === 3600, "Aug 1: $3,600 cash + the $900 June credit = the $4,500 payment");
-assert(total - paidSum === 2570, "Only the Sep 1 payment ($2,570) is open");
+assert(total - paidSum === 0, "No scheduled payment is open — Addendum 3 is paid in full");
 assert(12600 + 7070 === total, "Split reconciles: $12,600 marketplace + $7,070 records & game");
 const jul1Rows = [...sched.matchAll(/2026-07-01/g)].length;
 assert(jul1Rows === 1, "Jul 20 + Jul 27 split maps to ONE Jul 1 row (never double-counted)");
-const ledger = a3.slice(a3.indexOf("planA3BalanceLedger"), a3.indexOf("export const planA3"));
-assert(ledger.includes('"$17,100"') && ledger.includes('"$2,570"') && ledger.includes('"$3,600"'), "Ledger states applied total, the Aug payment, and the remaining balance explicitly");
+const ledger = a3.slice(a3.indexOf("planA3BalanceLedger"), a3.indexOf("const planA3InfraTerms"));
+assert(ledger.includes('"$19,670"') && ledger.includes('"$2,570"') && ledger.includes('"$3,600"') && ledger.includes('value: "$0"'), "Ledger states applied total, the Aug and Sep payments, and a $0 remaining balance explicitly");
+assert(!ledger.includes('"$17,100"'), "No stale $17,100 applied total remains in the ledger");
 assert(ledger.includes("NOT part of the $19,670"), "Prior-plan $4,500 separately identified and excluded from the A3 total");
 assert(a3.includes('totalValue: "$19,670"'), "totalValue matches the scheduled sum");
 
@@ -110,11 +111,27 @@ assert(
   "termsSummary states the Oct 1 retainer start"
 );
 
+console.log("\n== Retainer, infrastructure & client actions ==");
+const notices = read("src/lib/portal-notices.ts");
+assert(/retainer: \{[^}]*amount: "\$2,250"[^}]*firstDueIso: "2026-10-01"/s.test(a3), "Retainer data: $2,250, first due Oct 1, 2026");
+assert(a3.includes("infraTerms: planA3InfraTerms"), "A3 carries its own infrastructure clause");
+const infra = a3.slice(a3.indexOf("const planA3InfraTerms"), a3.indexOf("planA3ClientActions"));
+assert(infra.includes("included in the $2,250 monthly maintenance retainer") && infra.includes("not billed separately"), "Infrastructure is included in the retainer, not billed separately");
+assert(infra.includes("payment-processor fees") && infra.includes("GoDaddy"), "Carve-outs stated: processor fees and WholEarth-held accounts");
+assert(!/pass-through/i.test(infra), "A3 infrastructure clause carries no pass-through language");
+assert(terms.includes("AI / API usage at normal operating levels"), "termsSummary states the retainer's infrastructure coverage");
+assert(sigPanel.includes("proposalMeta.infraTerms.termsSentence") && content.includes("proposalMeta.infraTerms.body") && read("src/components/ProposalPage.tsx").includes("activePlan.meta.infraTerms"), "Checkbox, proposal page, and signed PDF all read the plan's infrastructure clause");
+assert(sigPanel.includes("infraTerms: plan.meta.infraTerms") && sigPanel.includes("maintenance: plan.meta.maintenance"), "Document hash covers the maintenance and infrastructure terms");
+assert(rick.includes("infrastructure") && rick.includes("Infrastructure is NOT billed separately"), "Rick explains the retainer covers infrastructure");
+assert(a3.includes('id: "stripe-tax-id"') && rick.includes("Tax ID"), "Tax ID request present in portal data and Rick's contract");
+assert(portal.includes("nextPaymentDue(plan.meta)") && portal.includes("<PortalToasts"), "Portal derives next payment from the shared helper and mounts the toasts");
+assert(notices.includes("meta.retainer") && notices.includes("clientActions"), "Notices derive from retainer + client-action data");
+
 console.log("\n== playthewholearthgame.org scope ==");
 const gameSheet = a3.slice(a3.indexOf("playthewholearthgame.org — Revamp for Live Feeds"), sheetsEnd);
 assert(gameSheet.length > 0, "playthewholearthgame.org sheet present in the scope sheets");
 assert(a3.indexOf("playthewholearthgame.org — Revamp for Live Feeds") > recordsStart, "Game sheet sits at the tail end, after the two platform sheets");
-assert(/done: \[\]/.test(gameSheet), "Game sheet claims nothing delivered");
+assert(gameSheet.includes("Development build live on a preview address"), "Game sheet lists the development build as delivered");
 assert(gameSheet.includes("revamp for live feeds") && gameSheet.includes("boundary"), "Game sheet states the remaining work and its scope boundary");
 assert(content.includes("sheet.done.length > 0"), "Proposal page skips the Delivered block when a sheet has nothing delivered");
 assert(read("src/components/ProposalPage.tsx").includes("sheet.done.length > 0"), "Signed PDF skips the Delivered block when a sheet has nothing delivered");

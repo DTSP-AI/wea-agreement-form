@@ -63,6 +63,8 @@ import {
   KeyRound,
 } from "lucide-react";
 import { planA3 } from "@/lib/proposal-data";
+import { nextPaymentDue } from "@/lib/portal-notices";
+import PortalToasts from "@/components/PortalToasts";
 
 const RickChat = dynamic(() => import("@/components/RickChat"), {
   ssr: false,
@@ -1116,7 +1118,9 @@ export default function ClientPortal() {
     (sum, p) => sum + parseAmount(p.amount),
     0
   );
-  const nextPayment = schedule.find((p) => !p.paid);
+  // First open scheduled payment, else the next retainer month.
+  const nextPayment = nextPaymentDue(plan.meta);
+  const openActions = (plan.meta.clientActions ?? []).filter((a) => !a.resolved);
 
   // Build the plan-shape description for the "Plan Total" stat card.
   // Counts the unique non-zero amounts so the line reads naturally for
@@ -1382,8 +1386,11 @@ export default function ClientPortal() {
             + next open requirement) are visible above the fold without
             scrolling through every section. Hidden once everything is
             cleared so the portal doesn't look stuck on an empty state. */}
-        {(nextPayment || (LEGACY_CHECKLIST_VISIBLE && nextOpenRequirement)) && (
+        {(nextPayment ||
+          openActions.length > 0 ||
+          (LEGACY_CHECKLIST_VISIBLE && nextOpenRequirement)) && (
           <motion.section
+            id="due-next"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
@@ -1414,6 +1421,22 @@ export default function ClientPortal() {
                   )}
                 </div>
               )}
+              {openActions.map((a) => (
+                <div
+                  key={a.id}
+                  className="bg-[#0a0a0a] border border-green-900/40 rounded-xl p-4"
+                >
+                  <div className="text-[10px] uppercase tracking-[0.2em] text-green-400 font-semibold mb-1">
+                    Action Required
+                  </div>
+                  <div className="text-sm font-semibold text-white leading-snug">
+                    {a.title}
+                  </div>
+                  <div className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                    {a.detail}
+                  </div>
+                </div>
+              ))}
               {LEGACY_CHECKLIST_VISIBLE && nextOpenRequirement && (
                 <div className="bg-[#0a0a0a] border border-green-900/40 rounded-xl p-4 flex flex-col">
                   <div className="text-[10px] uppercase tracking-[0.2em] text-green-400 font-semibold mb-1">
@@ -1615,7 +1638,7 @@ export default function ClientPortal() {
         )}
 
         {/* Payment schedule */}
-        <section>
+        <section id="payment-schedule">
           <SectionHeader
             icon={<DollarSign className="w-5 h-5 text-green-400" />}
             title="Payment Schedule"
@@ -1843,6 +1866,8 @@ export default function ClientPortal() {
           URL. Clear with <code className="text-zinc-500">?admin=0</code>.
         </p>
       </footer>
+
+      <PortalToasts meta={plan.meta} />
 
       {/* Rick chat widget */}
       <div data-rick-chat>

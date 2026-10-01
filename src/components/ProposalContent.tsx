@@ -687,7 +687,17 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
             </div>
           )}
 
-          {/* Infra / usage disclaimer */}
+          {/* Infra / usage clause — plan-supplied, else the legacy pass-through disclaimer */}
+          {proposalMeta.infraTerms ? (
+          <div className="bg-[#141414] border border-green-800/40 rounded-xl p-4 mb-2">
+            <div className="text-green-300 text-xs font-semibold uppercase tracking-wider mb-1">
+              {proposalMeta.infraTerms.heading}
+            </div>
+            <p className="text-zinc-400 text-xs leading-relaxed">
+              {proposalMeta.infraTerms.body}
+            </p>
+          </div>
+          ) : (
           <div className="bg-yellow-950/20 border border-yellow-800/30 rounded-xl p-4 mb-2">
             <div className="text-yellow-300 text-xs font-semibold uppercase tracking-wider mb-1">
               Not included in this price
@@ -701,6 +711,7 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
               production traffic is flowing.
             </p>
           </div>
+          )}
 
           {!plan.scopeSheets && (
           <div className="grid md:grid-cols-2 gap-4">
