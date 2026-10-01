@@ -113,8 +113,9 @@ export interface ProposalMeta {
     heading: string;
     /** Body paragraph on the proposal page and in the signed PDF. */
     body: string;
-    /** Sentence carried in the signature checkbox. */
-    termsSentence: string;
+    /** Sentence carried in the signature checkbox. Omit when the plan's
+     *  termsSummary already states the infrastructure terms. */
+    termsSentence?: string;
   };
   /** Open items the client owes the project. INTERNAL: rendered only in
    *  the client portal (Due Next card + toasts). */
@@ -1240,8 +1241,8 @@ const planA3BalanceLedger: LedgerRow[] = [
 const planA3InfraTerms = {
   heading: "Infrastructure — included in the maintenance retainer",
   body: "From October 1, 2026, platform infrastructure is included in the $2,250 monthly maintenance retainer and is not billed separately — application hosting, databases and storage, voice infrastructure, and AI / API usage at normal operating levels across the WholEarth Industries marketplace, WholEarth Records, and playthewholearthgame.org. Not included: payment-processor fees (Stripe) and accounts held in WholEarth's own name — the GoDaddy store hosting and domain registrations — which remain with WholEarth.",
-  termsSentence:
-    "From October 1, 2026, platform infrastructure (application hosting, databases and storage, voice infrastructure, and AI / API usage at normal operating levels) is included in the monthly maintenance retainer and is not billed separately; payment-processor fees and accounts held in WholEarth's own name (GoDaddy store hosting, domain registrations) remain with WholEarth.",
+  // No termsSentence: A3's termsSummary states the retainer's infrastructure
+  // coverage, so the checkbox would say it twice.
 };
 
 // Open items Lance owes the project — portal-only (Due Next + toasts).

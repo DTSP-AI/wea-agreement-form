@@ -1394,7 +1394,7 @@ export default function ClientPortal() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="bg-gradient-to-br from-green-950/40 via-[#0d0d0d] to-[#0d0d0d] border border-green-700/40 rounded-2xl p-6"
+            className="scroll-mt-24 bg-gradient-to-br from-green-950/40 via-[#0d0d0d] to-[#0d0d0d] border border-green-700/40 rounded-2xl p-6"
           >
             <div className="flex items-center gap-2 mb-4">
               <div className="text-[10px] uppercase tracking-[0.25em] text-green-300 font-bold">
@@ -1638,7 +1638,7 @@ export default function ClientPortal() {
         )}
 
         {/* Payment schedule */}
-        <section id="payment-schedule">
+        <section id="payment-schedule" className="scroll-mt-24">
           <SectionHeader
             icon={<DollarSign className="w-5 h-5 text-green-400" />}
             title="Payment Schedule"

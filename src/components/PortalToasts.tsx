@@ -50,7 +50,8 @@ export default function PortalToasts({ meta }: { meta: ProposalMeta }) {
 
   return (
     <div
-      className="pointer-events-none fixed bottom-6 left-4 z-50 flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2 sm:left-6"
+      // bottom-24 on phones clears Rick's launcher, which owns the bottom-right corner.
+      className="pointer-events-none fixed bottom-24 left-4 z-50 sm:bottom-6 flex w-[calc(100%-2rem)] max-w-sm flex-col gap-2 sm:left-6"
       aria-live="polite"
     >
       <AnimatePresence initial={false}>

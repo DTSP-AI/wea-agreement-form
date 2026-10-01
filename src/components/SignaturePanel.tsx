@@ -687,7 +687,7 @@ export default function SignaturePanel({
                   </>
                 )}{" "}
                 {proposalMeta.infraTerms ? (
-                  proposalMeta.infraTerms.termsSentence
+                  proposalMeta.infraTerms.termsSentence ?? null
                 ) : (
                   <>
                     Infrastructure costs (AWS hosting, database, bandwidth) and
