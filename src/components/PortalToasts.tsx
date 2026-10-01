@@ -77,10 +77,10 @@ export default function PortalToasts({ meta }: { meta: ProposalMeta }) {
                 }
                 className="flex-1 cursor-pointer text-left"
               >
-                <div className="text-[13px] font-semibold" style={{ color: s.color }}>
+                <div className="text-[15px] font-semibold" style={{ color: s.color }}>
                   {n.title}
                 </div>
-                <div className="mt-0.5 text-[13px] leading-snug text-white">{n.text}</div>
+                <div className="mt-0.5 text-[15px] leading-snug text-white">{n.text}</div>
               </button>
               <button
                 onClick={() => dismiss(n.key)}

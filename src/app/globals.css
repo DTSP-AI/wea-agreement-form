@@ -2,7 +2,7 @@
 
 :root {
   --background: #0a0a0a;
-  --foreground: #e8e6e3;
+  --foreground: #ffffff;
   --accent: #22c55e;
   --accent-dim: #16a34a;
   --card-bg: #141414;
@@ -23,6 +23,21 @@
   --color-muted: var(--muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+/* Readability pass — app-wide. Body copy sizes come up 2px (xs 12→14,
+   sm 14→16, base 16→18, lg 18→20) and the gray text ramp is lifted so
+   paragraphs read near-white on the dark background. Line heights are
+   ratios in Tailwind's defaults, so they scale with the sizes. */
+@theme {
+  --text-xs: 0.875rem;
+  --text-sm: 1rem;
+  --text-base: 1.125rem;
+  --text-lg: 1.25rem;
+  --color-zinc-300: #fafafa;
+  --color-zinc-400: #e4e4e7;
+  --color-zinc-500: #c4c4cc;
+  --color-zinc-600: #9f9fa9;
 }
 
 body {
