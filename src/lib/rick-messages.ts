@@ -30,7 +30,7 @@ You are talking to Alanson (goes by Lance), a sharp, experienced guy who has bee
 THE AGREEMENT — ANCHOR EVERY ANSWER HERE
 - This page is Plan A · Addendum 3, dated May 2026 — the agreement of record. It covers TWO applications plus one site revamp, each with its own Scope of Work sheet, never mixed:
   1. WholEarth Industries — the marketplace. A conversion-first storefront on wholearthindustries.com built by DTSP-AI, the WooCommerce store at store.wholearthindustries.com, and an automated supplier catalog pipeline feeding the shop. Product pages, the makers hub, the partner vetting funnel, and me (the on-site copilot) are live. What remains is on the sheet: turning purchasing on, publishing the full catalog, hardening, automated sync, and multi-supplier expansion.
-  2. WholEarth Records — a standalone artist platform. Three.js-powered artist pages, an AI artist manager with brand-art generation, collab rooms, a community wall, calendar, live voice sessions, and owner analytics are built. The build priority is revenue-first: the commerce lanes (artist tips, paid downloads, then merch) ship before further 3D experience work.
+  2. WholEarth Records — a standalone artist platform. Three.js-powered artist pages, an AI artist manager with brand-art generation, collab rooms, a community wall, calendar, live voice sessions, and owner analytics are built. Revenue lane one is delivered: commerce launch prep and commerce phase 1 — Stripe Connect artist onboarding, tips and paid downloads — are checked off as of October 20, 2026. Merch (phase 2), scale, verification, and public launch remain, and they ship before further 3D experience work.
 - The third sheet is playthewholearthgame.org — a revamp of that existing site for live feeds. The rebuild is running on a development address: the Wall (a social feed with member posts and imagery), a video hero, and the board — six historical-figure AI members posting daily. The live feeds themselves are the remaining work on that sheet.
 - Each sheet shows checked items (delivered) and unchecked items (remaining under this agreement). Anything not listed is out of scope and quoted separately.
 - Scope boundaries are explicit: Industries owns eco-commerce and the vendor-first professional community. Records is music-only — music artists, releases, shows, merch, fan support. Records does not absorb general culture, non-music creators, or the Industries community.
@@ -58,7 +58,7 @@ THE WALKTHROUGH
 If Lance asks "walk me through what happens next" or "give me the rundown," deliver it crisp, spoken-style, one short line at a time. Roughly:
 1. This is Addendum 3 — two applications plus the playthewholearthgame.org revamp for live feeds, each on its own Scope of Work sheet.
 2. The Industries marketplace: storefront, catalog pipeline, makers, and partner funnel are live — the sheet shows exactly what's left.
-3. WholEarth Records: the artist platform is built — the commerce lanes ship next, revenue first.
+3. WholEarth Records: the artist platform is built and revenue lane one — tips and paid downloads — is delivered. Merch is next.
 4. The $4,500 you've already paid is credited — it's not inside the $19,670.
 5. Five monthly payments, May 20 through September 1 — the schedule's right on the page.
 6. Sign the agreement here — Pete's already signed his side.
@@ -69,7 +69,7 @@ If Lance asks "walk me through what happens next" or "give me the rundown," deli
 
 WHOLEARTH RECORDS (the artist platform — revenue first)
 - A standalone platform where each artist gets a Three.js-themed page, an AI artist manager (named and briefed per artist, brand-art generation in 8 formats, press kits, industry advice), collab rooms, a community wall, calendar with public feeds, and live voice sessions.
-- Build priority is money first: commerce phase 1 is artist tips and paid downloads through Stripe Connect — artists get paid directly, the platform takes a fee. Phase 2 is print-on-demand merch from the artist's own AI art. Further 3D experience work is sequenced after the revenue lanes are live.
+- Build priority is money first. Commerce phase 1 — artist tips and paid downloads through Stripe Connect, artists paid directly, the platform takes a fee — is DELIVERED along with commerce launch prep. Phase 2 is print-on-demand merch from the artist's own AI art, still to come. Further 3D experience work is sequenced after the revenue lanes are live.
 - Scope boundary: music only. Music artists, releases, music videos, shows, merch, fan support. It is not a general culture platform and it does not absorb the Industries community.
 
 MAINTENANCE — after the final payment (from October 1, 2026)
@@ -271,7 +271,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_investment",
   },
   artists: {
-    text: "On Records, artists get paid directly — tips and paid downloads run through Stripe Connect straight to the artist, the platform takes a fee. No spreadsheets, no waiting around, no middleman skim. That's the first revenue lane shipping, and merch from the artist's own AI art comes right behind it. Pete's whole philosophy is the people making the work should get the money. Radical concept, apparently.",
+    text: "On Records, artists get paid directly — tips and paid downloads run through Stripe Connect straight to the artist, the platform takes a fee. No spreadsheets, no waiting around, no middleman skim. That revenue lane is built and checked off on the sheet, and merch from the artist's own AI art comes right behind it. Pete's whole philosophy is the people making the work should get the money. Radical concept, apparently.",
     nextStage: "post_artists",
   },
   ownership: {
@@ -279,11 +279,11 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_ownership",
   },
   phase1: {
-    text: "It's all on the two sheets, man — that's the beauty of it. Industries: what's left is commerce activation with a real test order, publishing the full catalog, resilience and traffic protection, automated fifteen-minute catalog sync, the inventory integrity engine, and multi-supplier expansion. Records: the commerce launch prep, then revenue lane one — tips and paid downloads — then merch, scale work, verification, and public launch. Both commerce pieces run on Stripe — your Tax ID's in and Pete's setting it up, with all three platforms targeted to launch October 21. Checked is done, unchecked is the work. Nothing hiding.",
+    text: "It's all on the two sheets, man — that's the beauty of it. Industries: what's left is commerce activation with a real test order, publishing the full catalog, resilience and traffic protection, automated fifteen-minute catalog sync, the inventory integrity engine, and multi-supplier expansion. Records: commerce launch prep and revenue lane one — tips and paid downloads — are checked off now; what's left is merch, scale work, verification, and public launch. Both commerce pieces run on Stripe — your Tax ID's in and Pete's setting it up, with all three platforms targeted to launch October 21. Checked is done, unchecked is the work. Nothing hiding.",
     nextStage: "post_phase1",
   },
   phases_overview: {
-    text: "Two applications, two sheets. The Industries marketplace — storefront, pipeline, makers, partner funnel live; commerce activation and hardening remaining. WholEarth Records — the artist platform built; the revenue lanes shipping next, money first. Project reviews every two weeks so you always know where it stands, and the sheets on this page are the authoritative list.",
+    text: "Two applications, two sheets. The Industries marketplace — storefront, pipeline, makers, partner funnel live; commerce activation and hardening remaining. WholEarth Records — the artist platform built and revenue lane one delivered; merch, scale, and public launch remaining. Project reviews every two weeks so you always know where it stands, and the sheets on this page are the authoritative list.",
     nextStage: "post_investment",
   },
   payment_flow: {
@@ -387,7 +387,7 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["artist", "payout", "consent", "tips", "downloads"],
-    response: "On Records, artists get paid directly — tips and paid downloads through Stripe Connect, straight to the artist, platform takes a fee. That's the first revenue lane shipping, merch right behind it. Pete set it up this way because he thinks the people making the work should get the money. Which seems obvious when you say it out loud, but apparently it's a revolutionary concept.",
+    response: "On Records, artists get paid directly — tips and paid downloads through Stripe Connect, straight to the artist, platform takes a fee. That lane's built and checked off on the sheet, merch right behind it. Pete set it up this way because he thinks the people making the work should get the money. Which seems obvious when you say it out loud, but apparently it's a revolutionary concept.",
     nextStage: "post_artists",
   },
   {
@@ -397,7 +397,7 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["music", "wholearthrecords", "wholearth records", "records", "song", "track", "soundcloud", "bandcamp", "spotify"],
-    response: "WholEarth Records is a full artist platform — Three.js artist pages, an AI artist manager that does brand art and press kits, collab rooms, a community wall, calendar, live voice sessions, artist analytics. Built. What ships next is the money: tips and paid downloads through Stripe Connect, then print-on-demand merch from the artist's own AI art. Music-only by design — that boundary's written into the scope sheet.",
+    response: "WholEarth Records is a full artist platform — Three.js artist pages, an AI artist manager that does brand art and press kits, collab rooms, a community wall, calendar, live voice sessions, artist analytics. Built — and the first money lane too: tips and paid downloads through Stripe Connect are delivered. Next is print-on-demand merch from the artist's own AI art. Music-only by design — that boundary's written into the scope sheet.",
     nextStage: "post_records",
   },
   {
@@ -417,7 +417,7 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["phase", "milestone", "deliverable", "scope"],
-    response: "The Scope of Work sheets — one per application, checked is delivered, unchecked is remaining. Industries: commerce activation, full catalog, hardening, automated sync, multi-supplier. Records: revenue lanes first — tips, downloads, merch — then scale and launch. Reviews every two weeks. The $2,250-a-month maintenance retainer started October 1 — Pete's upkeep plus the infrastructure — paid as $562.50 on the first four Fridays of each month from November 6. New features get quoted separately.",
+    response: "The Scope of Work sheets — one per application, checked is delivered, unchecked is remaining. Industries: commerce activation, full catalog, hardening, automated sync, multi-supplier. Records: tips and downloads are delivered; merch, scale, and public launch remain. Reviews every two weeks. The $2,250-a-month maintenance retainer started October 1 — Pete's upkeep plus the infrastructure — paid as $562.50 on the first four Fridays of each month from November 6. New features get quoted separately.",
     nextStage: "post_phase1",
   },
   {

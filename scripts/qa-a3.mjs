@@ -178,6 +178,8 @@ console.log("\n== playthewholearthgame.org scope ==");
 const gameSheet = a3.slice(a3.indexOf("playthewholearthgame.org — Revamp for Live Feeds"), sheetsEnd);
 assert(gameSheet.length > 0, "playthewholearthgame.org sheet present in the scope sheets");
 assert(a3.indexOf("playthewholearthgame.org — Revamp for Live Feeds") > recordsStart, "Game sheet sits at the tail end, after the two platform sheets");
+assert(/done: \[[\s\S]*?Commerce launch preparation[\s\S]*?Commerce phase 1 \(first revenue\)[\s\S]*?\],\s*remaining: \[/.test(a3.slice(a3.indexOf('title: "WholEarthRecords — Artist Platform"'))), "Records sheet: commerce launch prep and phase 1 are delivered");
+assert(!a3.slice(a3.indexOf('title: "WholEarthRecords — Artist Platform"')).split('boundary:')[0].includes("top build priority"), "Records sheet carries no stale 'top build priority' tag once phase 1 is delivered");
 assert(gameSheet.includes("Development build live on a preview address"), "Game sheet lists the development build as delivered");
 assert(gameSheet.includes("revamp for live feeds") && gameSheet.includes("boundary"), "Game sheet states the remaining work and its scope boundary");
 assert(content.includes("sheet.done.length > 0"), "Proposal page skips the Delivered block when a sheet has nothing delivered");

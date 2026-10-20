@@ -1156,10 +1156,10 @@ const planA3ScopeSheets: ScopeSheet[] = [
       "Live voice sessions — deployable voice copilot (LiveKit + Deepgram) with daily minute caps",
       "Economics instrumentation — per-artist AI-spend ledger, owner analytics (The Overlook), operator console with per-artist cost tracking",
       "AI-search optimization — llms.txt, ai-manifest, schema.org structured data, robots directives",
+      "Commerce launch preparation — production-tier infrastructure upgrade, transactional email, and payment-grade access-control certification across every write path (clears the platform to take payments)",
+      "Commerce phase 1 (first revenue) — Stripe Connect artist onboarding, tips and paid downloads, secure masters storage with entitlement-signed delivery, commerce agent tools, revenue reporting in the operator console",
     ],
     remaining: [
-      "Commerce launch preparation — production-tier infrastructure upgrade, transactional email, and payment-grade access-control certification across every write path (clears the platform to take payments)",
-      "Commerce phase 1 (first revenue — top build priority) — Stripe Connect artist onboarding, tips and paid downloads, secure masters storage with entitlement-signed delivery, commerce agent tools, revenue reporting in the operator console. Tax ID received October 20, 2026 — Stripe account setup underway; all three platforms are targeted to launch October 21, 2026",
       "Commerce phase 2 (merch) — print-quality AI-art upscaling, platform print-on-demand store integration, Market zone UI, live merch blocks on artist pages",
       "Scale layer — caching and static regeneration, high-volume reporting queries, durable background processing, platform-wide rate limiting with AI spend budgets, realtime subscription efficiency",
       "Production verification — end-to-end voice session and moderation sign-off on production",
