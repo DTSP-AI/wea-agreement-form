@@ -1121,7 +1121,7 @@ const planA3ScopeSheets: ScopeSheet[] = [
       "42 automated unit tests passing + CI gate on the deployment branches",
     ],
     remaining: [
-      "Commerce activation — Stripe payment gateway live on the store, storefront purchasing enabled, verified end-to-end test order including a refund. Stripe account setup is waiting on WholEarth's business Tax ID",
+      "Commerce activation — Stripe payment gateway live on the store, storefront purchasing enabled, verified end-to-end test order including a refund. Tax ID received October 20, 2026 — Stripe account setup underway; all three platforms are targeted to launch October 21, 2026",
       "Full catalog rollout — publish the staged products, taking the shop from 48 to 181 live products",
       "Production resilience layer — request timeouts, graceful fallbacks, and on-demand product-data refresh across every store connection",
       "Traffic protection layer — rate limiting and spam protection on AI and form endpoints, credential lifecycle management",
@@ -1159,7 +1159,7 @@ const planA3ScopeSheets: ScopeSheet[] = [
     ],
     remaining: [
       "Commerce launch preparation — production-tier infrastructure upgrade, transactional email, and payment-grade access-control certification across every write path (clears the platform to take payments)",
-      "Commerce phase 1 (first revenue — top build priority) — Stripe Connect artist onboarding, tips and paid downloads, secure masters storage with entitlement-signed delivery, commerce agent tools, revenue reporting in the operator console. Stripe account setup is waiting on WholEarth's business Tax ID",
+      "Commerce phase 1 (first revenue — top build priority) — Stripe Connect artist onboarding, tips and paid downloads, secure masters storage with entitlement-signed delivery, commerce agent tools, revenue reporting in the operator console. Tax ID received October 20, 2026 — Stripe account setup underway; all three platforms are targeted to launch October 21, 2026",
       "Commerce phase 2 (merch) — print-quality AI-art upscaling, platform print-on-demand store integration, Market zone UI, live merch blocks on artist pages",
       "Scale layer — caching and static regeneration, high-volume reporting queries, durable background processing, platform-wide rate limiting with AI spend budgets, realtime subscription efficiency",
       "Production verification — end-to-end voice session and moderation sign-off on production",
@@ -1269,12 +1269,14 @@ const planA3InfraTerms = {
 };
 
 // Open items Lance owes the project — portal-only (Due Next + toasts).
+// 2026-10-20: the Tax ID was received — resolved, so the notice no longer shows.
 const planA3ClientActions: ClientAction[] = [
   {
     id: "stripe-tax-id",
     title: "Tax ID needed for Stripe",
     detail:
       "Send Pete the business Tax ID (EIN) so Stripe can be set up — it is the point of sale for both WholEarth Industries and WholEarth Records, and neither can take a payment without it.",
+    resolved: true,
   },
 ];
 
@@ -1293,7 +1295,7 @@ export const planA3: Plan = {
     "WholEarthRecords — a standalone artist platform: Three.js-powered artist pages, AI artist manager with brand-art generation, collab rooms, community wall, calendar, live voice sessions, and owner analytics. Build priority is revenue-first: the commerce lanes ship ahead of further 3D experience work.",
     "The Scope of Work sheets in this agreement list, per application, what has been delivered (checked) and what remains (unchecked). The applications are scoped separately and never mixed.",
     "playthewholearthgame.org — revamp of the existing site for live feeds, scoped on its own sheet at the end of the Scope of Work.",
-    "Both platforms take payments through Stripe — commerce activation on each is the next build step and is waiting on WholEarth's business Tax ID.",
+    "Both platforms take payments through Stripe — WholEarth's business Tax ID was received October 20, 2026, Stripe account setup is underway, and all three platforms are targeted to launch October 21, 2026.",
     "$4,500 of the agreement is already paid and credited.",
     "This addendum covers the $12,600 marketplace scope plus the $7,070 WholEarthRecords and playthewholearthgame.org scope, with project reviews every two weeks.",
     "A $2,250 / month maintenance retainer began October 1, 2026. It covers DTSP-AI's continued maintenance of all three applications and the platform infrastructure they run on. October's $2,250 is due October 20, 2026; from November 6, 2026 it is paid weekly — $562.50 on each of the first four Fridays of the month (4 × $562.50 = $2,250).",

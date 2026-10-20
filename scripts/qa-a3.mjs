@@ -159,7 +159,9 @@ assert(terms.includes("AI / API usage at normal operating levels"), "termsSummar
 assert(sigPanel.includes("proposalMeta.infraTerms.termsSentence") && content.includes("proposalMeta.infraTerms.body") && read("src/components/ProposalPage.tsx").includes("activePlan.meta.infraTerms"), "Checkbox, proposal page, and signed PDF all read the plan's infrastructure clause");
 assert(sigPanel.includes("infraTerms: plan.meta.infraTerms") && sigPanel.includes("maintenance: plan.meta.maintenance"), "Document hash covers the maintenance and infrastructure terms");
 assert(rick.includes("infrastructure") && rick.includes("Infrastructure is NOT billed separately"), "Rick explains the retainer covers infrastructure");
-assert(a3.includes('id: "stripe-tax-id"') && rick.includes("Tax ID"), "Tax ID request present in portal data and Rick's contract");
+assert(a3.includes('id: "stripe-tax-id"') && /id: "stripe-tax-id"[\s\S]{0,400}resolved: true/.test(a3), "Tax ID action present and resolved (received 2026-10-20)");
+assert(rick.includes("TAX ID: RECEIVED") && !rick.includes("THE ONE THING LANCE OWES"), "Rick knows the Tax ID is received and no longer asks for it");
+assert(!a3.includes("waiting on WholEarth's business Tax ID"), "No stale 'waiting on Tax ID' copy in A3");
 assert(portal.includes("nextPaymentDue(plan.meta)") && portal.includes("<PortalToasts"), "Portal derives next payment from the shared helper and mounts the toasts");
 assert(notices.includes("meta.retainer") && notices.includes("clientActions"), "Notices derive from retainer + client-action data");
 
