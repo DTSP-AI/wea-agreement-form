@@ -98,8 +98,8 @@ assert(!/\$18,920/.test(rick) && !/\$18,920/.test(a3), "No stale $18,920 total a
 assert(!/\$6,320/.test(rick) && !/\$6,320/.test(a3), "No stale $6,320 records figure remains");
 assert(!/\$3,750/.test(rick) && !/\$3,750/.test(a3), "No stale $3,750 payment remains");
 assert(rick.includes("$19,670"), "Rick quotes the current $19,670 total");
-assert(!/November 1|Nov 1/.test(a3) && !/November 1|Nov 1/.test(rick), "No stale Nov 1 retainer start remains");
-assert(a3.includes('headline: "$2,250 / month — begins October 1, 2026"'), "Retainer starts Oct 1, 2026 — the month after the final project payment");
+assert(!/November 1\b|Nov 1\b/.test(a3) && !/November 1\b|Nov 1\b/.test(rick), "No stale Nov 1 retainer start remains");
+assert(a3.includes('headline: "$2,250 / month — began October 1, 2026 · paid weekly from November 6, 2026"'), "Retainer headline: $2,250/month from Oct 1, paid weekly from Nov 6, 2026");
 assert(rick.includes("maintenance retainer begins October 1, 2026"), "Rick quotes the Oct 1 retainer start");
 const terms = a3.slice(a3.indexOf("termsSummary:"), a3.indexOf("maintenance: {"));
 assert(
@@ -107,13 +107,49 @@ assert(
   "termsSummary ends the project payments on Sep 1, not October 1"
 );
 assert(
-  terms.includes("$2,250 per month begins October 1, 2026"),
+  terms.includes("$2,250 per month began October 1, 2026"),
   "termsSummary states the Oct 1 retainer start"
+);
+
+console.log("\n== Retainer payment structure (amended 2026-10-20) ==");
+assert(4 * 562.5 === 2250, "4 × $562.50 = $2,250 — weekly split equals the monthly retainer");
+assert(
+  /retainer: \{[^}]*amount: "\$2,250"[^}]*firstDueIso: "2026-10-20"/s.test(a3),
+  "Retainer data: October's $2,250 due Oct 20, 2026"
+);
+assert(
+  /weekly: \{[^}]*amount: "\$562\.50"[^}]*firstDueIso: "2026-11-06"[^}]*perMonth: 4/s.test(a3),
+  "Weekly data: $562.50 from Fri Nov 6, 2026, four per month"
+);
+assert(new Date("2026-11-06T00:00:00Z").getUTCDay() === 5, "Nov 6, 2026 is a Friday");
+assert(
+  terms.includes("October's $2,250 is due October 20, 2026") &&
+    terms.includes("$562.50 on each of the first four Fridays of the month"),
+  "termsSummary states the Oct 20 draw and the $562.50 × 4 Friday structure"
+);
+assert(
+  a3.includes("paymentTerms:") && a3.includes("4 × $562.50 = $2,250 per month"),
+  "Maintenance box carries the payment structure with the arithmetic stated"
+);
+assert(
+  content.includes("proposalMeta.maintenance.paymentTerms") &&
+    read("src/components/ProposalPage.tsx").includes("m.paymentTerms") &&
+    portal.includes("plan.meta.maintenance?.paymentTerms"),
+  "Payment structure renders on the proposal page, in the signed PDF, and in the portal"
+);
+assert(a3.includes('termsVersion: "A3-2026-10-20"'), "Terms version bumped for the 2026-10-20 amendment");
+assert(
+  rick.includes("$562.50") && rick.includes("October 20, 2026") && rick.includes("November 6, 2026"),
+  "Rick quotes the Oct 20 draw and the $562.50 Friday installments"
+);
+assert(
+  !/\$2,250 \/ month — begins October 1, 2026"/.test(a3),
+  "No stale 'begins October 1' headline remains"
 );
 
 console.log("\n== Retainer, infrastructure & client actions ==");
 const notices = read("src/lib/portal-notices.ts");
-assert(/retainer: \{[^}]*amount: "\$2,250"[^}]*firstDueIso: "2026-10-01"/s.test(a3), "Retainer data: $2,250, first due Oct 1, 2026");
+assert(notices.includes("weeklyInstallmentDates") && portal.includes("weeklyInstallmentDates"), "Portal derives the Friday installments from the shared helper");
 assert(a3.includes("infraTerms: planA3InfraTerms"), "A3 carries its own infrastructure clause");
 const infra = a3.slice(a3.indexOf("const planA3InfraTerms"), a3.indexOf("planA3ClientActions"));
 assert(infra.includes("included in the $2,250 monthly maintenance retainer") && infra.includes("not billed separately"), "Infrastructure is included in the retainer, not billed separately");

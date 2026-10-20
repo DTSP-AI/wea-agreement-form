@@ -35,6 +35,7 @@ THE AGREEMENT — ANCHOR EVERY ANSWER HERE
 - Addendum 3 is $19,670 in five monthly payments: $3,600 May 20, $4,500 June 1, $4,500 July 1, $4,500 August 1, $2,570 September 1, 2026. The $2,570 on September 1 is the FINAL project payment. The $4,500 paid under the prior agreement is credited toward the project — it is not billed again and is not inside the $19,670.
 - Project reviews run every two weeks.
 - After the final payment, a $2,250/month maintenance retainer begins October 1, 2026 — debugging, testing, dependency and security updates, routine maintenance, plus the platform infrastructure the applications run on. New features or extra development are scoped and quoted separately.
+- How the retainer is paid: October 2026's $2,250 is due in full on October 20, 2026. From Friday November 6, 2026 it is paid weekly — $562.50 on each of the first four Fridays of the month (4 × $562.50 = $2,250). A fifth Friday in a month is not billed.
 - Ownership: WholEarth owns the delivered application code, content, and data. DTSP-AI retains ownership of its core proprietary architecture — the agreement's Proprietary Architecture & Licensing section governs, including an embedded-use license and the option of a separate licensing agreement for broader use. Plain version for Lance: "you own everything we delivered; Pete keeps the tools and methods he builds with."
 
 WHERE THINGS STAND (October 2026)
@@ -70,6 +71,7 @@ WHOLEARTH RECORDS (the artist platform — revenue first)
 
 MAINTENANCE — after the final payment (from October 1, 2026)
 - $2,250/month, month-to-month, billed separately from the $19,670 project total.
+- PAYMENT STRUCTURE: October's $2,250 is due in full on October 20, 2026. Starting Friday November 6, 2026 it is paid weekly — $562.50 every Friday, four times a month (the first four Fridays; 4 × $562.50 = $2,250). Plain version: "Same $2,250 a month, just split into four Friday payments of five-sixty-two fifty so it's lighter on cash flow."
 - WHAT IT PAYS FOR — two things. One: Pete's continued maintenance of all three applications — bug fixes and debugging, testing and regression checks, dependency and security updates, routine monitoring, uptime checks, upkeep. Two: the infrastructure the platforms run on — application hosting, databases and storage, voice infrastructure, and AI / API usage at normal operating levels. Those bills land on Pete, not Lance; the retainer is what covers them. Infrastructure is NOT billed separately on top.
 - NOT inside the retainer: payment-processor fees (Stripe takes its cut per transaction, like any card processor) and the accounts in WholEarth's own name — the GoDaddy store hosting and the domain registrations. Those stay with WholEarth.
 - Plain version for Lance: "The $2,250 keeps the lights on and keeps Pete on it. It pays for the servers, the databases, the AI usage — all the stuff the platforms run on — and for Pete keeping everything patched, tested, and running. You're not getting a separate hosting bill on top of it."
@@ -104,7 +106,7 @@ AGREEMENT FACTS (authoritative — do not improvise)
 - Addendum 3 total: $19,670, five monthly payments ($3,600 / $4,500 / $4,500 / $4,500 / $2,570, May 20 through September 1, 2026).
 - $4,500 already paid on the prior agreement — credited, not re-billed, not inside the $19,670.
 - Three Scope of Work sheets: $12,600 Industries marketplace, then $7,070 covering WholEarth Records plus the playthewholearthgame.org revamp for live feeds.
-- A $2,250/month maintenance retainer begins October 1, 2026. It covers Pete's continued maintenance and the platform infrastructure; Stripe's processing fees and WholEarth's own GoDaddy and domain accounts are outside it.
+- A $2,250/month maintenance retainer begins October 1, 2026. It covers Pete's continued maintenance and the platform infrastructure; Stripe's processing fees and WholEarth's own GoDaddy and domain accounts are outside it. October's $2,250 is due October 20, 2026; from November 6, 2026 it is paid as $562.50 on the first four Fridays of each month.
 - Both platforms take payments through Stripe. Stripe setup needs Lance's business Tax ID.
 - The Scope of Work sheets on this page — checked delivered, unchecked remaining — are the authoritative statement of the work. Refer to them; do not invent milestones.
 - GoDaddy: hosts the WooCommerce store only. DTSP-AI builds and runs everything else, storefront included.
@@ -341,7 +343,7 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["retainer", "maintenance", "infrastructure", "infra", "2,250", "2250", "monthly fee", "servers"],
-    response: "The $2,250 a month started October 1, and it pays for two things. One is Pete — keeping all three applications patched, tested, debugged, and running. The other is the infrastructure they run on — the hosting, the databases, the voice stuff, the AI usage. Those bills land on Pete, and the retainer covers them, so you're not getting a separate hosting bill on top. What's outside it: Stripe's per-transaction fees, and your own GoDaddy and domain accounts. New features get scoped and quoted separately.",
+    response: "The $2,250 a month started October 1, and it pays for two things. One is Pete — keeping all three applications patched, tested, debugged, and running. The other is the infrastructure they run on — the hosting, the databases, the voice stuff, the AI usage. Those bills land on Pete, and the retainer covers them, so you're not getting a separate hosting bill on top. How it's paid: October's $2,250 is due October 20, then from Friday November 6 it's $562.50 every Friday, four a month — same $2,250, lighter on cash flow. What's outside it: Stripe's per-transaction fees, and your own GoDaddy and domain accounts. New features get scoped and quoted separately.",
     nextStage: "post_phase1",
   },
   {
@@ -407,7 +409,7 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["phase", "milestone", "deliverable", "scope"],
-    response: "The Scope of Work sheets — one per application, checked is delivered, unchecked is remaining. Industries: commerce activation, full catalog, hardening, automated sync, multi-supplier. Records: revenue lanes first — tips, downloads, merch — then scale and launch. Reviews every two weeks. The $2,250-a-month maintenance retainer started October 1 — Pete's upkeep plus the infrastructure. New features get quoted separately.",
+    response: "The Scope of Work sheets — one per application, checked is delivered, unchecked is remaining. Industries: commerce activation, full catalog, hardening, automated sync, multi-supplier. Records: revenue lanes first — tips, downloads, merch — then scale and launch. Reviews every two weeks. The $2,250-a-month maintenance retainer started October 1 — Pete's upkeep plus the infrastructure — paid as $562.50 on the first four Fridays of each month from November 6. New features get quoted separately.",
     nextStage: "post_phase1",
   },
   {

@@ -63,7 +63,11 @@ import {
   KeyRound,
 } from "lucide-react";
 import { planA3 } from "@/lib/proposal-data";
-import { nextPaymentDue } from "@/lib/portal-notices";
+import {
+  dateLabel,
+  nextPaymentDue,
+  weeklyInstallmentDates,
+} from "@/lib/portal-notices";
 import PortalToasts from "@/components/PortalToasts";
 
 const RickChat = dynamic(() => import("@/components/RickChat"), {
@@ -1120,6 +1124,34 @@ export default function ClientPortal() {
   );
   // First open scheduled payment, else the next retainer month.
   const nextPayment = nextPaymentDue(plan.meta);
+  // Maintenance retainer rows for the payment schedule — the monthly draw
+  // (October) followed by the next weekly Friday installments. Derived from
+  // the same retainer data the toasts and Due Next read, so they agree.
+  const retainerRows = (() => {
+    const r = plan.meta.retainer;
+    if (!r) return [];
+    const rows: { isoDate: string; amount: string; tag: string; paid: boolean }[] = [
+      {
+        isoDate: r.firstDueIso,
+        amount: r.amount,
+        tag: r.label,
+        paid: Boolean(r.paidThroughIso),
+      },
+    ];
+    if (r.weekly) {
+      const w = r.weekly;
+      const upcoming = weeklyInstallmentDates(w.firstDueIso, w.perMonth, 8);
+      upcoming.forEach((iso, i) => {
+        rows.push({
+          isoDate: iso,
+          amount: w.amount,
+          tag: `${w.label} ${i + 1}`,
+          paid: Boolean(w.paidThroughIso && iso <= w.paidThroughIso),
+        });
+      });
+    }
+    return rows;
+  })();
   const openActions = (plan.meta.clientActions ?? []).filter((a) => !a.resolved);
 
   // Build the plan-shape description for the "Plan Total" stat card.
@@ -1705,6 +1737,74 @@ export default function ClientPortal() {
               </tbody>
             </table>
           </div>
+
+          {retainerRows.length > 0 && plan.meta.retainer && (
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="text-[10px] uppercase tracking-[0.25em] text-green-300 font-bold">
+                  Maintenance Retainer — {plan.meta.retainer.amount} / month
+                </div>
+                <div className="h-px flex-1 bg-[#262626]" />
+              </div>
+              {plan.meta.maintenance?.paymentTerms && (
+                <p className="text-xs text-zinc-500 mb-3">
+                  {plan.meta.maintenance.paymentTerms}
+                </p>
+              )}
+              <div className="overflow-hidden rounded-xl border border-[#262626]">
+                <table className="w-full text-sm">
+                  <tbody>
+                    {retainerRows.map((row) => {
+                      const isNext = nextPayment?.isoDate === row.isoDate;
+                      return (
+                        <tr
+                          key={row.isoDate}
+                          className={`border-t first:border-t-0 border-[#262626] ${
+                            row.paid
+                              ? "bg-green-500/5"
+                              : isNext
+                                ? "bg-yellow-500/5"
+                                : ""
+                          }`}
+                        >
+                          <td className="px-4 py-3 text-zinc-200 text-xs">
+                            {dateLabel(row.isoDate)}
+                          </td>
+                          <td
+                            className={`px-4 py-3 font-semibold text-xs ${
+                              row.paid
+                                ? "text-green-300 line-through decoration-green-500/40"
+                                : isNext
+                                  ? "text-yellow-300"
+                                  : "text-white"
+                            }`}
+                          >
+                            {row.amount}
+                          </td>
+                          <td className="px-4 py-3">
+                            {row.paid ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-green-500 text-black text-[10px] font-bold uppercase tracking-wider">
+                                <CheckCircle className="w-3 h-3" />
+                                Paid
+                              </span>
+                            ) : isNext ? (
+                              <span className="px-2 py-0.5 rounded bg-yellow-500 text-black text-[10px] font-bold uppercase tracking-wider">
+                                Due Next
+                              </span>
+                            ) : (
+                              <span className="text-zinc-500 text-[11px]">
+                                {row.tag}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Kickoff */}

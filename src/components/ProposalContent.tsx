@@ -685,6 +685,16 @@ export default function ProposalContent({ plan = planC }: { plan?: Plan }) {
               <p className="text-zinc-400 text-sm leading-relaxed mb-4">
                 {proposalMeta.maintenance.intro}
               </p>
+              {proposalMeta.maintenance.paymentTerms && (
+                <div className="bg-green-950/20 border border-green-800/40 rounded-lg p-3 mb-4">
+                  <div className="text-green-300 text-[10px] font-bold uppercase tracking-wider mb-1">
+                    Payment structure
+                  </div>
+                  <p className="text-zinc-300 text-xs leading-relaxed">
+                    {proposalMeta.maintenance.paymentTerms}
+                  </p>
+                </div>
+              )}
               <div className="text-zinc-300 text-[11px] font-semibold uppercase tracking-wider mb-1.5">
                 What maintenance covers
               </div>

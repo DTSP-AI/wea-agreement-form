@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "qa:a3": "node scripts/qa-a3.mjs"
+    "qa:a3": "node scripts/qa-a3.mjs",
+    "qa:retainer": "node scripts/qa-retainer.mts"
   },
   "dependencies": {
     "@openai/agents": "^0.8.5",
+    "@vercel/blob": "^2.8.2",
     "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",

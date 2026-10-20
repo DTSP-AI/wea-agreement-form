@@ -488,7 +488,8 @@ export default function SignaturePanel({
           <p className="text-zinc-500 text-[11px] mt-2 leading-relaxed">
             Works on any phone, tablet, or computer — iPhone and Android,
             Safari and Chrome. Your signed PDF downloads straight to your
-            device; nothing is emailed or routed back to us.
+            device, and an identical copy is archived for DTSP-AI so both
+            parties hold the same signed document.
           </p>
         </div>
 

@@ -51,6 +51,11 @@ export default function ProposalPage({
   const [signedData, setSignedData] = useState<SignedData | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [pdfDownloaded, setPdfDownloaded] = useState(false);
+  // DTSP-AI's archived copy of the signed PDF — status of the POST to
+  // /api/agreements/signed. The client's download never waits on it.
+  const [archiveStatus, setArchiveStatus] = useState<
+    "idle" | "saving" | "saved" | "unavailable" | "failed"
+  >("idle");
   const [activePlanId, setActivePlanId] = useState<PlanId>(initialPlanId);
   const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -393,6 +398,14 @@ export default function ProposalPage({
           spaceAfter: 4,
         });
         writeWrapped(m.intro, { size: 9, color: [70, 70, 70], spaceAfter: 4 });
+        if (m.paymentTerms) {
+          writeWrapped(m.paymentTerms, {
+            size: 9,
+            bold: true,
+            color: [50, 50, 50],
+            spaceAfter: 4,
+          });
+        }
         writeWrapped("Maintenance covers: " + m.covers.join("; ") + ".", {
           size: 9,
           color: [70, 70, 70],
@@ -601,6 +614,40 @@ export default function ProposalPage({
       }
       setTimeout(() => URL.revokeObjectURL(url), 30000);
       setPdfDownloaded(true);
+
+      // ---------- Archive DTSP-AI's copy (same bytes) ----------
+      if (sig?.clientSignature && sig.clientName) {
+        setArchiveStatus("saving");
+        try {
+          const bytes = new Uint8Array(await blob.arrayBuffer());
+          let binary = "";
+          for (let i = 0; i < bytes.length; i += 0x8000) {
+            binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+          }
+          const res = await fetch("/api/agreements/signed", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              planId: activePlan.id,
+              pdfBase64: btoa(binary),
+              record: {
+                clientName: sig.clientName,
+                clientTitle: sig.clientTitle,
+                clientDate: sig.clientDate,
+                signedAtIso: sig.signedAtIso ?? new Date().toISOString(),
+                docHash: sig.docHash,
+                termsVersion: sig.termsVersion,
+                representedEntity: sig.representedEntity,
+              },
+            }),
+          });
+          if (res.ok) setArchiveStatus("saved");
+          else if (res.status === 503) setArchiveStatus("unavailable");
+          else setArchiveStatus("failed");
+        } catch {
+          setArchiveStatus("failed");
+        }
+      }
     } catch (err) {
       console.error("PDF export failed:", err);
       alert("PDF export failed. Please try again.");
@@ -752,6 +799,36 @@ export default function ProposalPage({
                     <div className="text-zinc-400 text-xs mt-1">
                       Checklist, Drive folders, payment schedule, and Rick
                       — all in one place.
+                    </div>
+                    <div
+                      className={`text-xs mt-2 ${
+                        archiveStatus === "saved"
+                          ? "text-green-300"
+                          : archiveStatus === "saving"
+                            ? "text-zinc-400"
+                            : "text-yellow-300"
+                      }`}
+                    >
+                      {archiveStatus === "saving" &&
+                        "Archiving DTSP-AI's copy of the signed PDF…"}
+                      {archiveStatus === "saved" &&
+                        "DTSP-AI's copy of the signed PDF is archived — both parties now hold the same document."}
+                      {(archiveStatus === "unavailable" ||
+                        archiveStatus === "failed") && (
+                        <>
+                          DTSP-AI&apos;s copy could not be archived automatically.
+                          Please email the downloaded PDF to{" "}
+                          <a
+                            href={`mailto:${activePlan.meta.contact}?subject=${encodeURIComponent(
+                              "Signed agreement — " + activePlan.name
+                            )}`}
+                            className="underline"
+                          >
+                            {activePlan.meta.contact}
+                          </a>
+                          .
+                        </>
+                      )}
                     </div>
                   </div>
                   <a

@@ -63,8 +63,41 @@ function addMonth(iso: string): string {
   return next.toISOString().slice(0, 10);
 }
 
+function addDays(iso: string, days: number): string {
+  return new Date(toUTC(iso) + days * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** Which occurrence of its weekday this date is within its month (1–5). */
+function weekdayOrdinalInMonth(iso: string): number {
+  return Math.ceil(Number(iso.slice(8, 10)) / 7);
+}
+
+/** Weekly installment due dates: every 7 days from `firstDueIso`, keeping
+ *  only the first `perMonth` occurrences of that weekday in each calendar
+ *  month (a fifth Friday is skipped so the month totals exactly
+ *  `perMonth × amount`). Returns the first `count` dates strictly after
+ *  `afterIso` (or from `firstDueIso` when `afterIso` is null). */
+export function weeklyInstallmentDates(
+  firstDueIso: string,
+  perMonth: number,
+  count: number,
+  afterIso: string | null = null
+): string[] {
+  const out: string[] = [];
+  let d = firstDueIso;
+  while (out.length < count) {
+    const skip =
+      weekdayOrdinalInMonth(d) > perMonth || (afterIso !== null && d <= afterIso);
+    if (!skip) out.push(d);
+    d = addDays(d, 7);
+  }
+  return out;
+}
+
 /** The oldest payment not yet received: the first open scheduled payment,
- *  otherwise the next retainer month after the last one received. */
+ *  otherwise the retainer — its monthly draw until that is received, then
+ *  the next weekly installment after the last one received (or the next
+ *  retainer month when the plan has no weekly installments). */
 export function nextPaymentDue(meta: ProposalMeta): PaymentDue | null {
   const open = (meta.paymentSchedule ?? []).find((p) => !p.paid);
   if (open) {
@@ -78,6 +111,22 @@ export function nextPaymentDue(meta: ProposalMeta): PaymentDue | null {
   }
   const r = meta.retainer;
   if (!r) return null;
+  if (r.paidThroughIso && r.weekly) {
+    const w = r.weekly;
+    const [isoDate] = weeklyInstallmentDates(
+      w.firstDueIso,
+      w.perMonth,
+      1,
+      w.paidThroughIso ?? null
+    );
+    return {
+      amount: w.amount,
+      isoDate,
+      dateLabel: dateLabel(isoDate),
+      tag: w.label,
+      label: w.label,
+    };
+  }
   const isoDate = r.paidThroughIso ? addMonth(r.paidThroughIso) : r.firstDueIso;
   return {
     amount: r.amount,
