@@ -1119,9 +1119,7 @@ const planA3ScopeSheets: ScopeSheet[] = [
       "Lead capture live on the store — contact, newsletter, notify-me, and partner application forms with REST integration",
       "Rick copilot — streaming AI assistant live on the site",
       "42 automated unit tests passing + CI gate on the deployment branches",
-    ],
-    remaining: [
-      "Commerce activation — Stripe payment gateway live on the store, storefront purchasing enabled, verified end-to-end test order including a refund. Tax ID received October 20, 2026 — Stripe account setup underway; all three platforms are targeted to launch October 21, 2026",
+      "Commerce activation — Stripe payment gateway live on the store, storefront purchasing enabled, verified end-to-end test order including a refund",
       "Full catalog rollout — publish the staged products, taking the shop from 48 to 181 live products",
       "Production resilience layer — request timeouts, graceful fallbacks, and on-demand product-data refresh across every store connection",
       "Traffic protection layer — rate limiting and spam protection on AI and form endpoints, credential lifecycle management",
@@ -1130,6 +1128,8 @@ const planA3ScopeSheets: ScopeSheet[] = [
       "Inventory integrity engine — real-time sold and stock accuracy, supplier catalog reconciliation, sync health alerting",
       "Revenue-path test suite — automated end-to-end purchase-flow testing plus unit coverage across the revenue boundary",
       "Multi-supplier expansion — parameterized catalog feed and plugin support for additional makers, each with their own markup and SKU space",
+    ],
+    remaining: [
       "Maker imagery and affiliate attribution — real maker photography and referral tracking preserved through checkout",
       "Growth layer (activates at 4+ makers) — collab drops, email cadence from the notify-me list, community features sequenced by maker count",
     ],

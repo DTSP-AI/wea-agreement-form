@@ -29,7 +29,7 @@ You are talking to Alanson (goes by Lance), a sharp, experienced guy who has bee
 
 THE AGREEMENT — ANCHOR EVERY ANSWER HERE
 - This page is Plan A · Addendum 3, dated May 2026 — the agreement of record. It covers TWO applications plus one site revamp, each with its own Scope of Work sheet, never mixed:
-  1. WholEarth Industries — the marketplace. A conversion-first storefront on wholearthindustries.com built by DTSP-AI, the WooCommerce store at store.wholearthindustries.com, and an automated supplier catalog pipeline feeding the shop. Product pages, the makers hub, the partner vetting funnel, and me (the on-site copilot) are live. What remains is on the sheet: turning purchasing on, publishing the full catalog, hardening, automated sync, and multi-supplier expansion.
+  1. WholEarth Industries — the marketplace. A conversion-first storefront on wholearthindustries.com built by DTSP-AI, the WooCommerce store at store.wholearthindustries.com, and an automated supplier catalog pipeline feeding the shop. Product pages, the makers hub, the partner vetting funnel, and me (the on-site copilot) are live. Commerce is checked off too: purchasing on, the full catalog, the resilience and traffic-protection layers, search optimization, hands-free catalog sync, the inventory integrity engine, the revenue-path test suite, and multi-supplier expansion. What remains on the sheet is maker imagery with affiliate attribution, and the growth layer that activates at four or more makers.
   2. WholEarth Records — a standalone artist platform. Three.js-powered artist pages, an AI artist manager with brand-art generation, collab rooms, a community wall, calendar, live voice sessions, and owner analytics are built. Revenue lane one is delivered: commerce launch prep and commerce phase 1 — Stripe Connect artist onboarding, tips and paid downloads — are checked off as of October 20, 2026. Merch (phase 2), scale, verification, and public launch remain, and they ship before further 3D experience work.
 - The third sheet is playthewholearthgame.org — a revamp of that existing site for live feeds. The rebuild is running on a development address: the Wall (a social feed with member posts and imagery), a video hero, and the board — six historical-figure AI members posting daily. The live feeds themselves are the remaining work on that sheet.
 - Each sheet shows checked items (delivered) and unchecked items (remaining under this agreement). Anything not listed is out of scope and quoted separately.
@@ -251,7 +251,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_differentiator",
   },
   urgency: {
-    text: "The honest answer? The heavy lifting's done — the sheets below show how much is already checked off. What's left on Industries is flipping commerce on and hardening it. What's left on Records is the money lanes — tips, downloads, merch. Both of those run through Stripe — and now that your Tax ID's in, Pete's setting the account up. All three platforms are targeted to launch October 21. The money switches are about to flip.",
+    text: "The honest answer? The heavy lifting's done — the sheets below show how much is already checked off. Industries has commerce, the full catalog, and the hardening checked off — what's left there is maker imagery with affiliate tracking, and the growth layer once you're at four-plus makers. Records has tips and downloads checked off — merch is next. Your Tax ID's in, Pete's setting up Stripe, and all three platforms are targeted to launch October 21.",
     nextStage: "post_urgency",
   },
   let_read: {
@@ -279,11 +279,11 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
     nextStage: "post_ownership",
   },
   phase1: {
-    text: "It's all on the two sheets, man — that's the beauty of it. Industries: what's left is commerce activation with a real test order, publishing the full catalog, resilience and traffic protection, automated fifteen-minute catalog sync, the inventory integrity engine, and multi-supplier expansion. Records: commerce launch prep and revenue lane one — tips and paid downloads — are checked off now; what's left is merch, scale work, verification, and public launch. Both commerce pieces run on Stripe — your Tax ID's in and Pete's setting it up, with all three platforms targeted to launch October 21. Checked is done, unchecked is the work. Nothing hiding.",
+    text: "It's all on the two sheets, man — that's the beauty of it. Industries: commerce, the full catalog, resilience and traffic protection, search, the fifteen-minute catalog sync, inventory integrity, the revenue-path tests, and multi-supplier are all checked off — what's left is maker imagery with affiliate attribution, and the growth layer at four-plus makers. Records: commerce launch prep and revenue lane one — tips and paid downloads — are checked off now; what's left is merch, scale work, verification, and public launch. Both commerce pieces run on Stripe — your Tax ID's in and Pete's setting it up, with all three platforms targeted to launch October 21. Checked is done, unchecked is the work. Nothing hiding.",
     nextStage: "post_phase1",
   },
   phases_overview: {
-    text: "Two applications, two sheets. The Industries marketplace — storefront, pipeline, makers, partner funnel live; commerce activation and hardening remaining. WholEarth Records — the artist platform built and revenue lane one delivered; merch, scale, and public launch remaining. Project reviews every two weeks so you always know where it stands, and the sheets on this page are the authoritative list.",
+    text: "Two applications, two sheets. The Industries marketplace — storefront, pipeline, makers, partner funnel, commerce, and hardening delivered; maker imagery and the growth layer remaining. WholEarth Records — the artist platform built and revenue lane one delivered; merch, scale, and public launch remaining. Project reviews every two weeks so you always know where it stands, and the sheets on this page are the authoritative list.",
     nextStage: "post_investment",
   },
   payment_flow: {
@@ -307,7 +307,7 @@ export const rickResponses: Record<string, { text: string; nextStage: string }> 
   // These fire when user clicks the inline CTAs at the bottom of proposal sections
 
   section_parallel: {
-    text: "Yeah so the two builds run on their own tracks — the Industries marketplace and the Records platform don't wait on each other. Industries is live and getting its commerce switch flipped; Records is built and shipping its revenue lanes. Two sheets, two tracks, one agreement. Want me to break down either one?",
+    text: "Yeah so the two builds run on their own tracks — the Industries marketplace and the Records platform don't wait on each other. Industries has its commerce and hardening checked off; Records has its first revenue lane checked off and merch is next. Two sheets, two tracks, one agreement. Want me to break down either one?",
     nextStage: "post_urgency",
   },
   section_comparison: {
@@ -417,7 +417,7 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["phase", "milestone", "deliverable", "scope"],
-    response: "The Scope of Work sheets — one per application, checked is delivered, unchecked is remaining. Industries: commerce activation, full catalog, hardening, automated sync, multi-supplier. Records: tips and downloads are delivered; merch, scale, and public launch remain. Reviews every two weeks. The $2,250-a-month maintenance retainer started October 1 — Pete's upkeep plus the infrastructure — paid as $562.50 on the first four Fridays of each month from November 6. New features get quoted separately.",
+    response: "The Scope of Work sheets — one per application, checked is delivered, unchecked is remaining. Industries: commerce, full catalog, hardening, automated sync, and multi-supplier are delivered; maker imagery and the growth layer remain. Records: tips and downloads are delivered; merch, scale, and public launch remain. Reviews every two weeks. The $2,250-a-month maintenance retainer started October 1 — Pete's upkeep plus the infrastructure — paid as $562.50 on the first four Fridays of each month from November 6. New features get quoted separately.",
     nextStage: "post_phase1",
   },
   {

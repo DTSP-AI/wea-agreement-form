@@ -180,6 +180,14 @@ assert(gameSheet.length > 0, "playthewholearthgame.org sheet present in the scop
 assert(a3.indexOf("playthewholearthgame.org — Revamp for Live Feeds") > recordsStart, "Game sheet sits at the tail end, after the two platform sheets");
 assert(/done: \[[\s\S]*?Commerce launch preparation[\s\S]*?Commerce phase 1 \(first revenue\)[\s\S]*?\],\s*remaining: \[/.test(a3.slice(a3.indexOf('title: "WholEarthRecords — Artist Platform"'))), "Records sheet: commerce launch prep and phase 1 are delivered");
 assert(!a3.slice(a3.indexOf('title: "WholEarthRecords — Artist Platform"')).split('boundary:')[0].includes("top build priority"), "Records sheet carries no stale 'top build priority' tag once phase 1 is delivered");
+{
+  const ind = industriesSheet;
+  const done = ind.slice(ind.indexOf("done: ["), ind.indexOf("remaining: ["));
+  const rem = ind.slice(ind.indexOf("remaining: ["), ind.indexOf("boundary:"));
+  const moved = ["Commerce activation", "Full catalog rollout", "Production resilience layer", "Traffic protection layer", "Search optimization", "Hands-free catalog sync", "Inventory integrity engine", "Revenue-path test suite", "Multi-supplier expansion"];
+  assert(moved.every((m) => done.includes(m) && !rem.includes(m)), "Industries sheet: the nine commerce/hardening items are delivered");
+  assert(rem.includes("Maker imagery and affiliate attribution") && rem.includes("Growth layer"), "Industries sheet: maker imagery and growth layer remain");
+}
 assert(gameSheet.includes("Development build live on a preview address"), "Game sheet lists the development build as delivered");
 assert(gameSheet.includes("revamp for live feeds") && gameSheet.includes("boundary"), "Game sheet states the remaining work and its scope boundary");
 assert(content.includes("sheet.done.length > 0"), "Proposal page skips the Delivered block when a sheet has nothing delivered");
