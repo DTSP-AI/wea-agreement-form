@@ -100,7 +100,7 @@ assert(!/\$3,750/.test(rick) && !/\$3,750/.test(a3), "No stale $3,750 payment re
 assert(rick.includes("$19,670"), "Rick quotes the current $19,670 total");
 assert(!/November 1\b|Nov 1\b/.test(a3) && !/November 1\b|Nov 1\b/.test(rick), "No stale Nov 1 retainer start remains");
 assert(a3.includes('headline: "$2,250 / month — began October 1, 2026 · paid weekly from November 6, 2026"'), "Retainer headline: $2,250/month from Oct 1, paid weekly from Nov 6, 2026");
-assert(rick.includes("maintenance retainer begins October 1, 2026"), "Rick quotes the Oct 1 retainer start");
+assert(rick.includes("maintenance retainer began October 1, 2026"), "Rick quotes the Oct 1 retainer start");
 const terms = a3.slice(a3.indexOf("termsSummary:"), a3.indexOf("maintenance: {"));
 assert(
   terms.includes("$2,570 on September 1, 2026") && !terms.includes("$2,570 on October 1"),
@@ -161,6 +161,7 @@ assert(sigPanel.includes("infraTerms: plan.meta.infraTerms") && sigPanel.include
 assert(rick.includes("infrastructure") && rick.includes("Infrastructure is NOT billed separately"), "Rick explains the retainer covers infrastructure");
 assert(a3.includes('id: "stripe-tax-id"') && /id: "stripe-tax-id"[\s\S]{0,400}resolved: true/.test(a3), "Tax ID action present and resolved (received 2026-10-20)");
 assert(rick.includes("TAX ID: RECEIVED") && !rick.includes("THE ONE THING LANCE OWES"), "Rick knows the Tax ID is received and no longer asks for it");
+assert(!rick.includes("and the Tax ID request") && rick.includes("targeted to launch October 21"), "Rick's portal context and launch target are current");
 assert(!a3.includes("waiting on WholEarth's business Tax ID"), "No stale 'waiting on Tax ID' copy in A3");
 assert(portal.includes("nextPaymentDue(plan.meta)") && portal.includes("<PortalToasts"), "Portal derives next payment from the shared helper and mounts the toasts");
 assert(notices.includes("meta.retainer") && notices.includes("clientActions"), "Notices derive from retainer + client-action data");

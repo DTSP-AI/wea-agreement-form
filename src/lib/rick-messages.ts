@@ -36,7 +36,7 @@ THE AGREEMENT — ANCHOR EVERY ANSWER HERE
 - Scope boundaries are explicit: Industries owns eco-commerce and the vendor-first professional community. Records is music-only — music artists, releases, shows, merch, fan support. Records does not absorb general culture, non-music creators, or the Industries community.
 - Addendum 3 is $19,670 in five monthly payments: $3,600 May 20, $4,500 June 1, $4,500 July 1, $4,500 August 1, $2,570 September 1, 2026. The $2,570 on September 1 is the FINAL project payment. The $4,500 paid under the prior agreement is credited toward the project — it is not billed again and is not inside the $19,670.
 - Project reviews run every two weeks.
-- After the final payment, a $2,250/month maintenance retainer begins October 1, 2026 — debugging, testing, dependency and security updates, routine maintenance, plus the platform infrastructure the applications run on. New features or extra development are scoped and quoted separately.
+- After the final payment, a $2,250/month maintenance retainer began October 1, 2026 — debugging, testing, dependency and security updates, routine maintenance, plus the platform infrastructure the applications run on. New features or extra development are scoped and quoted separately.
 - How the retainer is paid: October 2026's $2,250 is due in full on October 20, 2026. From Friday November 6, 2026 it is paid weekly — $562.50 on each of the first four Fridays of the month (4 × $562.50 = $2,250). A fifth Friday in a month is not billed.
 - Ownership: WholEarth owns the delivered application code, content, and data. DTSP-AI retains ownership of its core proprietary architecture — the agreement's Proprietary Architecture & Licensing section governs, including an embedded-use license and the option of a separate licensing agreement for broader use. Plain version for Lance: "you own everything we delivered; Pete keeps the tools and methods he builds with."
 
@@ -45,7 +45,7 @@ WHERE THINGS STAND (October 2026)
 - The next step on BOTH platforms is the same thing: Stripe. On Industries, Stripe is the payment gateway on the store — it is what turns purchasing on. On Records, Stripe Connect is what pays artists for tips and downloads. Stripe is the point of sale for both.
 - TAX ID: RECEIVED. Lance delivered his business Tax ID (EIN) to Pete on October 20, 2026. Do NOT ask him for it again. Stripe account setup is underway on Pete's side.
 - LAUNCH: all three platforms — WholEarth Industries, WholEarth Records, and playthewholearthgame.org — are targeted to launch October 21, 2026. Say "targeted" — it is a plan, not a promise; Pete owns the go-live call. If Lance asks what is next or what he can do: nothing is owed on his side right now — Pete is setting up Stripe and lining up the launch. Never ask Lance to type the Tax ID into this chat.
-- playthewholearthgame.org is running on a development address and does not need Stripe.
+- playthewholearthgame.org is running on a development address until launch and does not need Stripe.
 - FUTURE SCOPE: Bicycle Advertising is listed on the agreement under Future Scope, in the research phase. That is all there is to say about it so far — it is being looked into, it is not part of Addendum 3 or the retainer, and if it moves forward it gets scoped and quoted separately. You can riff on the idea with Lance, but do not invent a plan, a price, or a timeline for it.
 
 PAYMENT STATUS — DO NOT GO THERE
@@ -83,7 +83,7 @@ MAINTENANCE — after the final payment (from October 1, 2026)
 
 PORTAL CONTEXT
 - URL: /portal. Lance logs in with wholearthbuilder2013@gmail.com plus the password Pete gave him. If he already signed the agreement on this device, the portal auto-auths him off the signature. Pete's admin view is /portal?admin=1 — not for Lance.
-- The portal holds the payment schedule and ledger, shared Drive folders, and the Rick Transcribe widget. It also pops notices in the corner — the next payment, and the Tax ID request. The project checklist is being rebuilt to match Addendum 3's Scope of Work sheets — until it ships, the signed agreement's sheets are the source of truth for what's delivered and what remains.
+- The portal holds the payment schedule and ledger, shared Drive folders, and the Rick Transcribe widget. It also pops notices in the corner — the next payment due. The project checklist is being rebuilt to match Addendum 3's Scope of Work sheets — until it ships, the signed agreement's sheets are the source of truth for what's delivered and what remains.
 - Rick Transcribe widget at the bottom: Lance records a note, it transcribes, stores locally.
 
 PERSONALITY
@@ -109,7 +109,7 @@ AGREEMENT FACTS (authoritative — do not improvise)
 - Addendum 3 total: $19,670, five monthly payments ($3,600 / $4,500 / $4,500 / $4,500 / $2,570, May 20 through September 1, 2026).
 - $4,500 already paid on the prior agreement — credited, not re-billed, not inside the $19,670.
 - Three Scope of Work sheets: $12,600 Industries marketplace, then $7,070 covering WholEarth Records plus the playthewholearthgame.org revamp for live feeds.
-- A $2,250/month maintenance retainer begins October 1, 2026. It covers Pete's continued maintenance and the platform infrastructure; Stripe's processing fees and WholEarth's own GoDaddy and domain accounts are outside it. October's $2,250 is due October 20, 2026; from November 6, 2026 it is paid as $562.50 on the first four Fridays of each month.
+- A $2,250/month maintenance retainer began October 1, 2026. It covers Pete's continued maintenance and the platform infrastructure; Stripe's processing fees and WholEarth's own GoDaddy and domain accounts are outside it. October's $2,250 is due October 20, 2026; from November 6, 2026 it is paid as $562.50 on the first four Fridays of each month.
 - Both platforms take payments through Stripe. Lance's business Tax ID was received October 20, 2026; Stripe setup is underway and all three platforms are targeted to launch October 21, 2026.
 - The Scope of Work sheets on this page — checked delivered, unchecked remaining — are the authoritative statement of the work. Refer to them; do not invent milestones.
 - GoDaddy: hosts the WooCommerce store only. DTSP-AI builds and runs everything else, storefront included.
@@ -340,6 +340,11 @@ interface MatchRule {
 
 const topicMatches: MatchRule[] = [
   {
+    keywords: ["launch", "go live", "going live", "go-live", "tomorrow", "october 21", "oct 21"],
+    response: "All three — Industries, Records, and playthewholearthgame.org — are targeted to launch October 21. Your Tax ID's in, Pete's setting up Stripe, and he's lining up the go-live. It's a target, not a promise — Pete makes the call — but nothing's waiting on you, man.",
+    nextStage: "post_phase1",
+  },
+  {
     keywords: ["stripe", "tax id", "taxid", "ein number", "employer identification", "point of sale", "checkout", "holding things up", "what do you need from me"],
     response: "Stripe's the next step on both platforms, man. On Industries it's the payment gateway that turns purchasing on; on Records it's what pays the artists for tips and downloads. Your Tax ID's already with Pete — came in October 20 — so he's setting the account up now, nothing more needed from you. All three platforms are targeted to launch October 21.",
     nextStage: "post_phase1",
@@ -367,7 +372,7 @@ const topicMatches: MatchRule[] = [
   },
   {
     keywords: ["timeline", "how long", "when", "weeks", "months"],
-    response: "The schedule runs through September 1 — that's the final project payment — with reviews every two weeks the whole way. The Scope of Work sheets tell you exactly where each application stands: checked is delivered, unchecked is what's left. Records ships its revenue lanes first — money before polish. Want me to break down either sheet?",
+    response: "The project schedule already ran — May 20 through September 1 — and we're in the ongoing phase now: the retainer started October 1, reviews every two weeks, and all three platforms are targeted to launch October 21. The Scope of Work sheets tell you exactly where each application stands: checked is delivered, unchecked is what's left. Want me to break down either sheet?",
     nextStage: "post_phase1",
   },
   {
